@@ -157,8 +157,11 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   keys[14] = tmp1;
 }
 
-static void (*const extra_hashes[4])(const void *, size_t, char *) =
+static void (*const extra_hashes[8])(const void *, size_t, char *) =
 {
+    //jojapoppa, simply changed the order to throw off the ASICs - trivial change
+    //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
     hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
 };
 

@@ -184,5 +184,7 @@ cn_slow_hash_noaesni
 
   memcpy(ctx->state.init, ctx->text, INIT_SIZE_BYTE);
   hash_permutation(&ctx->state.hs);
-  extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, hash);
+
+  //jojapoppa, make the final hash selection a bit more complex to throw off ASICs - trivial change
+  extra_hashes[ctx->state.hs.b[0] & 7](&ctx->state, 200, hash);
 }

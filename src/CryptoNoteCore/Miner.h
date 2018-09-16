@@ -88,3 +88,4 @@ namespace CryptoNote {
     bool m_do_mining;
   };
 }
+
