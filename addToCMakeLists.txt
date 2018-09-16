@@ -1,0 +1,8 @@
+#jojapoppa added for static linking
+set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(BUILD_SHARED_LIBS OFF)
+set(STATIC ON CACHE BOOL "Link libraries statically")
+#BOOST_THREAD_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libpthread.a
+set(BOOST_THREAD_LIBRARY boost_thread)
+
