@@ -994,6 +994,16 @@ typedef long long sph_s64;
  * normally restrained to this header file.
  */
 
+#define SPH_SPARCV9_GCC_32 0
+#define SPH_SPARCV9_GCC_64 0
+#define SPH_SPARCV9_GCC 0
+#define SPH_I386_GCC 0
+#define SPH_I386_MSVC 0
+#define SPH_AMD64_MSVC 0
+#define SPH_PPC32_GCC 0 
+#define SPH_PPC64_GCC 0
+#define SPH_AMD64_GCC 1
+
 /*
  * 32-bit x86, aka "i386 compatible".
  */
