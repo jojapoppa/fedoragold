@@ -486,9 +486,13 @@ namespace CryptoNote
     logger(INFO) << "Starting node_server";
 
     m_workingContextGroup.spawn(std::bind(&NodeServer::acceptLoop, this));
+    logger(INFO) << "  acceptLoop started...";
     m_workingContextGroup.spawn(std::bind(&NodeServer::onIdle, this));
+    logger(INFO) << "  onIdle started...";
     m_workingContextGroup.spawn(std::bind(&NodeServer::timedSyncLoop, this));
+    logger(INFO) << "  timedSyncLoop started...";
     m_workingContextGroup.spawn(std::bind(&NodeServer::timeoutLoop, this));
+    logger(INFO) << "  timeoutLoop started...";
 
     m_stopEvent.wait();
 
