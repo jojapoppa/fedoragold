@@ -51,7 +51,6 @@ TEST_F(TimerTests, movedAndStoopedTimerIsWorking) {
     contextGroup.interrupt();
     Timer t(std::move(src));
 
-    //jojapoppa - WIP
     ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
   });
 }
@@ -153,7 +152,6 @@ TEST_F(TimerTests, movedAndStoopedTimerIsWorking2) {
     Timer t(dispatcher);
     t = std::move(src);
 
-    //jojapoppa - WIP 
     ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
   });
 }
@@ -174,7 +172,6 @@ TEST_F(TimerTests, timerStartIsWorking) {
     Timer t(dispatcher);
     contextGroup.interrupt();
     
-    //jojapoppa - WIP
     ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
     ASSERT_NO_THROW(t.sleep(std::chrono::milliseconds(1)));
   });
@@ -185,7 +182,6 @@ TEST_F(TimerTests, timerStopBeforeSleep) {
     Timer t(dispatcher);
     contextGroup.interrupt();
     
-    //jojapoppa - WIP
     ASSERT_THROW(t.sleep(std::chrono::milliseconds(1)), InterruptedException);
     contextGroup.interrupt();
     ASSERT_THROW(t.sleep(std::chrono::milliseconds(1)), InterruptedException);
