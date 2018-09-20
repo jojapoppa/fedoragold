@@ -47,12 +47,12 @@ TEST_F(TimerTests, movedTimerIsWorking) {
 
 TEST_F(TimerTests, movedAndStoopedTimerIsWorking) {
   contextGroup.spawn([&] {
-    //Timer src(dispatcher);
-    //contextGroup.interrupt();
-    //Timer t(std::move(src));
+    Timer src(dispatcher);
+    contextGroup.interrupt();
+    Timer t(std::move(src));
 
     //jojapoppa - WIP
-    //ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
+    ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
   });
 }
 
@@ -148,13 +148,13 @@ TEST_F(TimerTests, movedTimerIsWorking2) {
 
 TEST_F(TimerTests, movedAndStoopedTimerIsWorking2) {
   contextGroup.spawn([&] {
-    //Timer src(dispatcher);
-    //contextGroup.interrupt();
-    //Timer t(dispatcher);
-    //t = std::move(src);
+    Timer src(dispatcher);
+    contextGroup.interrupt();
+    Timer t(dispatcher);
+    t = std::move(src);
 
     //jojapoppa - WIP 
-    //ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
+    ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
   });
 }
 
@@ -171,24 +171,24 @@ TEST_F(TimerTests, movedTimerIsTheSame) {
 
 TEST_F(TimerTests, timerStartIsWorking) {
   contextGroup.spawn([&] {
-    //Timer t(dispatcher);
-    //contextGroup.interrupt();
+    Timer t(dispatcher);
+    contextGroup.interrupt();
     
     //jojapoppa - WIP
-    //ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
-    //ASSERT_NO_THROW(t.sleep(std::chrono::milliseconds(1)));
+    ASSERT_ANY_THROW(t.sleep(std::chrono::milliseconds(1)));
+    ASSERT_NO_THROW(t.sleep(std::chrono::milliseconds(1)));
   });
 }
 
 TEST_F(TimerTests, timerStopBeforeSleep) {
   contextGroup.spawn([&] {
-    //Timer t(dispatcher);
-    //contextGroup.interrupt();
+    Timer t(dispatcher);
+    contextGroup.interrupt();
     
     //jojapoppa - WIP
-    //ASSERT_THROW(t.sleep(std::chrono::milliseconds(1)), InterruptedException);
-    //contextGroup.interrupt();
-    //ASSERT_THROW(t.sleep(std::chrono::milliseconds(1)), InterruptedException);
+    ASSERT_THROW(t.sleep(std::chrono::milliseconds(1)), InterruptedException);
+    contextGroup.interrupt();
+    ASSERT_THROW(t.sleep(std::chrono::milliseconds(1)), InterruptedException);
   });
 }
 
