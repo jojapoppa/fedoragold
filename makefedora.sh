@@ -1,4 +1,4 @@
 #!/bin/sh
 
-export BOOST_ROOT=/home/fork/fedoraboost
+export BOOST_ROOT=/home/fork/boostfedora
 make build-release

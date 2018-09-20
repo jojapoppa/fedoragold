@@ -4,11 +4,19 @@ set(VERSION "0.1")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
 #jojapoppa added for static linking
-set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME ON)
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-Bstatic")
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(BOOST_DEBUG ON)
+set(BOOST_HAS_THREADS ON)
+set(BOOST_HAS_PTHREADS ON)
 set(BUILD_SHARED_LIBS OFF)
 set(STATIC ON CACHE BOOL "Link libraries statically")
 set(BOOST_THREAD_LIBRARY boost_thread)
+#set(BOOST_THREAD_LIBRARY libpthread.a)
+#add_library(c STATIC IMPORTED)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL)
