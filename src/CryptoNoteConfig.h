@@ -74,7 +74,8 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 
 // Put here the name of your currency
 const char     CRYPTONOTE_NAME[]                             = "fedoragold";
-const char     GENESIS_COINBASE_TX_HEX[] = "013001ff0001a282a38eab04029b2e4c0281c0b02e7c53291a94d1d0cbff8883f8024f5142ee494ffbbd0880712101d775f7b05f15fe74679c74def5dddb46bf7482860fd1b39e290bc09c4f64a391";
+
+const char GENESIS_COINBASE_TX_HEX[] = "013001ff0001a282a38eab04029b2e4c0281c0b02e7c53291a94d1d0cbff8883f8024f5142ee494ffbbd088071210199f0e78c761f6b6788ec218e9cc572417265612339fb56369ee6105b85e3de01";
 
 const uint8_t  CURRENT_TRANSACTION_VERSION                   =  1;
 const uint8_t  BLOCK_MAJOR_VERSION_1                         =  1;
@@ -108,6 +109,7 @@ const char     P2P_STAT_TRUSTED_PUB_KEY[]                    ="";
 const std::initializer_list<const char*> SEED_NODES = {
   "18.223.178.174:30158",
   "18.222.96.134:30158",
+  "52.89.89.1:30158",
 };
 
 struct CheckpointData {

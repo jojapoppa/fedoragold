@@ -159,10 +159,9 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
 
 static void (*const extra_hashes[8])(const void *, size_t, char *) =
 {
-    //jojapoppa, simply changed the order to throw off the ASICs - trivial change
     //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
     hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
-    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein 
 };
 
 #include "slow-hash.inl"
