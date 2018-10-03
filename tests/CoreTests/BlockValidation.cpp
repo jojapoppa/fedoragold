@@ -11,6 +11,9 @@ using namespace Common;
 using namespace Crypto;
 using namespace CryptoNote;
 
+//jojapoppa, how do i replace that constant in MAKE_GENESIS_BLOCK below?
+//uint64_t tstart = "82672686708503373886783173923046200693518383914920501786290140574563917720609135728488627734155571853511282210067139514151714786936034196087091204514017336508855938264579546577420858941645";  // the hex was converted into a decimal from the FED genesis block printed out by fedoragold_daemon
+
 #define BLOCK_VALIDATION_INIT_GENERATE()                        \
   GENERATE_ACCOUNT(miner_account);                              \
   MAKE_GENESIS_BLOCK(events, blk_0, miner_account, 1338224400);

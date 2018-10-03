@@ -482,9 +482,10 @@ class WalletServiceTest_getTransactions : public WalletServiceTest {
   virtual void SetUp() override;
 protected:
   std::vector<TransactionsInBlockInfo> testTransactions;
-  const std::string RANDOM_ADDRESS1 = "288DiQfYSxDNQoWpR6cy94i2AWyGnxo1L1MF2ZiXg58h9P52o576CSDcJp7ZceSXSUQ7u8aTF1MigQXzAtqRZ3Uq58Sne8x";
-  const std::string RANDOM_ADDRESS2 = "29PQ8VbzPi163kG59w5V8PR9A6watydfYAvwFcDS74KhDEyU9CGgqsDH719oeLbpAa4xtPsgfQ6Bv9RmKs1XZWudV6q6cmU";
-  const std::string RANDOM_ADDRESS3 = "23E4CVgzJok9zXnrKzvHgbKvMXZnAgsB9FA1pkAppR6d42dWMEuJjsfcJp7ZceSXSUQ7u8aTF1MigQXzAtqRZ3Uq5AHHbzZ";
+  const std::string RANDOM_ADDRESS1 = "6d1bcb9d472bd78ec8eb920ba1e46f514a8f635959d897b842910a5f1d5e78a9";
+  const std::string RANDOM_ADDRESS2 = "6363c4761646a8b35306b53a9ca3b1b743911c0c3b812b1f1638bab7cbaad298";
+  const std::string RANDOM_ADDRESS3 = "9e6691f37f6c5b03bbe66f2653058759f17a9d83255062d9108c45f6cea86258";
+
   const std::string TRANSACTION_EXTRA = "022100dededededededededededededededededededededededededededededededede";
   const std::string PAYMENT_ID = "dededededededededededededededededededededededededededededededede";
 };
