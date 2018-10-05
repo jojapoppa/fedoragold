@@ -350,7 +350,6 @@ struct COMMAND_RPC_GETBLOCKCOUNT {
 };
 
 struct COMMAND_RPC_GETBLOCKHASH {
-  //typedef std::vector<uint64_t> request;
   struct request {
     uint64_t height;
 
@@ -359,7 +358,12 @@ struct COMMAND_RPC_GETBLOCKHASH {
     }
   };
 
-  typedef std::string response;
+  struct response {
+    std::string hash;
+    void serialize(ISerializer &s) {
+      KV_MEMBER(hash)
+    } 
+  };
 };
 
 struct COMMAND_RPC_GETBLOCKTEMPLATE {
