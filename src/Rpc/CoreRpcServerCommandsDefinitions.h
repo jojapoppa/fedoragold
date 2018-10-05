@@ -77,11 +77,11 @@ struct COMMAND_RPC_GET_BLOCK_INDEXES {
 //    std::vector<std::string> missed_tx;  //not found transactions
 //    std::string status;
 
-//    void serialize(ISerializer &s) {
+    void serialize(ISerializer &s) {
 //      KV_MEMBER(txs_as_hex)
 //      KV_MEMBER(missed_tx)
 //      KV_MEMBER(status)
-//    }
+    }
   };
 };
 
@@ -89,9 +89,9 @@ struct COMMAND_RPC_GET_BLOCK {
   struct request {
 //    std::vector<std::string> txs_hashes;
 //
-//    void serialize(ISerializer &s) {
+    void serialize(ISerializer &s) {
 //      KV_MEMBER(txs_hashes)
-//    }
+    }
   };
 
   struct response {
@@ -99,11 +99,11 @@ struct COMMAND_RPC_GET_BLOCK {
 //    std::vector<std::string> missed_tx;  //not found transactions
 //    std::string status;
 //
-//    void serialize(ISerializer &s) {
+    void serialize(ISerializer &s) {
 //      KV_MEMBER(txs_as_hex)
 //      KV_MEMBER(missed_tx)
 //      KV_MEMBER(status)
-//    }
+    }
   };
 };
 
