@@ -575,6 +575,7 @@ bool core::handle_get_objects(NOTIFY_REQUEST_GET_OBJECTS::request& arg, NOTIFY_R
 
 Crypto::Hash core::getBlockIdByHeight(uint32_t height) {
   LockedBlockchainStorage lbs(m_blockchain);
+
   if (height < m_blockchain.getCurrentBlockchainHeight()) {
     return m_blockchain.getBlockIdByHeight(height);
   } else {
