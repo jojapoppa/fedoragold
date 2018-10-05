@@ -66,7 +66,47 @@ struct COMMAND_RPC_GET_BLOCKS_FAST {
     }
   };
 };
+
 //-----------------------------------------------
+
+struct COMMAND_RPC_GET_BLOCK_INDEXES {
+  typedef EMPTY_STRUCT request;
+
+  struct response {
+//    std::vector<std::string> txs_as_hex; //transactions blobs as hex
+//    std::vector<std::string> missed_tx;  //not found transactions
+//    std::string status;
+
+//    void serialize(ISerializer &s) {
+//      KV_MEMBER(txs_as_hex)
+//      KV_MEMBER(missed_tx)
+//      KV_MEMBER(status)
+//    }
+  };
+};
+
+struct COMMAND_RPC_GET_BLOCK {
+  struct request {
+//    std::vector<std::string> txs_hashes;
+//
+//    void serialize(ISerializer &s) {
+//      KV_MEMBER(txs_hashes)
+//    }
+  };
+
+  struct response {
+//    std::vector<std::string> txs_as_hex; //transactions blobs as hex
+//    std::vector<std::string> missed_tx;  //not found transactions
+//    std::string status;
+//
+//    void serialize(ISerializer &s) {
+//      KV_MEMBER(txs_as_hex)
+//      KV_MEMBER(missed_tx)
+//      KV_MEMBER(status)
+//    }
+  };
+};
+
 struct COMMAND_RPC_GET_TRANSACTIONS {
   struct request {
     std::vector<std::string> txs_hashes;
