@@ -42,13 +42,42 @@ struct COMMAND_RPC_GET_HEIGHT {
   };
 };
 
+struct COMMAND_RPC_GET_BLOCKS_BIN {
+
+  struct request {
+    std::vector<Crypto::Hash> block_ids; 
+    /*first 10 blocks id goes sequential, next goes in pow(2,n) offset, like 2, 4, 8, 16, 32, 64 and so on, and the last one is always genesis block */
+
+    void serialize(ISerializer &s) {
+      serializeAsBinary(block_ids, "block_ids", s);
+    }
+  };
+
+  struct response {
+    std::vector<block_complete_entry> blocks;
+    uint64_t start_height;
+    uint64_t current_height;
+    std::string status;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(blocks)
+      KV_MEMBER(start_height)
+      KV_MEMBER(current_height)
+      KV_MEMBER(status)
+    }
+  };
+};
+
 struct COMMAND_RPC_GET_BLOCKS_FAST {
 
   struct request {
-    std::vector<Crypto::Hash> block_ids; //*first 10 blocks id goes sequential, next goes in pow(2,n) offset, like 2, 4, 8, 16, 32, 64 and so on, and the last one is always genesis block */
+    std::vector<std::string> block_ids;
+    //std::vector<Crypto::Hash> block_ids; 
+    /*first 10 blocks id goes sequential, next goes in pow(2,n) offset, like 2, 4, 8, 16, 32, 64 and so on, and the last one is always genesis block */
     
     void serialize(ISerializer &s) {
-      serializeAsBinary(block_ids, "block_ids", s);
+      KV_MEMBER(block_ids);
+      //serializeAsBinary(block_ids, "block_ids", s);
     }
   };
 
@@ -351,7 +380,7 @@ struct COMMAND_RPC_GETBLOCKCOUNT {
 
 struct COMMAND_RPC_GETBLOCKHASH {
   struct request {
-    uint64_t height;
+    uint32_t height;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(height)
@@ -469,7 +498,7 @@ struct COMMAND_RPC_GET_BLOCK_HEADER_BY_HASH {
 
 struct COMMAND_RPC_GET_BLOCK_HEADER_BY_HEIGHT {
   struct request {
-    uint64_t height;
+    uint32_t height;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(height)

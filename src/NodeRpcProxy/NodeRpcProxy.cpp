@@ -486,8 +486,8 @@ std::error_code NodeRpcProxy::doGetRandomOutsByAmounts(std::vector<uint64_t>& am
 std::error_code NodeRpcProxy::doGetNewBlocks(std::vector<Crypto::Hash>& knownBlockIds,
                                              std::vector<CryptoNote::block_complete_entry>& newBlocks,
                                              uint32_t& startHeight) {
-  CryptoNote::COMMAND_RPC_GET_BLOCKS_FAST::request req = AUTO_VAL_INIT(req);
-  CryptoNote::COMMAND_RPC_GET_BLOCKS_FAST::response rsp = AUTO_VAL_INIT(rsp);
+  CryptoNote::COMMAND_RPC_GET_BLOCKS_BIN::request req = AUTO_VAL_INIT(req);
+  CryptoNote::COMMAND_RPC_GET_BLOCKS_BIN::response rsp = AUTO_VAL_INIT(rsp);
   req.block_ids = std::move(knownBlockIds);
 
   std::error_code ec = binaryCommand("/getblocks.bin", req, rsp);

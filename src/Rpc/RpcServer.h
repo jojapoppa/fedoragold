@@ -34,7 +34,7 @@ private:
   static std::unordered_map<std::string, RpcHandler<HandlerFunction>> s_handlers;
 
   virtual void processRequest(const HttpRequest& request, HttpResponse& response) override;
-  bool processJsonRpcRequest(const HttpRequest& request, HttpResponse& response);
+  //bool processJsonRpcRequest(const HttpRequest& request, HttpResponse& response);
   bool isCoreReady();
 
   // binary handlers

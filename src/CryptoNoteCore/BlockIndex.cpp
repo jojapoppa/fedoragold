@@ -13,7 +13,7 @@ namespace CryptoNote {
   Crypto::Hash BlockIndex::getBlockId(uint32_t height) const {
     assert(height < m_container.size());
 
-    return m_container[static_cast<size_t>(height)];
+    return m_container[height]; //static_cast<size_t>(height)];
   }
 
   std::vector<Crypto::Hash> BlockIndex::getBlockIds(uint32_t startBlockIndex, uint32_t maxCount) const {
