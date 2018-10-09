@@ -277,6 +277,14 @@ size_t core::get_blockchain_total_transactions() {
   return m_blockchain.getTotalTransactions();
 }
 
+bool core::transactionByHash(const Crypto::Hash &txhash, Blockchain::TransactionEntry &transactRes) {
+  return m_blockchain.transactionByHash(txhash, transactRes);
+}
+
+bool core::transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTransaction, Blockchain::TransactionEntry &transactRes) {
+  return m_blockchain.transactionByOrdinal(ordinalBlock, ordinalTransaction, transactRes);
+}
+
 //bool core::get_outs(uint64_t amount, std::list<Crypto::PublicKey>& pkeys)
 //{
 //  return m_blockchain.get_outs(amount, pkeys);

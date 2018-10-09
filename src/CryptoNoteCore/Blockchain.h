@@ -171,6 +171,20 @@ namespace CryptoNote {
       }
     };
 
+    struct TransactionEntry {
+      Transaction tx;
+      std::vector<uint32_t> m_global_output_indexes;
+
+      void serialize(ISerializer& s) {
+        s(tx, "tx");
+        s(m_global_output_indexes, "indexes");
+      }
+    };
+
+    bool transactionByHash(const Crypto::Hash &txhash, Blockchain::TransactionEntry &transactRes);
+    const TransactionEntry& transactionByIndex(TransactionIndex index);
+    bool transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTransaction, TransactionEntry &transactionRes);
+
   private:
 
     struct MultisignatureOutputUsage {
@@ -182,16 +196,6 @@ namespace CryptoNote {
         s(transactionIndex, "txindex");
         s(outputIndex, "outindex");
         s(isUsed, "used");
-      }
-    };
-
-    struct TransactionEntry {
-      Transaction tx;
-      std::vector<uint32_t> m_global_output_indexes;
-
-      void serialize(ISerializer& s) {
-        s(tx, "tx");
-        s(m_global_output_indexes, "indexes");
       }
     };
 
@@ -278,7 +282,6 @@ namespace CryptoNote {
     bool checkTransactionInputs(const Transaction& tx, const Crypto::Hash& tx_prefix_hash, uint32_t* pmax_used_block_height = NULL);
     bool checkTransactionInputs(const Transaction& tx, uint32_t* pmax_used_block_height = NULL);
     bool have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im);
-    const TransactionEntry& transactionByIndex(TransactionIndex index);
     bool pushBlock(const Block& blockData, block_verification_context& bvc);
     bool pushBlock(const Block& blockData, const std::vector<Transaction>& transactions, block_verification_context& bvc);
     bool pushBlock(BlockEntry& block);

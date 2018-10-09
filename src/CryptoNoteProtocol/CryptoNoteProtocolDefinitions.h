@@ -20,6 +20,22 @@ namespace CryptoNote
   /************************************************************************/
   /*                                                                      */
   /************************************************************************/
+  struct block_display
+  {
+    Crypto::Hash blockid;
+    std::string block;
+    uint32_t txs_count;
+    std::vector<std::string> txs;
+
+    void serialize(ISerializer& s) {
+      KV_MEMBER(blockid);
+      KV_MEMBER(block);
+      KV_MEMBER(txs_count);
+      KV_MEMBER(txs);
+    }
+
+  };
+      
   struct block_complete_entry
   {
     std::string block;

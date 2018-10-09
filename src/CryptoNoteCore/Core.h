@@ -14,6 +14,7 @@
 #include "Blockchain.h"
 #include "CryptoNoteCore/IMinerHandler.h"
 #include "CryptoNoteCore/MinerConfig.h"
+#include "CryptoNoteCore/Blockchain.h"
 #include "ICore.h"
 #include "ICoreObserver.h"
 #include "Common/ObserverManager.h"
@@ -112,6 +113,10 @@ namespace CryptoNote {
      std::vector<Transaction> getPoolTransactions() override;
      size_t get_pool_transactions_count();
      size_t get_blockchain_total_transactions();
+
+     bool transactionByHash(const Crypto::Hash &txhash, Blockchain::TransactionEntry &transactRes);
+     bool transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTransaction, Blockchain::TransactionEntry &transactRes);
+
      //bool get_outs(uint64_t amount, std::list<Crypto::PublicKey>& pkeys);
      virtual std::vector<Crypto::Hash> findBlockchainSupplement(const std::vector<Crypto::Hash>& remoteBlockIds, size_t maxCount,
        uint32_t& totalBlockCount, uint32_t& startBlockIndex) override;

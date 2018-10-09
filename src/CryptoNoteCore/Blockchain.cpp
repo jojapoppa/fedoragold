@@ -1630,8 +1630,25 @@ bool Blockchain::addNewBlock(const Block& bl_, block_verification_context& bvc) 
   return add_result;
 }
 
+bool Blockchain::transactionByHash(const Crypto::Hash &txhash, Blockchain::TransactionEntry &transactRes) {
+
+  auto it = m_transactionMap.find(txhash);
+  if (it == m_transactionMap.end()) {
+    logger(WARNING, YELLOW) << "warning: get_tx_outputs_gindexs failed to find transaction with id = " << txhash;
+    return false;
+  }
+
+  transactRes = transactionByIndex(it->second);
+  return true;
+}
+
 const Blockchain::TransactionEntry& Blockchain::transactionByIndex(TransactionIndex index) {
   return m_blocks[index.block].transactions[index.transaction];
+}
+
+bool Blockchain::transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTransaction, TransactionEntry &transactionRes) {
+  transactionRes = m_blocks[ordinalBlock].transactions[ordinalTransaction];
+  return true; 
 }
 
 bool Blockchain::pushBlock(const Block& blockData, block_verification_context& bvc) {
