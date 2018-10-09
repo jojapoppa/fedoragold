@@ -135,7 +135,7 @@ struct COMMAND_RPC_GET_TRANSACTION {
     Crypto::Hash prefix;
     uint64_t version;
     uint64_t unlocktime;
-    //Crypto::Hash paymentid;
+    Crypto::Hash paymentid;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(global_output_indexes)
@@ -147,7 +147,7 @@ struct COMMAND_RPC_GET_TRANSACTION {
       KV_MEMBER(prefix)
       KV_MEMBER(version)
       KV_MEMBER(unlocktime)
-      //KV_MEMBER(paymentid)
+      KV_MEMBER(paymentid)
       KV_MEMBER(status)
     }
   };

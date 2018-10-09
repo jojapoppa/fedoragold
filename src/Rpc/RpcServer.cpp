@@ -413,12 +413,13 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.unlocktime = tx.unlockTime;
   res.version = tx.version;
 
-// jojapoppa, is this useful?
-//  Crypto::Hash paymentID;
-//  tx.getPaymentId(paymentID);
-//  res.paymentid = paymentID;
-//  logger(INFO) << "got payment id...";
+  Crypto::Hash paymentID;
+  if (! getPaymentIdFromTxExtra(tx.extra, paymentID)) {
+    logger(INFO) << "No paymentID found for transaction";
+    return false;
+  } 
 
+  res.paymentid = paymentID;
   res.status = CORE_RPC_STATUS_OK;
   return true;
 }
