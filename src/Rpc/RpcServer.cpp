@@ -347,19 +347,13 @@ bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAN
 
 bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request& req, COMMAND_RPC_GET_BLOCK_INDEXES::response& res) {
 
+  //jojapoppa, is this useful?
   //m_core.print_blockchain_index();
 
   return true;
 }
 
 bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_RPC_GET_BLOCK::response& res) {
-
-//  Block block;
-//  if (!m_core.getBlockByHash(req.blockhash, block)) {
-//    throw JsonRpc::JsonRpcError{
-//      CORE_RPC_ERROR_CODE_INTERNAL_ERROR,
-//      "Internal error: can't get block by hash."};
-//  }
 
   std::list<Block> blocks;
   std::list<Transaction> txs;
@@ -370,6 +364,8 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
   Block block = blocks.front();
 
   logger(INFO) << "found block at height: " << req.height;
+  logger(INFO) << "transaction list size: " << txs.size();
+
   res.transactionHashes = block.transactionHashes;
   res.status = CORE_RPC_STATUS_OK;
   return true;
@@ -417,6 +413,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.unlocktime = tx.unlockTime;
   res.version = tx.version;
 
+// jojapoppa, is this useful?
 //  Crypto::Hash paymentID;
 //  tx.getPaymentId(paymentID);
 //  res.paymentid = paymentID;
@@ -480,7 +477,6 @@ bool RpcServer::on_send_raw_tx(const COMMAND_RPC_SEND_RAW_TX::request& req, COMM
     res.status = "Not relayed";
     return true;
   }
-
 
   NOTIFY_NEW_TRANSACTIONS::request r;
   r.txs.push_back(asString(tx_blob));
