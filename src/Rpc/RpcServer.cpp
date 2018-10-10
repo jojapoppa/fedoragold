@@ -423,6 +423,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
     return false;
   } 
 
+  res.extra = Common::toHex(tx.extra);
   res.paymentid = paymentID;
   res.status = CORE_RPC_STATUS_OK;
   return true;

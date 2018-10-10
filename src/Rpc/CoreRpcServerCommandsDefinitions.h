@@ -135,6 +135,7 @@ struct COMMAND_RPC_GET_TRANSACTION {
     std::vector<uint64_t> inputsamts;
     std::vector<uint64_t> outputsamts;
     std::vector<Crypto::PublicKey> outputskeys;
+    std::string extra;
     Crypto::Hash prefix;
     uint64_t version;
     uint64_t unlocktime;
@@ -154,6 +155,7 @@ struct COMMAND_RPC_GET_TRANSACTION {
       KV_MEMBER(version)
       KV_MEMBER(unlocktime)
       KV_MEMBER(paymentid)
+      KV_MEMBER(extra)
       KV_MEMBER(status)
     }
   };
