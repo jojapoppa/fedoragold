@@ -404,6 +404,10 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.inputamt = getInputAmount(tx);
   res.outputamt = getOutputAmount(tx);
 
+  res.inputsamts = getInputsAmounts(tx);
+  res.outputsamts = getOutputsAmounts(tx);
+  res.outputskeys = getOutputsKeys(tx);
+
   logger(INFO) << "blockID: " << blockId;
   logger(INFO) << "blockheight: " << blockHeight;
 

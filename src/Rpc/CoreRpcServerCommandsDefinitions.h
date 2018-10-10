@@ -132,6 +132,9 @@ struct COMMAND_RPC_GET_TRANSACTION {
     uint32_t blockheight;
     uint64_t inputamt;
     uint64_t outputamt; 
+    std::vector<uint64_t> inputsamts;
+    std::vector<uint64_t> outputsamts;
+    std::vector<Crypto::PublicKey> outputskeys;
     Crypto::Hash prefix;
     uint64_t version;
     uint64_t unlocktime;
@@ -144,6 +147,9 @@ struct COMMAND_RPC_GET_TRANSACTION {
       KV_MEMBER(blockheight)
       KV_MEMBER(inputamt)
       KV_MEMBER(outputamt)
+      KV_MEMBER(inputsamts)
+      KV_MEMBER(outputsamts)
+      KV_MEMBER(outputskeys)
       KV_MEMBER(prefix)
       KV_MEMBER(version)
       KV_MEMBER(unlocktime)

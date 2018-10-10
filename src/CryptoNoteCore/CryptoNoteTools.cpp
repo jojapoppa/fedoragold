@@ -58,6 +58,36 @@ std::vector<uint64_t> getInputsAmounts(const Transaction& transaction) {
   return inputsAmounts;
 }
 
+std::vector<Crypto::PublicKey> getOutputsKeys(const Transaction& transaction) {
+  std::vector<Crypto::PublicKey> outputsKeys;
+  outputsKeys.reserve(transaction.outputs.size());
+
+  for (auto& output: transaction.outputs) {
+    if (output.target.type() == typeid(KeyOutput)) {
+      outputsKeys.push_back(boost::get<KeyOutput>(output.target).key);
+    } else if (output.target.type() == typeid(MultisignatureOutput)) {
+      std::vector<Crypto::PublicKey> keys = boost::get<MultisignatureOutput>(output.target).keys;
+      for (auto& key: keys) {
+        outputsKeys.push_back(key);
+      }
+    }
+  }
+
+  return outputsKeys;
+}
+
+std::vector<uint64_t> getOutputsAmounts(const Transaction& transaction) {
+  std::vector<uint64_t> outputsAmounts;
+  outputsAmounts.reserve(transaction.outputs.size());
+
+  for (auto& output: transaction.outputs) {
+      outputsAmounts.push_back(output.amount);
+  }
+
+  return outputsAmounts;
+}
+
+
 uint64_t getOutputAmount(const Transaction& transaction) {
   uint64_t amount = 0;
   for (auto& output : transaction.outputs) {
