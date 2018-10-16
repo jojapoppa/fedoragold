@@ -385,12 +385,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
 
   CryptoNote::Transaction tx = (CryptoNote::Transaction) te.tx; 
   res.global_output_indexes = te.m_global_output_indexes;
-
-  logger(INFO) << "got the output indexes...";
-
   res.hash = getObjectHash(tx);
-
-  logger(INFO) << "got transaction hash:" << res.hash;
 
   Crypto::Hash blockId;
   uint32_t blockHeight;
@@ -399,8 +394,22 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
     return false;
   }
 
+  res.txsize = getObjectBinarySize(tx);
   res.block = blockId;
   res.blockheight = blockHeight;
+
+  Block block;
+  m_core.getBlockByHash(blockId, block);
+  res.orphan_status = false;
+  std::vector<Block> orphanBlocks;
+  if (m_core.getOrphanBlocksByHeight(blockHeight, orphanBlocks)) {
+    for (const Block oblk : orphanBlocks) {
+      if (oblk == block) {
+        res.orphan_status = true;
+      }
+    }
+  }
+
   res.inputamt = getInputAmount(tx);
   res.outputamt = getOutputAmount(tx);
 
@@ -408,19 +417,13 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.outputsamts = getOutputsAmounts(tx);
   res.outputskeys = getOutputsKeys(tx);
 
-  logger(INFO) << "blockID: " << blockId;
-  logger(INFO) << "blockheight: " << blockHeight;
-
   res.prefix = getObjectHash(*static_cast<const TransactionPrefix*>(&tx));
-  logger(INFO) << "got tx prefix hash: " << res.prefix;
-
   res.unlocktime = tx.unlockTime;
   res.version = tx.version;
 
   Crypto::Hash paymentID;
   if (! getPaymentIdFromTxExtra(tx.extra, paymentID)) {
     logger(INFO) << "No paymentID found for transaction";
-    return false;
   } 
 
   res.extra = Common::toHex(tx.extra);
@@ -672,10 +675,13 @@ void RpcServer::fill_block_header_response(const Block& blk, bool orphan_status,
 }
 
 bool RpcServer::on_get_last_block_header(const COMMAND_RPC_GET_LAST_BLOCK_HEADER::request& req, COMMAND_RPC_GET_LAST_BLOCK_HEADER::response& res) {
+
   uint32_t last_block_height;
   Hash last_block_hash;
-  
   m_core.get_blockchain_top(last_block_height, last_block_hash);
+
+  logger(INFO) << "last block header is at: " << last_block_height;
+  logger(INFO) << "last block hash is: " << last_block_hash;
 
   Block last_block;
   if (!m_core.getBlockByHash(last_block_hash, last_block)) {

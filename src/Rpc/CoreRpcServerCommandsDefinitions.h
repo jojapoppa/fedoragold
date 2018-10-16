@@ -130,8 +130,10 @@ struct COMMAND_RPC_GET_TRANSACTION {
     Crypto::Hash hash;
     Crypto::Hash block;
     uint32_t blockheight;
+    bool orphan_status;
     uint64_t inputamt;
     uint64_t outputamt; 
+    uint64_t txsize;
     std::vector<uint64_t> inputsamts;
     std::vector<uint64_t> outputsamts;
     std::vector<Crypto::PublicKey> outputskeys;
@@ -144,8 +146,10 @@ struct COMMAND_RPC_GET_TRANSACTION {
     void serialize(ISerializer &s) {
       KV_MEMBER(global_output_indexes)
       KV_MEMBER(hash)
+      KV_MEMBER(txsize)
       KV_MEMBER(block)
       KV_MEMBER(blockheight)
+      KV_MEMBER(orphan_status)
       KV_MEMBER(inputamt)
       KV_MEMBER(outputamt)
       KV_MEMBER(inputsamts)
