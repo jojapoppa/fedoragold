@@ -99,12 +99,16 @@ struct COMMAND_RPC_GET_BLOCK {
 
   struct response {
     //std::vector<std::string> txs;
-    
+   
+    uint64_t alreadyGeneratedCoins;
+    uint64_t difficulty;
     std::vector<Crypto::Hash> transactionHashes;
     std::string status;
 
     void serialize(ISerializer &s) {
       //KV_MEMBER(txs)
+      KV_MEMBER(alreadyGeneratedCoins)
+      KV_MEMBER(difficulty)
       KV_MEMBER(transactionHashes)
       KV_MEMBER(status)
     }

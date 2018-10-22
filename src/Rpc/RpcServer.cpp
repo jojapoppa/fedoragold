@@ -366,6 +366,8 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
   logger(INFO) << "found block at height: " << req.height;
   logger(INFO) << "transaction list size: " << txs.size();
 
+  res.alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
+  res.difficulty = m_core.getNextBlockDifficulty();
   res.transactionHashes = block.transactionHashes;
   res.status = CORE_RPC_STATUS_OK;
   return true;
