@@ -367,6 +367,8 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
   logger(INFO) << "transaction list size: " << txs.size();
 
   res.alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
+  res.hash = m_core.getBlockIdByHeight(req.height);
+  m_core.getBlockSize(res.hash, res.blocksize);
   res.difficulty = m_core.getNextBlockDifficulty();
   res.transactionHashes = block.transactionHashes;
   res.status = CORE_RPC_STATUS_OK;
