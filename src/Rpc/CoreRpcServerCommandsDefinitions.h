@@ -103,6 +103,7 @@ struct COMMAND_RPC_GET_BLOCK {
     uint64_t alreadyGeneratedCoins;
     uint64_t blocksize;
     uint64_t difficulty;
+    uint64_t currentmediansize;
     Crypto::Hash hash;
     std::vector<Crypto::Hash> transactionHashes;
     std::string status;
@@ -112,6 +113,7 @@ struct COMMAND_RPC_GET_BLOCK {
       KV_MEMBER(alreadyGeneratedCoins)
       KV_MEMBER(blocksize)
       KV_MEMBER(difficulty)
+      KV_MEMBER(currentmediansize)
       KV_MEMBER(hash)
       KV_MEMBER(transactionHashes)
       KV_MEMBER(status)
