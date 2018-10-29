@@ -106,6 +106,15 @@ struct COMMAND_RPC_GET_BLOCK {
     uint64_t currentmediansize;
     Crypto::Hash hash;
     std::vector<Crypto::Hash> transactionHashes;
+
+    uint8_t major_version;
+    uint8_t minor_version;
+    uint64_t timestamp;
+    std::string prev_hash;
+    uint32_t nonce;
+    uint64_t depth;
+    uint64_t reward;
+
     std::string status;
 
     void serialize(ISerializer &s) {
@@ -116,6 +125,13 @@ struct COMMAND_RPC_GET_BLOCK {
       KV_MEMBER(currentmediansize)
       KV_MEMBER(hash)
       KV_MEMBER(transactionHashes)
+      KV_MEMBER(major_version)
+      KV_MEMBER(minor_version)
+      KV_MEMBER(timestamp)
+      KV_MEMBER(prev_hash)
+      KV_MEMBER(nonce)
+      KV_MEMBER(depth)
+      KV_MEMBER(reward)
       KV_MEMBER(status)
     }
   };

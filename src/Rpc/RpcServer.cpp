@@ -353,6 +353,16 @@ bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request
   return true;
 }
 
+namespace {
+  uint64_t get_block_reward(const Block& blk) {
+    uint64_t reward = 0;
+    for (const TransactionOutput& out : blk.baseTransaction.outputs) {
+      reward += out.amount;
+    }
+    return reward;
+  }
+}
+
 bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_RPC_GET_BLOCK::response& res) {
 
   std::list<Block> blocks;
@@ -368,11 +378,22 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
 
 //bool core::getBlockReward(size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins, uint64_t fee, uint64_t& reward, int64_t& emissionChange)
 
+  res.major_version = block.majorVersion;
+  res.minor_version = block.minorVersion;
+  res.timestamp = block.timestamp;
+  res.prev_hash = Common::podToHex(block.previousBlockHash);
+  res.nonce = block.nonce;
+  res.depth = m_core.get_current_blockchain_height() - req.height - 1;
+  res.reward = get_block_reward(block);
+
   res.currentmediansize = m_core.getcurrentmediansize();
   res.alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
   res.hash = m_core.getBlockIdByHeight(req.height);
   m_core.getBlockSize(res.hash, res.blocksize);
-  res.difficulty = m_core.getNextBlockDifficulty();
+
+  m_core.getBlockDifficulty(static_cast<uint32_t>(req.height), res.difficulty);
+  //res.difficulty = m_core.getNextBlockDifficulty();
+
   res.transactionHashes = block.transactionHashes;
   res.status = CORE_RPC_STATUS_OK;
   return true;
@@ -655,16 +676,6 @@ bool RpcServer::on_submitblock(const COMMAND_RPC_SUBMITBLOCK::request& req, COMM
 
   res.status = CORE_RPC_STATUS_OK;
   return true;
-}
-
-namespace {
-  uint64_t get_block_reward(const Block& blk) {
-    uint64_t reward = 0;
-    for (const TransactionOutput& out : blk.baseTransaction.outputs) {
-      reward += out.amount;
-    }
-    return reward;
-  }
 }
 
 void RpcServer::fill_block_header_response(const Block& blk, bool orphan_status, uint64_t height, const Hash& hash, block_header_response& responce) {
