@@ -161,8 +161,13 @@ static void (*const extra_hashes[8])(const void *, size_t, char *) =
 {
     //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
     //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
-    hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
-    hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
+
+    // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
+    // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
+    // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
+
+    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
+    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein 
 };
 
 #include "slow-hash.inl"
