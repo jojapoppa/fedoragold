@@ -347,9 +347,7 @@ bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAN
 
 bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request& req, COMMAND_RPC_GET_BLOCK_INDEXES::response& res) {
 
-  //jojapoppa, is this useful?
-  //m_core.print_blockchain_index();
-
+  m_core.print_blockchain_index();
   return true;
 }
 
