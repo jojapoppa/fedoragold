@@ -420,6 +420,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
     return false;
   }
 
+  res.fee = get_tx_fee(tx);
   res.txsize = getObjectBinarySize(tx);
   res.block = blockId;
   res.blockheight = blockHeight;
