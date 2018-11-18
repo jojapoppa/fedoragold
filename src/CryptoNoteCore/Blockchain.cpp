@@ -855,14 +855,14 @@ bool Blockchain::validate_miner_transaction(const Block& b, uint32_t height, siz
   }
 
   // jojapoppa
-  // the premine hisory violates this... can't add back until after first hard fork to start check at given height
+  // the premine hisory violates this... can't add back until after first soft fork to start check at given height
   //if (minerReward > reward) {
   //  logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " << m_currency.formatAmount(minerReward) <<
   //    ", block reward is " << m_currency.formatAmount(reward);
   //  return false;
   //}
 
-  // jojapoppa - don't know why this one fails... likely would need hard fork too
+  // jojapoppa - don't know why this one fails... likely would need soft fork too fix this
   //else if (minerReward < reward) {
   //  logger(ERROR, BRIGHT_RED) << "Coinbase transaction doesn't use full amount of block reward: spent " <<
   //    m_currency.formatAmount(minerReward) << ", block reward is " << m_currency.formatAmount(reward);

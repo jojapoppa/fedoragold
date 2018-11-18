@@ -414,19 +414,29 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.hash = getObjectHash(tx);
 
   Crypto::Hash blockId;
-  uint32_t blockHeight;
-  if (!m_core.getBlockContainingTx(res.hash, blockId, blockHeight)) {
+  uint32_t blockH;
+  if (!m_core.getBlockContainingTx(res.hash, blockId, blockH)) {
     logger(INFO) << "could not locate block for transaction: " << res.hash;
+    return false;
+  }
+
+  Block block;
+  if (! m_core.getBlockByHash(blockId, block)) {
+    logger(INFO) << "could not locate block with blockhash: " << blockId;
     return false;
   }
 
   res.fee = get_tx_fee(tx);
   res.txsize = getObjectBinarySize(tx);
   res.block = blockId;
-  res.blockheight = blockHeight;
 
-  Block block;
-  m_core.getBlockByHash(blockId, block);
+  uint32_t blockHeight = 0;
+  if (! m_core.getBlockHeight(blockId, blockHeight)) {
+    logger(INFO) << "could not determine block height for hash: " << blockId;
+    return false;
+  }
+
+  res.blockheight = blockHeight;
   res.orphan_status = false;
   std::vector<Block> orphanBlocks;
   if (m_core.getOrphanBlocksByHeight(blockHeight, orphanBlocks)) {
