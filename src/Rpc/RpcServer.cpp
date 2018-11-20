@@ -374,23 +374,22 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
   logger(INFO) << "found block at height: " << req.height;
   logger(INFO) << "transaction list size: " << txs.size();
 
-//bool core::getBlockReward(size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins, uint64_t fee, uint64_t& reward, int64_t& emissionChange)
+  //if (! m_core.getBlockReward(size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins, uint64_t fee, uint64_t& reward, int64_t& emissionChange)
 
   res.major_version = block.majorVersion;
   res.minor_version = block.minorVersion;
   res.timestamp = block.timestamp;
   res.prev_hash = Common::podToHex(block.previousBlockHash);
   res.nonce = block.nonce;
-  res.depth = m_core.get_current_blockchain_height() - req.height - 1;
   res.reward = get_block_reward(block);
 
+  res.depth = m_core.get_current_blockchain_height() - req.height - 1;
   res.currentmediansize = m_core.getcurrentmediansize();
   res.alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
+
   res.hash = m_core.getBlockIdByHeight(req.height);
   m_core.getBlockSize(res.hash, res.blocksize);
-
   m_core.getBlockDifficulty(static_cast<uint32_t>(req.height), res.difficulty);
-  //res.difficulty = m_core.getNextBlockDifficulty();
 
   res.transactionHashes = block.transactionHashes;
   res.status = CORE_RPC_STATUS_OK;
@@ -441,7 +440,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   std::vector<Block> orphanBlocks;
   if (m_core.getOrphanBlocksByHeight(blockHeight, orphanBlocks)) {
     for (const Block oblk : orphanBlocks) {
-      if (oblk == block) {
+      if (oblk.timestamp == block.timestamp) {
         res.orphan_status = true;
       }
     }
