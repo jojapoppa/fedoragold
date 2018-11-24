@@ -680,6 +680,21 @@ bool Blockchain::rollback_blockchain_switching(std::list<Block> &original_chain,
   return true;
 }
 
+bool Blockchain::add_block_as_invalid(const BlockEntry& bei, const Crypto::Hash& h)
+{
+  std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
+  auto i_res = m_invalid_blocks.insert(blocks_ext_by_hash::value_type(h, bei));
+  logger(INFO, BRIGHT_WHITE) << "BLOCK ADDED AS INVALID: " << h << ENDL;
+  return true;
+}
+
+bool Blockchain::add_block_as_invalid(const Block& bl, const Crypto::Hash& h)
+{
+  BlockEntry bei = boost::value_initialized<BlockEntry>();
+  bei.bl = bl;
+  return add_block_as_invalid(bei, h);
+}
+
 bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::iterator>& alt_chain, bool discard_disconnected_chain) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
@@ -712,7 +727,7 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::
     if (!r || !bvc.m_added_to_main_chain) {
       logger(INFO, BRIGHT_WHITE) << "Failed to switch to alternative blockchain";
       rollback_blockchain_switching(disconnected_chain, split_height);
-      //add_block_as_invalid(ch_ent->second, get_block_hash(ch_ent->second.bl));
+      add_block_as_invalid(ch_ent->second, get_block_hash(ch_ent->second.bl));
       logger(INFO, BRIGHT_WHITE) << "The block was inserted as invalid while connecting new alternative chain,  block_id: " << get_block_hash(ch_ent->second.bl);
       m_orthanBlocksIndex.remove(ch_ent->second.bl);
       m_alternative_chains.erase(ch_ent);
@@ -1315,8 +1330,9 @@ bool Blockchain::haveBlock(const Crypto::Hash& id) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
   if (m_blockIndex.hasBlock(id))
     return true;
-
   if (m_alternative_chains.count(id))
+    return true;
+  if(m_invalid_blocks.count(id))
     return true;
 
   return false;

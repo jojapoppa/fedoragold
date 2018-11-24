@@ -231,6 +231,8 @@ namespace CryptoNote {
     key_images_container m_spent_keys;
     size_t m_current_block_cumul_sz_limit;
     blocks_ext_by_hash m_alternative_chains; // Crypto::Hash -> block_extended_info
+    blocks_ext_by_hash m_invalid_blocks;
+
     outputs_container m_outputs;
 
     std::string m_config_folder;
@@ -260,6 +262,8 @@ namespace CryptoNote {
 
     void rebuildCache();
     bool storeCache();
+    bool add_block_as_invalid(const BlockEntry& bei, const Crypto::Hash& h);
+    bool add_block_as_invalid(const Block& bl, const Crypto::Hash& h);
     bool switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::iterator>& alt_chain, bool discard_disconnected_chain);
     bool handle_alternative_block(const Block& b, const Crypto::Hash& id, block_verification_context& bvc, bool sendNewAlternativeBlockMessage = true);
     difficulty_type get_next_difficulty_for_alternative_chain(const std::list<blocks_ext_by_hash::iterator>& alt_chain, BlockEntry& bei);
