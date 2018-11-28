@@ -733,8 +733,7 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::
       m_alternative_chains.erase(ch_ent);
 
       for (auto alt_ch_to_orph_iter = ++alt_ch_iter; alt_ch_to_orph_iter != alt_chain.end(); alt_ch_to_orph_iter++) {
-        //block_verification_context bvc = boost::value_initialized<block_verification_context>();
-        //add_block_as_invalid((*alt_ch_iter)->second, (*alt_ch_iter)->first);
+        add_block_as_invalid((*alt_ch_iter)->second, (*alt_ch_iter)->first);
         m_orthanBlocksIndex.remove((*alt_ch_to_orph_iter)->second.bl);
         m_alternative_chains.erase(*alt_ch_to_orph_iter);
       }
@@ -998,7 +997,9 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
       logger(INFO, BRIGHT_RED) <<
         "Block with id: " << id
         << ENDL << " for alternative chain, have invalid timestamp: " << b.timestamp;
-      //add_block_as_invalid(b, id);//do not add blocks to invalid storage before proof of work check was passed
+
+      //add_block_as_invalid(b, id); //DON'T DO THIS: do not add blocks to invalid storage before proof of work check was passed - this comment is a reminder not to put add_block_as_invalid back in again
+      
       bvc.m_verifivation_failed = true;
       return false;
     }
