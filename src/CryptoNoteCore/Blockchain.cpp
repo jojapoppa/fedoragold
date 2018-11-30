@@ -1080,7 +1080,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
       }
       return r;
     } else {
-      logger(INFO, BRIGHT_BLUE) <<
+      logger(DEBUGGING, BRIGHT_BLUE) <<
         "----- BLOCK ADDED AS ALTERNATIVE ON HEIGHT " << bei.height
         << ENDL << "id:\t" << id
         << ENDL << "PoW:\t" << proof_of_work
@@ -1435,7 +1435,7 @@ bool Blockchain::checkTransactionInputs(const Transaction& tx, const Crypto::Has
       }
 
       if (!check_tx_input(in_to_key, tx_prefix_hash, tx.signatures[inputIndex], pmax_used_block_height)) {
-        logger(INFO, BRIGHT_WHITE) <<
+        logger(DEBUGGING, BRIGHT_WHITE) <<
           "Failed to check ring signature for tx " << transactionHash;
         return false;
       }

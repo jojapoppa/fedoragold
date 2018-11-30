@@ -957,15 +957,19 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
     if (!tvc.m_tx_fee_too_small) {
       logger(ERROR) << "Transaction verification failed: " << txHash;
     } else {
-      logger(INFO) << "Transaction verification failed: " << txHash;
+      logger(INFO) << "Transaction verification failed (fee too small): " << txHash;
     }
   } else if (tvc.m_verifivation_impossible) {
     logger(ERROR) << "Transaction verification impossible: " << txHash;
   }
-
+ 
   if (tvc.m_added_to_pool) {
     logger(DEBUGGING) << "tx added: " << txHash;
-    poolUpdated();
+ 
+    // pool notification would fail if transaction object not valid 
+    if (! tvc.m_verifivation_impossible) {
+      poolUpdated();
+    } 
   }
 
   return r;
