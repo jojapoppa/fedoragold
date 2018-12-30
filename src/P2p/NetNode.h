@@ -115,6 +115,8 @@ namespace CryptoNote
 
     NodeServer(System::Dispatcher& dispatcher, CryptoNote::CryptoNoteProtocolHandler& payload_handler, Logging::ILogger& log);
 
+    virtual ~NodeServer(){}
+
     bool run();
     bool init(const NetNodeConfig& config);
     bool deinit();

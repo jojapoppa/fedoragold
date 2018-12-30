@@ -388,7 +388,9 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
   res.alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
 
   res.hash = m_core.getBlockIdByHeight(req.height);
-  m_core.getBlockSize(res.hash, res.blocksize);
+  size_t size=0;
+  m_core.getBlockSize(res.hash, size);
+  res.blocksize = size;
   m_core.getBlockDifficulty(static_cast<uint32_t>(req.height), res.difficulty);
 
   res.transactionHashes = block.transactionHashes;

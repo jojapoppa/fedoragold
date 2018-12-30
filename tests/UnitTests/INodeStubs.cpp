@@ -227,7 +227,7 @@ void INodeTrivialRefreshStub::queryBlocks(std::vector<Crypto::Hash>&& knownBlock
         std::vector<BlockShortEntry>& newBlocks, uint32_t& startHeight, const Callback& callback) {
   auto resultHolder = std::make_shared<std::vector<block_complete_entry>>();
 
-  getNewBlocks(std::move(knownBlockIds), *resultHolder, startHeight, [resultHolder, callback, &startHeight, &newBlocks](std::error_code ec)
+  getNewBlocks(std::move(knownBlockIds), *resultHolder, startHeight, [resultHolder, callback, &newBlocks](std::error_code ec)
   {
     if (ec) {
       callback(ec);

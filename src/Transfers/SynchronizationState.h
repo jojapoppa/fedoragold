@@ -28,6 +28,8 @@ public:
     m_blockchain.push_back(genesisBlockHash);
   }
 
+  virtual ~SynchronizationState(){}
+
   ShortHistory getShortHistory(uint32_t localHeight) const;
   CheckResult checkInterval(const BlockchainInterval& interval) const;
 
