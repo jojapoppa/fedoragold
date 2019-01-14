@@ -6,13 +6,20 @@
 # then... tar -xvzf boost_1_65_0.tar.gz
 # just put boost source 1 folder up
 
+# to redo boost build...
+# b2 --clean-all -n
+
+#cd /Users/jojapoppa/Desktop/FEDG_BUILD/fedoragold
+
 cd ../boost_1_65_0
 export BOOST_HAS_THREADS ON
 export BOOST_HAS_PTHREADS ON
 export Boost_USE_MULTITHREADED ON
 
 # using full path here... just edit on each platform...
-./bootstrap.sh --prefix=/home/fork/boostfedora 
-./b2 install --prefix=/home/fork/boostfedora --layout=tagged --threading=multi --without-mpi --build-type=complete
+#./bootstrap.sh --prefix=/home/fork/boostfedora 
+./bootstrap.sh --prefix=/Users/jojapoppa/Desktop/FEDG_BUILD/boost_1_65_0
+#./b2 install --prefix=/home/fork/boostfedora --layout=tagged --threading=multi --without-mpi --build-type=complete
+./b2 install --prefix=/Users/jojapoppa/Desktop/FEDG_BUILD/boost_1_65_0 --layout=tagged --threading=multi --without-mpi --build-type=complete
 cd ..
 ls
