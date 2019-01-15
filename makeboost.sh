@@ -11,6 +11,29 @@
 
 #cd /Users/jojapoppa/Desktop/FEDG_BUILD/fedoragold
 
+# for Windows
+# from the boost folder "call bootstrap.bat"
+# edit project-config.jam and put this in there:
+# using msvc : 14.1 : "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64\cl.exe" ;
+# path changes with updates... will need to manually track
+#
+# b2.exe toolset=msvc-14.1 address-model=64 architecture=x86 runtime-link=static,shared link=static threading=multi --build-dir=.x64 --stagedir=stage_x64
+# b2.exe toolset=msvc-14.1 address-model=64 architecture=x86 runtime-link=shared link=shared threading=multi --with-thread --build-dir=.x64 --stagedir=stage_x64
+#
+# and run those from the Visual Studio 2017 x64 Native Tools Command Prompt !!!!!!!!!!!!!!!!!!
+#
+# on Windows, these files compile to >50mb and so can't be checked in
+# perhaps i can optimize the build a little and get throught that?
+# libboost_test_exec_monitor-vc141-mt-sgd-1_65.lib
+# libboost_log_setup-vc141-mt-gd-1_65.lib
+# libboost_log_setup-vc141-mt-sgd-1_65.lib
+# libboost_unit_test_framework-vc141-mt-sgd-1_65.lib
+# libboost_log-vc141-mt-gd-1_65.lib
+# libboost_log-vc141-mt-sgd-1_65.lib
+# libboost_wave-vc141-mt-sgd-1_65.lib
+# libboost_wave-vc141-mt-gd-1_65.lib
+# so... just remove them for now... perhaps they are not getting used at all anyways
+
 cd ../boost_1_65_0
 export BOOST_HAS_THREADS ON
 export BOOST_HAS_PTHREADS ON
