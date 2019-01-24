@@ -386,6 +386,56 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
   log(Logging::INFO) << "Wallet is saved";
 }
 
+void generateNewWalletWithKeysOption(const CryptoNote::Currency& currency, const WalletConfiguration& conf, Logging::ILogger& logger, System::Dispatcher& dispatcher) {
+
+  Logging::LoggerRef log(logger, "generateNewWallet");
+  if (conf.secretSpendKey.empty() && conf.secretViewKey.empty())
+  {
+    generateNewWallet(currency, conf, logger, dispatcher);
+    return;
+  }
+  else if (conf.secretSpendKey.empty() || conf.secretViewKey.empty())
+  {
+    log(Logging::INFO) << "Need both secret spend key and secret view key.";
+    return;
+  }
+
+  CryptoNote::INode* nodeStub = NodeFactory::createNodeStub();
+  std::unique_ptr<CryptoNote::INode> nodeGuard(nodeStub);
+
+  CryptoNote::IWallet* wallet = WalletFactory::createWallet(currency, *nodeStub, dispatcher);
+  std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
+      
+  log(Logging::INFO, Logging::BRIGHT_WHITE) << "Attemping to import wallet from keys";
+  Crypto::Hash private_spend_key_hash;
+  Crypto::Hash private_view_key_hash;
+  uint64_t size;
+
+  if (!Common::fromHex(conf.secretSpendKey, &private_spend_key_hash, sizeof(private_spend_key_hash), size) || size != sizeof(private_spend_key_hash)) {
+      log(Logging::ERROR, Logging::BRIGHT_RED) << "Invalid spend key";
+      return;
+  }
+
+  if (!Common::fromHex(conf.secretViewKey, &private_view_key_hash, sizeof(private_view_key_hash), size) || size != sizeof(private_spend_key_hash)) {
+      log(Logging::ERROR, Logging::BRIGHT_RED) << "Invalid view key";
+      return;
+  }
+
+  Crypto::SecretKey private_spend_key = *(struct Crypto::SecretKey *) &private_spend_key_hash;
+  Crypto::SecretKey private_view_key = *(struct Crypto::SecretKey *) &private_view_key_hash;
+
+  wallet->initializeWithViewKey(private_view_key, conf.walletPassword);
+  std::string address = wallet->createAddress(private_spend_key);
+  log(Logging::INFO, Logging::BRIGHT_WHITE) << "Imported wallet successfully.";
+
+  std::fstream walletFile;
+  createWalletFile(walletFile, conf.walletFile);
+
+  saveWallet(*wallet, walletFile, false, false);
+  //wallet->save(CryptoNote::WalletSaveLevel::SAVE_KEYS_ONLY);
+  log(Logging::INFO, Logging::BRIGHT_WHITE) << "Wallet is saved with keys";
+}
+
 void importLegacyKeys(const std::string &legacyKeysFile, const WalletConfiguration &conf) {
   std::stringstream archive;
 

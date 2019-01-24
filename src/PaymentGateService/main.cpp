@@ -294,7 +294,7 @@ int main(int argc, char** argv) {
 
     if (config.gateConfiguration.generateNewContainer) {
       System::Dispatcher d;
-      generateNewWallet(pg.getCurrency(), pg.getWalletConfig(), pg.getLogger(), d);
+      generateNewWalletWithKeysOption(pg.getCurrency(), pg.getWalletConfig(), pg.getLogger(), d);
       return 0;
     }
 

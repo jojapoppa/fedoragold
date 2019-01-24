@@ -75,7 +75,10 @@ bool PaymentGateService::init(int argc, char** argv) {
 WalletConfiguration PaymentGateService::getWalletConfig() const {
   return WalletConfiguration{
     config.gateConfiguration.containerFile,
-    config.gateConfiguration.containerPassword
+    config.gateConfiguration.containerPassword,
+    config.gateConfiguration.viewKey,
+    config.gateConfiguration.spendKey,
+    //config.gateConfiguration.mnemonicSeed,
   };
 }
 

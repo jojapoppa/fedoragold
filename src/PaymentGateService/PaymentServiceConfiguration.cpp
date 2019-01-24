@@ -34,6 +34,8 @@ void Configuration::initOptions(boost::program_options::options_description& des
       ("container-file,w", po::value<std::string>(), "container file")
       ("container-password,p", po::value<std::string>(), "container password")
       ("generate-container,g", "generate new container file with one wallet and exit")
+      ("view-key", po::value<std::string>(), "view key for wallet recovery")
+      ("spend-key", po::value<std::string>(), "spend/private key for wallet recovery")
       ("daemon,d", "run as daemon in Unix or as service in Windows")
 #ifdef _WIN32
       ("register-service", "register service and exit (Windows only)")
@@ -100,6 +102,14 @@ void Configuration::init(const boost::program_options::variables_map& options) {
 
   if (options.count("generate-container") != 0) {
     generateNewContainer = true;
+  }
+
+  if (options.count("view-key") != 0) {
+    viewKey = options["view-key"].as<std::string>();
+  }
+
+  if (options.count("spend-key") != 0) {
+    spendKey = options["spend-key"].as<std::string>();
   }
 
   if (options.count("address") != 0) {

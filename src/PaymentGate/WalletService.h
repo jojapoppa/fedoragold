@@ -25,9 +25,13 @@ namespace PaymentService {
 struct WalletConfiguration {
   std::string walletFile;
   std::string walletPassword;
+  std::string secretViewKey;
+  std::string secretSpendKey;
+  //std::string mnemonicSeed;
 };
 
 void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfiguration &conf, Logging::ILogger &logger, System::Dispatcher& dispatcher);
+void generateNewWalletWithKeysOption(const CryptoNote::Currency &currency, const WalletConfiguration &conf, Logging::ILogger &logger, System::Dispatcher& dispatcher);
 
 struct TransactionsInBlockInfoFilter;
 
