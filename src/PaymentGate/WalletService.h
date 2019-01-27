@@ -42,6 +42,7 @@ public:
 
   void init();
   void saveWallet();
+  std::error_code saveWalletNoThrow();
 
   std::error_code resetWallet();
   std::error_code replaceWithNewWallet(const std::string& viewSecretKey);

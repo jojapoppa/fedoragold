@@ -19,6 +19,7 @@ PaymentServiceJsonRpcServer::PaymentServiceJsonRpcServer(System::Dispatcher& sys
   , service(service)
   , logger(loggerGroup, "PaymentServiceJsonRpcServer")
 {
+  handlers.emplace("save", jsonHandler<Reset::Request, Reset::Response>(std::bind(&PaymentServiceJsonRpcServer::handleSave, this, std::placeholders::_1, std::placeholders::_2)));
   handlers.emplace("reset", jsonHandler<Reset::Request, Reset::Response>(std::bind(&PaymentServiceJsonRpcServer::handleReset, this, std::placeholders::_1, std::placeholders::_2)));
   handlers.emplace("createAddress", jsonHandler<CreateAddress::Request, CreateAddress::Response>(std::bind(&PaymentServiceJsonRpcServer::handleCreateAddress, this, std::placeholders::_1, std::placeholders::_2)));
   handlers.emplace("deleteAddress", jsonHandler<DeleteAddress::Request, DeleteAddress::Response>(std::bind(&PaymentServiceJsonRpcServer::handleDeleteAddress, this, std::placeholders::_1, std::placeholders::_2)));
@@ -76,6 +77,10 @@ void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue&
     logger(Logging::WARNING) << "Error occurred while processing JsonRpc request: " << e.what();
     makeGenericErrorReponse(resp, e.what());
   }
+}
+
+std::error_code PaymentServiceJsonRpcServer::handleSave(const Reset::Request& request, Reset::Response& response) {
+  return service.saveWalletNoThrow();
 }
 
 std::error_code PaymentServiceJsonRpcServer::handleReset(const Reset::Request& request, Reset::Response& response) {
