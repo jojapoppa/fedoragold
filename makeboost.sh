@@ -41,8 +41,8 @@ export Boost_USE_MULTITHREADED ON
 
 # using full path here... just edit on each platform...
 #./bootstrap.sh --prefix=/home/fork/boostfedora 
-./bootstrap.sh --prefix=/Users/jojapoppa/Desktop/FEDG_BUILD/boost_1_65_0
+./bootstrap.sh --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0
 #./b2 install --prefix=/home/fork/boostfedora --layout=tagged --threading=multi --without-mpi --build-type=complete
-./b2 install --prefix=/Users/jojapoppa/Desktop/FEDG_BUILD/boost_1_65_0 --layout=tagged --threading=multi --without-mpi --build-type=complete
+./b2 install --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0 --layout=tagged --threading=multi --without-mpi --build-type=complete
 cd ..
 ls

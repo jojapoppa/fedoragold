@@ -15,6 +15,7 @@
 #include <System/Timer.h>
 #include <System/InterruptedException.h>
 #include "Common/Util.h"
+#include "Common/StringTools.h"
 
 #include "crypto/crypto.h"
 #include "CryptoNote.h"
@@ -409,7 +410,7 @@ void generateNewWalletWithKeysOption(const CryptoNote::Currency& currency, const
   log(Logging::INFO, Logging::BRIGHT_WHITE) << "Attemping to import wallet from keys";
   Crypto::Hash private_spend_key_hash;
   Crypto::Hash private_view_key_hash;
-  uint64_t size;
+  size_t size;
 
   if (!Common::fromHex(conf.secretSpendKey, &private_spend_key_hash, sizeof(private_spend_key_hash), size) || size != sizeof(private_spend_key_hash)) {
       log(Logging::ERROR, Logging::BRIGHT_RED) << "Invalid spend key";
