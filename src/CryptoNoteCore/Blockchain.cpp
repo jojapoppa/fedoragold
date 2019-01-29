@@ -392,7 +392,10 @@ bool Blockchain::have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im) {
 
 uint64_t Blockchain::getCurrentBlockchainHeight() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  return static_cast<uint64_t>(m_blocks.size());
+
+  // jojapoppa, look at these static_cast cases 
+  //return static_cast<uint64_t>(m_blocks.size());
+  return (uint64_t)(m_blocks.size());
 }
 
 bool Blockchain::init(const std::string& config_folder, bool load_existing) {
