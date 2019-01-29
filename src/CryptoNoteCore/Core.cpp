@@ -86,7 +86,7 @@ bool core::handle_command_line(const boost::program_options::variables_map& vm) 
   return true;
 }
 
-uint32_t core::get_current_blockchain_height() {
+uint64_t core::get_current_blockchain_height() {
   return m_blockchain.getCurrentBlockchainHeight();
 }
 

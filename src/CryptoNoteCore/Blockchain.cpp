@@ -390,9 +390,9 @@ bool Blockchain::have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im) {
   return  m_spent_keys.find(key_im) != m_spent_keys.end();
 }
 
-uint32_t Blockchain::getCurrentBlockchainHeight() {
+uint64_t Blockchain::getCurrentBlockchainHeight() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  return static_cast<uint32_t>(m_blocks.size());
+  return static_cast<uint64_t>(m_blocks.size());
 }
 
 bool Blockchain::init(const std::string& config_folder, bool load_existing) {
@@ -464,6 +464,8 @@ void Blockchain::rebuildCache() {
   m_spent_keys.clear();
   m_outputs.clear();
   m_multisignatureOutputs.clear();
+
+  //jojapoppa, need to investigate if b should be uint64 here
   for (uint32_t b = 0; b < m_blocks.size(); ++b) {
     if (b % 1000 == 0) {
       logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size();
@@ -635,6 +637,8 @@ difficulty_type Blockchain::getDifficultyForNextBlock() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
   std::vector<uint64_t> timestamps;
   std::vector<difficulty_type> commulative_difficulties;
+
+  //jojapoppa, check this static_cast
   size_t offset = m_blocks.size() - std::min(m_blocks.size(), static_cast<uint64_t>(m_currency.difficultyBlocksCount()));
   if (offset == 0) {
     ++offset;
@@ -1006,7 +1010,11 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
 
     BlockEntry bei = boost::value_initialized<BlockEntry>();
     bei.bl = b;
-    bei.height = static_cast<uint32_t>(alt_chain.size() ? it_prev->second.height + 1 : mainPrevHeight + 1);
+
+    // jojapoppa, this was a static_cast<uint32_t) ... but I think these size() fuctions
+    // are actually uint64_t so i used an old style cast as it checks the type conversion
+    // -- We should just change ALL integers system wide (mostly) to uint64_t... later
+    bei.height = (uint32_t)(alt_chain.size() ? it_prev->second.height + 1 : mainPrevHeight + 1);
 
     bool is_a_checkpoint;
     if (!m_checkpoints.check_block(bei.height, id, is_a_checkpoint)) {
@@ -1170,7 +1178,9 @@ bool Blockchain::getAlternativeBlocks(std::list<Block>& blocks) {
 
 uint32_t Blockchain::getAlternativeBlocksCount() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  return static_cast<uint32_t>(m_alternative_chains.size());
+
+  // jojapoppa, same as size() conversion above ... see above note
+  return (uint32_t)(m_alternative_chains.size());
 }
 
 bool Blockchain::add_out_to_get_random_outs(std::vector<std::pair<TransactionIndex, uint16_t>>& amount_outs, COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::outs_for_amount& result_outs, uint64_t amount, size_t i) {
@@ -1187,6 +1197,8 @@ bool Blockchain::add_out_to_get_random_outs(std::vector<std::pair<TransactionInd
     return false;
 
   COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::out_entry& oen = *result_outs.outs.insert(result_outs.outs.end(), COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::out_entry());
+
+  //jojapoppa (need to check these static_casts... they don't do any runtime checks at all
   oen.global_amount_index = static_cast<uint32_t>(i);
   oen.out_key = boost::get<KeyOutput>(tx.outputs[amount_outs[i].second].target).key;
   return true;
@@ -1324,6 +1336,7 @@ std::vector<Crypto::Hash> Blockchain::findBlockchainSupplement(const std::vector
   totalBlockCount = getCurrentBlockchainHeight();
   startBlockIndex = findBlockchainSupplement(remoteBlockIds);
 
+  //jojapoppa, need to check these static_casts as they don't do any runtime checks at all
   return m_blockIndex.getBlockIds(startBlockIndex, static_cast<uint32_t>(maxCount));
 }
 
@@ -1466,6 +1479,7 @@ bool Blockchain::is_tx_spendtime_unlocked(uint64_t unlock_time) {
       return false;
   } else {
     //interpret as time
+    // jojapoppa, check this static_cast ... is that really a uint64?
     uint64_t current_time = static_cast<uint64_t>(time(NULL));
     if (current_time + m_currency.lockedTxAllowedDeltaSeconds() >= unlock_time)
       return true;
@@ -1744,7 +1758,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   auto longhash_calculating_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - longhashTimeStart).count();
 
-  if (!prevalidate_miner_transaction(blockData, static_cast<uint32_t>(m_blocks.size()))) {
+  if (!prevalidate_miner_transaction(blockData, static_cast<uint64_t>(m_blocks.size()))) {
     logger(INFO, BRIGHT_WHITE) <<
       "Block " << blockHash << " failed to pass prevalidation";
     bvc.m_verifivation_failed = true;
@@ -1757,7 +1771,10 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   block.bl = blockData;
   block.transactions.resize(1);
   block.transactions[0].tx = blockData.baseTransaction;
-  TransactionIndex transactionIndex = { static_cast<uint32_t>(m_blocks.size()), static_cast<uint16_t>(0) };
+
+  //jojapoppa need to figure out if transaction index should start with a uint64 here
+  // code for blocks.size() used to have a static_cast<uint64_t>
+  TransactionIndex transactionIndex = {(uint32_t)(m_blocks.size()), static_cast<uint16_t>(0) };
   pushTransaction(block, minerTransactionHash, transactionIndex);
 
   size_t coinbase_blob_size = getObjectBinarySize(blockData.baseTransaction);
@@ -1797,14 +1814,14 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   int64_t emissionChange = 0;
   uint64_t reward = 0;
   uint64_t already_generated_coins = m_blocks.empty() ? 0 : m_blocks.back().already_generated_coins;
-  if (!validate_miner_transaction(blockData, static_cast<uint32_t>(m_blocks.size()), cumulative_block_size, already_generated_coins, fee_summary, reward, emissionChange)) {
+  if (!validate_miner_transaction(blockData, static_cast<uint64_t>(m_blocks.size()), cumulative_block_size, already_generated_coins, fee_summary, reward, emissionChange)) {
     logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << " has invalid miner transaction";
     bvc.m_verifivation_failed = true;
     popTransactions(block, minerTransactionHash);
     return false;
   }
 
-  block.height = static_cast<uint32_t>(m_blocks.size());
+  block.height = static_cast<uint64_t>(m_blocks.size());
   block.block_cumulative_size = cumulative_block_size;
   block.cumulative_difficulty = currentDifficulty;
   block.already_generated_coins = already_generated_coins + emissionChange;
@@ -1911,6 +1928,8 @@ bool Blockchain::pushTransaction(BlockEntry& block, const Crypto::Hash& transact
     }
   }
 
+  //jojapoppa, check these static_casts... are those really uint32?
+  // static checks don't check the data types at all.. better be right
   transaction.m_global_output_indexes.resize(transaction.tx.outputs.size());
   for (uint16_t output = 0; output < transaction.tx.outputs.size(); ++output) {
     if (transaction.tx.outputs[output].target.type() == typeid(KeyOutput)) {
@@ -2108,6 +2127,7 @@ bool Blockchain::getLowerBound(uint64_t timestamp, uint64_t startOffset, uint32_
     return false;
   }
 
+  // jojapoppa, check that static_cast
   height = static_cast<uint32_t>(std::distance(m_blocks.begin(), bound));
   return true;
 }
