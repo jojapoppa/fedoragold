@@ -246,6 +246,7 @@ int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_B
 
   block_verification_context bvc = boost::value_initialized<block_verification_context>();
   m_core.handle_incoming_block_blob(asBinaryArray(arg.b.block), bvc, true, false);
+  logger(DEBUGGING) << "check verification in handle_notify_new_block";
   if (bvc.m_verifivation_failed) {
     logger(Logging::DEBUGGING) << context << "Block verification failed, dropping connection";
     context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -380,6 +381,7 @@ int CryptoNoteProtocolHandler::handle_response_get_objects(int command, NOTIFY_R
 
     int result = processObjects(context, arg.blocks);
     if (result != 0) {
+      logger(DEBUGGING) << "Result from processObjects nonzero: " << result;
       return result;
     }
   }
@@ -419,7 +421,6 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
     // process block
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     m_core.handle_incoming_block_blob(asBinaryArray(block_entry.block), bvc, false, false);
-
     if (bvc.m_verifivation_failed) {
       logger(Logging::DEBUGGING) << context << "Block verification failed, dropping connection";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -436,11 +437,12 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       return 1;
     }
 
-    m_dispatcher.yield();
+    if (bvc.m_switched_to_alt_chain) {
+      logger(DEBUGGING) << "...calling m_dispatcher.yield() after checking for alt chain...";
+      m_dispatcher.yield();
+    }
   }
-
   return 0;
-
 }
 
 

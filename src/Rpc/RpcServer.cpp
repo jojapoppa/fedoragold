@@ -340,6 +340,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
 }
 
 bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAND_RPC_GET_HEIGHT::response& res) {
+
   res.height = m_core.get_current_blockchain_height();
   res.status = CORE_RPC_STATUS_OK;
   return true;
@@ -472,7 +473,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
 
 bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res) {
 
-  for (int i=0; i<m_core.get_current_blockchain_height(); i++) {
+  for (uint64_t i=0; i<m_core.get_current_blockchain_height(); i++) {
 
     std::list<Block> blocks;
     std::list<Transaction> txs;

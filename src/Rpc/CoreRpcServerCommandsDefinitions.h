@@ -29,7 +29,10 @@ struct STATUS_STRUCT {
 };
 
 struct COMMAND_RPC_GET_HEIGHT {
-  typedef EMPTY_STRUCT request;
+  struct request {
+    void serialize(ISerializer &s) {
+    }
+  };
 
   struct response {
     uint64_t height;

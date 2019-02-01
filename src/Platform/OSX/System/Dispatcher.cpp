@@ -72,6 +72,7 @@ Dispatcher::Dispatcher() : lastCreatedTimer(0) {
           mainContext.group = &contextGroup;
           mainContext.groupPrev = nullptr;
           mainContext.groupNext = nullptr;
+          mainContext.inExecutionQueue = false;
           contextGroup.firstContext = nullptr;
           contextGroup.lastContext = nullptr;
           contextGroup.firstWaiter = nullptr;
@@ -132,6 +133,10 @@ void Dispatcher::dispatch() {
     if (firstResumingContext != nullptr) {
       context = firstResumingContext;
       firstResumingContext = context->next;
+
+      assert(context->inExecutionQueue);
+      context->inExecutionQueue = false;
+
       break;
     }
     
@@ -224,7 +229,12 @@ bool Dispatcher::interrupted() {
 
 void Dispatcher::pushContext(NativeContext* context) {
   assert(context!=nullptr);
+
+  if (context->inExecutionQueue)
+    return;
+
   context->next = nullptr;
+  context->inExecutionQueue = true;
   if (firstResumingContext != nullptr) {
     assert(lastResumingContext != nullptr);
     lastResumingContext->next = context;
@@ -288,7 +298,7 @@ void Dispatcher::yield() {
 
         if (events[i].filter == EVFILT_USER && events[i].ident == 0) {
           EV_SET(&updates[updatesCounter++], 0, EVFILT_USER, EV_ADD | EV_DISABLE, NOTE_FFNOP, 0, NULL);
-          
+
           MutextGuard guard(*reinterpret_cast<pthread_mutex_t*>(this->mutex));
           while (!remoteSpawningProcedures.empty()) {
             spawn(std::move(remoteSpawningProcedures.front()));
@@ -375,6 +385,7 @@ void Dispatcher::contextProcedure(void* ucontext) {
   context.uctx = ucontext;
   context.interrupted = false;
   context.next = nullptr;
+  context.inExecutionQueue = false;
   firstReusableContext = &context;
   uctx* oldContext = static_cast<uctx*>(context.uctx);
   if (swapcontext(oldContext, static_cast<uctx*>(currentContext->uctx)) == -1) {
@@ -385,7 +396,7 @@ void Dispatcher::contextProcedure(void* ucontext) {
     ++runningContextCount;
     try {
       context.procedure();
-    } catch(std::exception&) {
+    } catch(...) {
     }
 
     if (context.group != nullptr) {

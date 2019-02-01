@@ -18,6 +18,7 @@ struct NativeContext {
   void* uctx;
   void* stackPtr;
   bool interrupted;
+  bool inExecutionQueue;
   NativeContext* next;
   NativeContextGroup* group;
   NativeContext* groupPrev;
@@ -53,7 +54,6 @@ public:
   void pushContext(NativeContext* context);
   void remoteSpawn(std::function<void()>&& procedure);
   void yield();
-
   int getKqueue() const;
   NativeContext& getReusableContext();
   void pushReusableContext(NativeContext&);

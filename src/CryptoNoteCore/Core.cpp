@@ -170,6 +170,7 @@ size_t core::addChain(const std::vector<const IBlock*>& chain) {
 
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     m_blockchain.addNewBlock(block->getBlock(), bvc);
+    logger(DEBUGGING) << "checking for orphans after addNewBlock";
     if (bvc.m_marked_as_orphaned || bvc.m_verifivation_failed) {
       logger(ERROR, BRIGHT_RED) << "core::addChain() failed to handle incoming block " << get_block_hash(block->getBlock()) <<
         ", " << blocksCounter << "/" << chain.size();
@@ -504,7 +505,7 @@ bool core::handle_incoming_block(const Block& b, block_verification_context& bvc
   }
 
   m_blockchain.addNewBlock(b, bvc);
-
+  logger(DEBUGGING) << "checking mining flag after addNewBlock";
   if (control_miner) {
     update_block_template_and_resume_mining();
   }
@@ -536,6 +537,7 @@ bool core::handle_incoming_block(const Block& b, block_verification_context& bvc
     }
   }
 
+  logger(DEBUGGING) << "... completed: handle_incoming_bloc()..";
   return true;
 }
 

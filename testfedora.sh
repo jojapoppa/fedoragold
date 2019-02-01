@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#export BOOST_ROOT=/Users/jojapoppa/Desktop/FED_BUILD/fedoragold-release/boostfedora_mac
-export BOOST_ROOT=/home/fork/fedora-release/boostfedora
+export BOOST_ROOT=/Users/jojapoppa/Desktop/FED_BUILD/fedoragold-release/boostfedora_mac
+#export BOOST_ROOT=/home/fork/fedora-release/boostfedora
 
 make test-release

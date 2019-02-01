@@ -7,6 +7,8 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 if(APPLE)
+#increase default OSX stack size to 256 MB
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
 else()
 set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-Bstatic -Llibc.a")
 endif()

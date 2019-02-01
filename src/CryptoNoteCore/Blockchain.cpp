@@ -1654,6 +1654,7 @@ bool Blockchain::addNewBlock(const Block& bl_, block_verification_context& bvc) 
       add_result = handle_alternative_block(bl, id, bvc);
     } else {
       add_result = pushBlock(bl, bvc);
+      logger(DEBUGGING) << "...check add_result";
       if (add_result) {
         sendMessage(BlockchainMessage(NewBlockMessage(id)));
       }
@@ -1664,6 +1665,7 @@ bool Blockchain::addNewBlock(const Block& bl_, block_verification_context& bvc) 
     m_observerManager.notify(&IBlockchainStorageObserver::blockchainUpdated);
   }
 
+  logger(DEBUGGING) << "...completed addNewBlock";
   return add_result;
 }
 
@@ -1851,8 +1853,8 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     << ", " << block_processing_time << "(" << target_calculating_time << "/" << longhash_calculating_time << ")ms";
 
   bvc.m_added_to_main_chain = true;
-
   update_next_comulative_size_limit();
+  logger(DEBUGGING) << "... update to next cumulative size limit completed.";
 
   return true;
 }
