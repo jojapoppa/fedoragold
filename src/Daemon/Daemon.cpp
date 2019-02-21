@@ -155,22 +155,25 @@ int main(int argc, char* argv[])
 
     if (!r)
       return 1;
-  
+ 
+    Level cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + command_line::get_arg(vm, arg_log_level));
+
     auto modulePath = Common::NativePathToGeneric(argv[0]);
     auto cfgLogFile = Common::NativePathToGeneric(command_line::get_arg(vm, arg_log_file));
 
-    if (cfgLogFile.empty()) {
-      cfgLogFile = Common::ReplaceExtenstion(modulePath, ".log");
-    } else {
-      if (!Common::HasParentPath(cfgLogFile)) {
-        cfgLogFile = Common::CombinePath(Common::GetPathDirectory(modulePath), cfgLogFile);
+    // don't create a log file unless log level > 0
+    if (cfgLogLevel > static_cast<int>(Logging::ERROR)) {
+      if (cfgLogFile.empty()) {
+        cfgLogFile = Common::ReplaceExtenstion(modulePath, ".log");
+      } else {
+        if (!Common::HasParentPath(cfgLogFile)) {
+          cfgLogFile = Common::CombinePath(Common::GetPathDirectory(modulePath), cfgLogFile);
+        }
       }
+
+      // configure logging
+      logManager.configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile));
     }
-
-    Level cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + command_line::get_arg(vm, arg_log_level));
-
-    // configure logging
-    logManager.configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile));
 
     logger(INFO) << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG;
 
