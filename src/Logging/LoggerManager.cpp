@@ -69,6 +69,11 @@ void LoggerManager::configure(const JsonValue& val) {
         std::string type = loggerConfiguration("type").getString();
         std::unique_ptr<Logging::CommonLogger> logger;
 
+	// Sanity check for Windows which can't handle blank log files very well...
+        if (level == 0) {
+          type = "console";
+        } 
+
         if (type == "console") {
           logger.reset(new ConsoleLogger(level));
         } else if (type == "file") {
