@@ -60,14 +60,17 @@ bool PaymentGateService::init(int argc, char** argv) {
     log(Logging::INFO) << "Current working directory now is " << config.gateConfiguration.serverRoot;
   }
 
-  fileStream.open(config.gateConfiguration.logFile, std::ofstream::app);
+  // only initiate a file logger if the loglevel > 0
+  if (config.gateConfiguration.logLevel > 0) {
 
-  if (!fileStream) {
-    throw std::runtime_error("Couldn't open log file");
+    fileStream.open(config.gateConfiguration.logFile, std::ofstream::app);
+    if (!fileStream) {
+      throw std::runtime_error("Couldn't open log file");
+    }
+
+    fileLogger.attachToStream(fileStream);
+    logger.addLogger(fileLogger);
   }
-
-  fileLogger.attachToStream(fileStream);
-  logger.addLogger(fileLogger);
 
   return true;
 }
