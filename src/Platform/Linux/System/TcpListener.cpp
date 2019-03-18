@@ -29,14 +29,14 @@
 #include "TcpConnection.h"
 #include <System/ErrorMessage.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 
 namespace System {
 
 TcpListener::TcpListener() : dispatcher(nullptr) {
 }
 
-TcpListener::TcpListener(Dispatcher& dispatcher, const Ipv4Address& addr, uint16_t port) : dispatcher(&dispatcher) {
+TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t port) : dispatcher(&dispatcher) {
   std::string message;
   listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (listener == -1) {

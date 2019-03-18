@@ -7,14 +7,17 @@
 #include <cstdint>
 #include <string>
 
+#include <netdb.h>
+
 namespace System {
 
-class Ipv4Address {
+class IpAddress {
 public:
-  explicit Ipv4Address(uint32_t value);
-  explicit Ipv4Address(const std::string& dottedDecimal);
-  bool operator!=(const Ipv4Address& other) const;
-  bool operator==(const Ipv4Address& other) const;
+  explicit IpAddress(uint32_t value);
+  explicit IpAddress(struct in6_addr addr6);
+  explicit IpAddress(const std::string& dottedDecimal);
+  bool operator!=(const IpAddress& other) const;
+  bool operator==(const IpAddress& other) const;
   uint32_t getValue() const;
   bool isLoopback() const;
   bool isPrivate() const;

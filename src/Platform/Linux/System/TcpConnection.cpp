@@ -24,7 +24,7 @@
 
 #include <System/ErrorMessage.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 
 namespace System {
 
@@ -262,7 +262,7 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size) {
   return transferred;
 }
 
-std::pair<Ipv4Address, uint16_t> TcpConnection::getPeerAddressAndPort() const {
+std::pair<IpAddress, uint16_t> TcpConnection::getPeerAddressAndPort() const {
   sockaddr_in addr;
   socklen_t size = sizeof(addr);
   if (getpeername(connection, reinterpret_cast<sockaddr*>(&addr), &size) != 0) {
@@ -270,7 +270,7 @@ std::pair<Ipv4Address, uint16_t> TcpConnection::getPeerAddressAndPort() const {
   }
 
   assert(size == sizeof(sockaddr_in));
-  return std::make_pair(Ipv4Address(htonl(addr.sin_addr.s_addr)), htons(addr.sin_port));
+  return std::make_pair(IpAddress(htonl(addr.sin_addr.s_addr)), htons(addr.sin_port));
 }
 
 TcpConnection::TcpConnection(Dispatcher& dispatcher, int socket) : dispatcher(&dispatcher), connection(socket) {

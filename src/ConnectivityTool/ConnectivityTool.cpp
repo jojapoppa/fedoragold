@@ -10,7 +10,7 @@
 #include <System/Dispatcher.h>
 #include <System/Event.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/Ipv4Resolver.h>
 #include <System/TcpConnection.h>
 #include <System/TcpConnector.h>

@@ -9,7 +9,7 @@
 namespace System {
 
 class Dispatcher;
-class Ipv4Address;
+class IpAddress;
 
 class Ipv4Resolver {
 public:
@@ -20,7 +20,7 @@ public:
   ~Ipv4Resolver();
   Ipv4Resolver& operator=(const Ipv4Resolver&) = delete;
   Ipv4Resolver& operator=(Ipv4Resolver&& other);
-      Ipv4Address resolve(const std::string& host);
+      IpAddress resolve(const std::string& host);
 
 private:
   Dispatcher* dispatcher;

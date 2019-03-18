@@ -10,13 +10,13 @@
 namespace System {
 
 class Dispatcher;
-class Ipv4Address;
+class IpAddress;
 class TcpConnection;
 
 class TcpListener {
 public:
   TcpListener();
-  TcpListener(Dispatcher& dispatcher, const Ipv4Address& address, uint16_t port);
+  TcpListener(Dispatcher& dispatcher, const IpAddress& address, uint16_t port);
   TcpListener(const TcpListener&) = delete;
   TcpListener(TcpListener&& other);
   ~TcpListener();

@@ -24,7 +24,7 @@
 #include <Logging/LoggerManager.h>
 
 #include <System/Dispatcher.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 
 namespace CryptoNote
 {

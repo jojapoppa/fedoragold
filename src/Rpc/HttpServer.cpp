@@ -8,7 +8,7 @@
 #include <HTTP/HttpParser.h>
 #include <System/InterruptedException.h>
 #include <System/TcpStream.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 
 using namespace Logging;
 
@@ -20,7 +20,7 @@ HttpServer::HttpServer(System::Dispatcher& dispatcher, Logging::ILogger& log)
 }
 
 void HttpServer::start(const std::string& address, uint16_t port) {
-  m_listener = System::TcpListener(m_dispatcher, System::Ipv4Address(address), port);
+  m_listener = System::TcpListener(m_dispatcher, System::IpAddress(address), port);
   workingContextGroup.spawn(std::bind(&HttpServer::acceptLoop, this));
 }
 

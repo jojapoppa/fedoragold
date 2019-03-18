@@ -6,7 +6,7 @@
 #include <System/ContextGroup.h>
 #include <System/Event.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/TcpConnection.h>
 #include <System/TcpConnector.h>
 #include <System/TcpListener.h>
@@ -18,7 +18,7 @@ using namespace System;
 
 namespace {
 
-const Ipv4Address LISTEN_ADDRESS("127.0.0.1");
+const IpAddress LISTEN_ADDRESS("127.0.0.1");
 const uint16_t LISTEN_PORT = 6666;
 
 void fillRandomBuf(std::vector<uint8_t>& buf) {

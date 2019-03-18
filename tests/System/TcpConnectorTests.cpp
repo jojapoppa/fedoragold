@@ -6,7 +6,7 @@
 #include <System/ContextGroup.h>
 #include <System/Event.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/TcpConnection.h>
 #include <System/TcpConnector.h>
 #include <System/TcpListener.h>
@@ -17,7 +17,7 @@ using namespace System;
 
 class TcpConnectorTests : public testing::Test {
 public:
-  TcpConnectorTests() : event(dispatcher), listener(dispatcher, Ipv4Address("127.0.0.1"), 6666), contextGroup(dispatcher) {
+  TcpConnectorTests() : event(dispatcher), listener(dispatcher, IpAddress("127.0.0.1"), 6666), contextGroup(dispatcher) {
   }
   
   Dispatcher dispatcher;
@@ -34,7 +34,7 @@ TEST_F(TcpConnectorTests, tcpConnector1) {
 
   TcpConnector connector(dispatcher);
   contextGroup.spawn([&] { 
-    connector.connect(Ipv4Address("127.0.0.1"), 6666); 
+    connector.connect(IpAddress("127.0.0.1"), 6666); 
   });
   event.wait();
   dispatcher.yield();
@@ -42,7 +42,7 @@ TEST_F(TcpConnectorTests, tcpConnector1) {
 
 TEST_F(TcpConnectorTests, tcpConnectorInterruptAfterStart) {
   contextGroup.spawn([&] { 
-    ASSERT_THROW(TcpConnector(dispatcher).connect(Ipv4Address("127.0.0.1"), 6666), InterruptedException); 
+    ASSERT_THROW(TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 6666), InterruptedException); 
   });
   contextGroup.interrupt();
 }
@@ -56,7 +56,7 @@ TEST_F(TcpConnectorTests, tcpConnectorInterrupt) {
   });
 
   contextGroup.spawn([&] { 
-    ASSERT_THROW(connector.connect(Ipv4Address("10.255.255.1"), 6666), InterruptedException); 
+    ASSERT_THROW(connector.connect(IpAddress("10.255.255.1"), 6666), InterruptedException); 
   });
   contextGroup.wait();
 }
@@ -70,15 +70,15 @@ TEST_F(TcpConnectorTests, tcpConnectorUseAfterInterrupt) {
   });
 
   contextGroup.spawn([&] { 
-    ASSERT_THROW(connector.connect(Ipv4Address("10.255.255.1"), 6666), InterruptedException); 
+    ASSERT_THROW(connector.connect(IpAddress("10.255.255.1"), 6666), InterruptedException); 
   });
   contextGroup.wait();
   contextGroup.spawn([&] { 
-    ASSERT_NO_THROW(connector.connect(Ipv4Address("127.0.0.1"), 6666)); 
+    ASSERT_NO_THROW(connector.connect(IpAddress("127.0.0.1"), 6666)); 
   });
   contextGroup.wait();
 }
 
 TEST_F(TcpConnectorTests, bindToTheSameAddressFails) {
-  ASSERT_THROW(TcpListener listener2(dispatcher, Ipv4Address("127.0.0.1"), 6666), std::runtime_error);
+  ASSERT_THROW(TcpListener listener2(dispatcher, IpAddress("127.0.0.1"), 6666), std::runtime_error);
 }

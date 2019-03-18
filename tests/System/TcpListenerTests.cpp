@@ -6,7 +6,7 @@
 #include <System/ContextGroup.h>
 #include <System/Event.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/TcpConnection.h>
 #include <System/TcpConnector.h>
 #include <System/TcpListener.h>
@@ -18,7 +18,7 @@ using namespace System;
 class TcpListenerTests : public testing::Test {
 public:
   TcpListenerTests() :
-    event(dispatcher), listener(dispatcher, Ipv4Address("127.0.0.1"), 6666), contextGroup(dispatcher) {
+    event(dispatcher), listener(dispatcher, IpAddress("127.0.0.1"), 6666), contextGroup(dispatcher) {
   }
   
   Dispatcher dispatcher;
@@ -30,7 +30,7 @@ public:
 TEST_F(TcpListenerTests, tcpListener1) {
   contextGroup.spawn([&] {
     TcpConnector connector(dispatcher);
-    connector.connect(Ipv4Address("127.0.0.1"), 6666);
+    connector.connect(IpAddress("127.0.0.1"), 6666);
     event.set();
   });
 
@@ -75,7 +75,7 @@ TEST_F(TcpListenerTests, acceptAfterInterrupt) {
   contextGroup.spawn([&] {
     try {
       TcpConnector connector(dispatcher);
-      connector.connect(Ipv4Address("127.0.0.1"), 6666);
+      connector.connect(IpAddress("127.0.0.1"), 6666);
     } catch (InterruptedException&) {
       stopped = true;
     }

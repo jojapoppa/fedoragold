@@ -14,7 +14,7 @@
 #include <unistd.h>
 
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include "Dispatcher.h"
 #include "ErrorMessage.h"
 #include "TcpConnection.h"
@@ -58,7 +58,7 @@ TcpConnector& TcpConnector::operator=(TcpConnector&& other) {
   return *this;
 }
 
-TcpConnection TcpConnector::connect(const Ipv4Address& address, uint16_t port) {
+TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
   assert(dispatcher != nullptr);
   assert(context == nullptr);
   if (dispatcher->interrupted()) {

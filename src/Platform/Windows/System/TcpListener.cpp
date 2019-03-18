@@ -10,7 +10,7 @@
 #include <winsock2.h>
 #include <mswsock.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include "Dispatcher.h"
 #include "ErrorMessage.h"
 #include "TcpConnection.h"
@@ -31,7 +31,7 @@ LPFN_ACCEPTEX acceptEx = nullptr;
 TcpListener::TcpListener() : dispatcher(nullptr) {
 }
 
-TcpListener::TcpListener(Dispatcher& dispatcher, const Ipv4Address& address, uint16_t port) : dispatcher(&dispatcher) {
+TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& address, uint16_t port) : dispatcher(&dispatcher) {
   std::string message;
   listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (listener == INVALID_SOCKET) {

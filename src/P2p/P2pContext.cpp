@@ -6,7 +6,7 @@
 
 #include <System/EventLock.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/OperationTimeout.h>
 
 #include "LevinProtocol.h"

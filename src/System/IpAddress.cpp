@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "Ipv4Address.h"
+#include "IpAddress.h"
 #include <stdexcept>
 
 namespace System {
@@ -54,10 +54,16 @@ uint8_t readUint8(const std::string& source, size_t& offset) {
 
 }
 
-Ipv4Address::Ipv4Address(uint32_t value) : value(value) {
+IpAddress::IpAddress(uint32_t value) : value(value) {
 }
 
-Ipv4Address::Ipv4Address(const std::string& dottedDecimal) {
+IpAddress::IpAddress(struct in6_addr addr6) {
+
+//jojapoppa, need to set value(value) here...
+
+}
+
+IpAddress::IpAddress(const std::string& dottedDecimal) {
   size_t offset = 0;
   value = readUint8(dottedDecimal, offset);
   if (offset == dottedDecimal.size() || dottedDecimal[offset] != '.') {
@@ -83,19 +89,19 @@ Ipv4Address::Ipv4Address(const std::string& dottedDecimal) {
   }
 }
 
-bool Ipv4Address::operator!=(const Ipv4Address& other) const {
+bool IpAddress::operator!=(const IpAddress& other) const {
   return value != other.value;
 }
 
-bool Ipv4Address::operator==(const Ipv4Address& other) const {
+bool IpAddress::operator==(const IpAddress& other) const {
   return value == other.value;
 }
 
-uint32_t Ipv4Address::getValue() const {
+uint32_t IpAddress::getValue() const {
   return value;
 }
 
-std::string Ipv4Address::toDottedDecimal() const {
+std::string IpAddress::toDottedDecimal() const {
   std::string result;
   result += std::to_string(value >> 24);
   result += '.';
@@ -107,12 +113,12 @@ std::string Ipv4Address::toDottedDecimal() const {
   return result;
 }
 
-bool Ipv4Address::isLoopback() const {
+bool IpAddress::isLoopback() const {
   // 127.0.0.0/8
   return (value & 0xff000000) == (127 << 24);
 }
 
-bool Ipv4Address::isPrivate() const {
+bool IpAddress::isPrivate() const {
   return
     // 10.0.0.0/8
     (int)(value & 0xff000000) == (int)(10 << 24) ||

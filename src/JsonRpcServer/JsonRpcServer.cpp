@@ -14,7 +14,7 @@
 #include <System/TcpConnection.h>
 #include <System/TcpListener.h>
 #include <System/TcpStream.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include "HTTP/HttpParser.h"
 #include "HTTP/HttpResponse.h"
 

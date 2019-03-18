@@ -10,7 +10,7 @@
 namespace System {
 
 class Dispatcher;
-class Ipv4Address;
+class IpAddress;
 
 class TcpConnection {
 public:
@@ -22,7 +22,7 @@ public:
   TcpConnection& operator=(TcpConnection&& other);
   size_t read(uint8_t* data, size_t size);
   size_t write(const uint8_t* data, size_t size);
-  std::pair<Ipv4Address, uint16_t> getPeerAddressAndPort() const;
+  std::pair<IpAddress, uint16_t> getPeerAddressAndPort() const;
 
 private:
   friend class TcpConnector;

@@ -7,7 +7,7 @@
 #include <System/Dispatcher.h>
 #include <System/Event.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/Timer.h>
 #include <System/TcpConnection.h>
 #include <System/TcpConnector.h>
@@ -109,7 +109,7 @@ TEST(ContextGroupTests, ListenerAcceptIsContextIntrerruptible) {
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        TcpListener(dispatcher, Ipv4Address("0.0.0.0"), 12345).accept();
+        TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
       } catch (InterruptedException&) {
         interrupted = true;
       }
@@ -129,7 +129,7 @@ TEST(ContextGroupTests, ConnectorConnectIsContextIntrerruptible) {
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        TcpConnector(dispatcher).connect(Ipv4Address("127.0.0.1"), 12345);
+        TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
       } catch (InterruptedException&) {
         interrupted = true;
       }
@@ -149,7 +149,7 @@ TEST(ContextGroupTests, ConnectionReadIsContextIntrerruptible) {
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        auto conn = TcpListener(dispatcher, Ipv4Address("0.0.0.0"), 12345).accept();
+        auto conn = TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
         Timer(dispatcher).sleep(std::chrono::milliseconds(1000));
         conn.write(nullptr, 0);
       } catch (InterruptedException&) {
@@ -158,7 +158,7 @@ TEST(ContextGroupTests, ConnectionReadIsContextIntrerruptible) {
 
     cg1.spawn([&] {
       try {
-        auto conn = TcpConnector(dispatcher).connect(Ipv4Address("127.0.0.1"), 12345);
+        auto conn = TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
         connected.set();
         uint8_t a[10];
         conn.read(a, 10);
@@ -201,7 +201,7 @@ TEST(ContextGroupTests, ListenerAcceptIsThrowingWhenCurrentContextIsInterrupted)
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        TcpListener(dispatcher, Ipv4Address("0.0.0.0"), 12345).accept();
+        TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
       } catch (InterruptedException&) {
         interrupted = true;
       }
@@ -219,7 +219,7 @@ TEST(ContextGroupTests, ConnectorConnectIsThrowingWhenCurrentContextIsInterrupte
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        TcpConnector(dispatcher).connect(Ipv4Address("127.0.0.1"), 12345);
+        TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
       } catch (InterruptedException&) {
         interrupted = true;
       }
@@ -238,7 +238,7 @@ TEST(ContextGroupTests, ConnectionReadIsThrowingWhenCurrentContextIsInterrupted)
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        auto conn = TcpListener(dispatcher, Ipv4Address("0.0.0.0"), 12345).accept();
+        auto conn = TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
         conn.write(nullptr, 0);
       } catch (InterruptedException&) {
       }
@@ -246,7 +246,7 @@ TEST(ContextGroupTests, ConnectionReadIsThrowingWhenCurrentContextIsInterrupted)
 
     cg1.spawn([&] {
       try {
-        auto conn = TcpConnector(dispatcher).connect(Ipv4Address("127.0.0.1"), 12345);
+        auto conn = TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
         connected.set();
         dispatcher.yield();
         uint8_t a[10];
@@ -272,7 +272,7 @@ TEST(ContextGroupTests, ConnectionWriteIsThrowingWhenCurrentContextIsInterrupted
     ContextGroup cg1(dispatcher);
     cg1.spawn([&] {
       try {
-        auto conn = TcpListener(dispatcher, Ipv4Address("0.0.0.0"), 12345).accept();
+        auto conn = TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
         conn.write(nullptr, 0);
       } catch (InterruptedException&) {
       }
@@ -280,7 +280,7 @@ TEST(ContextGroupTests, ConnectionWriteIsThrowingWhenCurrentContextIsInterrupted
 
     cg1.spawn([&] {
       try {
-        auto conn = TcpConnector(dispatcher).connect(Ipv4Address("127.0.0.1"), 12345);
+        auto conn = TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
         connected.set();
         dispatcher.yield();
         conn.write(nullptr, 0);

@@ -12,7 +12,7 @@
 #include <System/Dispatcher.h>
 #include <System/ErrorMessage.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 
 namespace System {
 
@@ -40,7 +40,7 @@ Ipv4Resolver& Ipv4Resolver::operator=(Ipv4Resolver&& other) {
   return *this;
 }
 
-Ipv4Address Ipv4Resolver::resolve(const std::string& host) {
+IpAddress Ipv4Resolver::resolve(const std::string& host) {
   assert(dispatcher != nullptr);
   if (dispatcher->interrupted()) {
     throw InterruptedException();
@@ -65,9 +65,19 @@ Ipv4Address Ipv4Resolver::resolve(const std::string& host) {
     addressInfo = addressInfo->ai_next;
   }
 
-  Ipv4Address address(ntohl(reinterpret_cast<sockaddr_in*>(addressInfo->ai_addr)->sin_addr.s_addr));
+  //jojapoppa, need to set this flag, and double check differences in addressinfo structure
+
+  bool isIpv4 = true;
+  IpAddress *address;
+ 
+  if (isIpv4) { 
+    address = new IpAddress(ntohl(reinterpret_cast<sockaddr_in*>(addressInfo->ai_addr)->sin_addr.s_addr));
+  } else {
+    address = new IpAddress(reinterpret_cast<sockaddr_in6*>(addressInfo->ai_addr)->sin6_addr);
+  }
+
   freeaddrinfo(addressInfo);
-  return address;
+  return *address;
 }
 
 }

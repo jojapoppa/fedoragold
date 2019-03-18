@@ -8,7 +8,7 @@
 
 #include <System/ContextGroupTimeout.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/OperationTimeout.h>
 #include <System/TcpConnection.h>
 #include <System/TcpConnector.h>
@@ -115,7 +115,7 @@ P2pNode::P2pNode(const P2pNodeConfig& cfg, Dispatcher& dispatcher, Logging::ILog
   m_connectorTimer(dispatcher),
   m_queueEvent(dispatcher) {
   m_peerlist.init(cfg.getAllowLocalIp());
-  m_listener = TcpListener(m_dispatcher, Ipv4Address(m_cfg.getBindIp()), m_cfg.getBindPort());
+  m_listener = TcpListener(m_dispatcher, IpAddress(m_cfg.getBindIp()), m_cfg.getBindPort());
   for (auto& peer : cfg.getPeers()) {
     m_peerlist.append_with_peer_white(peer);
   }
@@ -353,7 +353,7 @@ P2pNode::ContextPtr P2pNode::tryToConnectPeer(const NetworkAddress& address) {
 
     doWithTimeoutAndThrow(m_dispatcher, m_cfg.getConnectTimeout(), [&] {
       tcpConnection = connector.connect(
-        Ipv4Address(Common::ipAddressToString(address.ip)),
+        IpAddress(Common::ipAddressToString(address.ip)),
         static_cast<uint16_t>(address.port));
     });
 
@@ -495,7 +495,7 @@ void P2pNode::tryPing(P2pContext& ctx) {
     TcpConnection connection;
 
     doWithTimeoutAndThrow(m_dispatcher, m_cfg.getConnectTimeout(), [&] {
-      connection = connector.connect(Ipv4Address(Common::ipAddressToString(peerAddress.ip)), static_cast<uint16_t>(peerAddress.port));
+      connection = connector.connect(IpAddress(Common::ipAddressToString(peerAddress.ip)), static_cast<uint16_t>(peerAddress.port));
     });
 
     doWithTimeoutAndThrow(m_dispatcher, m_cfg.getHandshakeTimeout(), [&]  {

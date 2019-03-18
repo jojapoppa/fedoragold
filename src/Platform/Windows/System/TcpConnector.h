@@ -10,7 +10,7 @@
 namespace System {
 
 class Dispatcher;
-class Ipv4Address;
+class IpAddress;
 class TcpConnection;
 
 class TcpConnector {
@@ -22,7 +22,7 @@ public:
   ~TcpConnector();
   TcpConnector& operator=(const TcpConnector&) = delete;
   TcpConnector& operator=(TcpConnector&& other);
-  TcpConnection connect(const Ipv4Address& address, uint16_t port);
+  TcpConnection connect(const IpAddress& address, uint16_t port);
 
 private:
   Dispatcher* dispatcher;

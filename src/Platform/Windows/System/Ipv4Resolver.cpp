@@ -12,7 +12,7 @@
 #include <System/Dispatcher.h>
 #include <System/ErrorMessage.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 
 namespace System {
 
@@ -40,7 +40,7 @@ Ipv4Resolver& Ipv4Resolver::operator=(Ipv4Resolver&& other) {
   return *this;
 }
 
-Ipv4Address Ipv4Resolver::resolve(const std::string& host) {
+IpAddress Ipv4Resolver::resolve(const std::string& host) {
   assert(dispatcher != nullptr);
   if (dispatcher->interrupted()) {
     throw InterruptedException();
@@ -65,7 +65,7 @@ Ipv4Address Ipv4Resolver::resolve(const std::string& host) {
     addressInfo = addressInfo->ai_next;
   }
 
-  Ipv4Address address(ntohl(reinterpret_cast<sockaddr_in*>(addressInfo->ai_addr)->sin_addr.S_un.S_addr));
+  IpAddress address(ntohl(reinterpret_cast<sockaddr_in*>(addressInfo->ai_addr)->sin_addr.S_un.S_addr));
   freeaddrinfo(addressInfo);
   return address;
 }

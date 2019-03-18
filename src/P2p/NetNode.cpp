@@ -19,7 +19,7 @@
 #include <System/ContextGroupTimeout.h>
 #include <System/EventLock.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/Ipv4Resolver.h>
 #include <System/TcpListener.h>
 #include <System/TcpConnector.h>
@@ -463,7 +463,7 @@ namespace CryptoNote
     logger(INFO) << "Binding on " << m_bind_ip << ":" << m_port;
     m_listeningPort = Common::fromString<uint16_t>(m_port);
 
-    m_listener = System::TcpListener(m_dispatcher, System::Ipv4Address(m_bind_ip), static_cast<uint16_t>(m_listeningPort));
+    m_listener = System::TcpListener(m_dispatcher, System::IpAddress(m_bind_ip), static_cast<uint16_t>(m_listeningPort));
 
     logger(INFO, BRIGHT_GREEN) << "Net service binded on " << m_bind_ip << ":" << m_listeningPort;
 
@@ -694,7 +694,7 @@ namespace CryptoNote
       try {
         System::Context<System::TcpConnection> connectionContext(m_dispatcher, [&] {
           System::TcpConnector connector(m_dispatcher);
-          return connector.connect(System::Ipv4Address(Common::ipAddressToString(na.ip)), static_cast<uint16_t>(na.port));
+          return connector.connect(System::IpAddress(Common::ipAddressToString(na.ip)), static_cast<uint16_t>(na.port));
         });
 
         System::Context<> timeoutContext(m_dispatcher, [&] {
@@ -1084,7 +1084,7 @@ namespace CryptoNote
       COMMAND_PING::response rsp;
       System::Context<> pingContext(m_dispatcher, [&] {
         System::TcpConnector connector(m_dispatcher);
-        auto connection = connector.connect(System::Ipv4Address(ip), static_cast<uint16_t>(port));
+        auto connection = connector.connect(System::IpAddress(ip), static_cast<uint16_t>(port));
         LevinProtocol(connection).invoke(COMMAND_PING::ID, req, rsp);
       });
 

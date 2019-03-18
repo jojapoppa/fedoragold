@@ -10,7 +10,7 @@
 #include <winsock2.h>
 #include <ws2ipdef.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include "Dispatcher.h"
 #include "ErrorMessage.h"
 
@@ -201,7 +201,7 @@ size_t TcpConnection::write(const uint8_t* data, size_t size) {
   return transferred;
 }
 
-std::pair<Ipv4Address, uint16_t> TcpConnection::getPeerAddressAndPort() const {
+std::pair<IpAddress, uint16_t> TcpConnection::getPeerAddressAndPort() const {
   sockaddr_in address;
   int size = sizeof(address);
   if (getpeername(connection, reinterpret_cast<sockaddr*>(&address), &size) != 0) {
@@ -209,7 +209,7 @@ std::pair<Ipv4Address, uint16_t> TcpConnection::getPeerAddressAndPort() const {
   }
 
   assert(size == sizeof(sockaddr_in));
-  return std::make_pair(Ipv4Address(htonl(address.sin_addr.S_un.S_addr)), htons(address.sin_port));
+  return std::make_pair(IpAddress(htonl(address.sin_addr.S_un.S_addr)), htons(address.sin_port));
 }
 
 TcpConnection::TcpConnection(Dispatcher& dispatcher, size_t connection) : dispatcher(&dispatcher), connection(connection), readContext(nullptr), writeContext(nullptr) {

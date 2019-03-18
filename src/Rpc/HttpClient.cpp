@@ -6,7 +6,7 @@
 
 #include <HTTP/HttpParser.h>
 #include <System/Ipv4Resolver.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/TcpConnector.h>
 
 namespace CryptoNote {

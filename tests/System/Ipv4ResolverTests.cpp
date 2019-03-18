@@ -5,7 +5,7 @@
 #include <System/Dispatcher.h>
 #include <System/ContextGroup.h>
 #include <System/InterruptedException.h>
-#include <System/Ipv4Address.h>
+#include <System/IpAddress.h>
 #include <System/Ipv4Resolver.h>
 #include <gtest/gtest.h>
 
@@ -57,13 +57,13 @@ TEST_F(Ipv4ResolverTests, reuseAfterInterrupt) {
 }
 
 TEST_F(Ipv4ResolverTests, resolve) {
-  ASSERT_EQ(Ipv4Address("0.0.0.0"), resolver.resolve("0.0.0.0"));
-  ASSERT_EQ(Ipv4Address("1.2.3.4"), resolver.resolve("1.2.3.4"));
-  ASSERT_EQ(Ipv4Address("127.0.0.1"), resolver.resolve("127.0.0.1"));
-  ASSERT_EQ(Ipv4Address("254.253.252.251"), resolver.resolve("254.253.252.251"));
-  ASSERT_EQ(Ipv4Address("255.255.255.255"), resolver.resolve("255.255.255.255"));
-  ASSERT_EQ(Ipv4Address("127.0.0.1"), resolver.resolve("localhost"));
-//ASSERT_EQ(Ipv4Address("93.184.216.34"), resolver.resolve("example.com"));
+  ASSERT_EQ(IpAddress("0.0.0.0"), resolver.resolve("0.0.0.0"));
+  ASSERT_EQ(IpAddress("1.2.3.4"), resolver.resolve("1.2.3.4"));
+  ASSERT_EQ(IpAddress("127.0.0.1"), resolver.resolve("127.0.0.1"));
+  ASSERT_EQ(IpAddress("254.253.252.251"), resolver.resolve("254.253.252.251"));
+  ASSERT_EQ(IpAddress("255.255.255.255"), resolver.resolve("255.255.255.255"));
+  ASSERT_EQ(IpAddress("127.0.0.1"), resolver.resolve("localhost"));
+//ASSERT_EQ(IpAddress("93.184.216.34"), resolver.resolve("example.com"));
   ASSERT_THROW(resolver.resolve(".0.0.0.0"), std::runtime_error);
   ASSERT_THROW(resolver.resolve("0..0.0.0"), std::runtime_error);
 //ASSERT_THROW(resolver.resolve("0.0.0"), std::runtime_error);
