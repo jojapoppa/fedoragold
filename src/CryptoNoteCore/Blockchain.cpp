@@ -407,7 +407,9 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
 
   m_config_folder = config_folder;
 
-  if (!m_blocks.open(appendPath(config_folder, m_currency.blocksFileName()), appendPath(config_folder, m_currency.blockIndexesFileName()), 1024)) {
+  std::string blockFilePath = appendPath(config_folder, m_currency.blocksFileName());
+  std::string indexesPath = appendPath(config_folder, m_currency.blockIndexesFileName());
+  if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
     return false;
   }
 
@@ -428,13 +430,14 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
 
   if (m_blocks.empty()) {
     logger(INFO, BRIGHT_WHITE)
-      << "Blockchain not loaded, generating genesis block.";
+      << "Generating genesis block because blockchain not loaded at: " << blockFilePath;
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     pushBlock(m_currency.genesisBlock(), bvc);
     if (bvc.m_verifivation_failed) {
       logger(ERROR, BRIGHT_RED) << "Failed to add genesis block to blockchain";
       return false;
     }
+    logger(INFO, BRIGHT_WHITE) << "block verification context created...";
   } else {
     Crypto::Hash firstBlockHash = get_block_hash(m_blocks[0].bl);
     if (!(firstBlockHash == m_currency.genesisBlockHash())) {
@@ -447,6 +450,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   }
 
   update_next_comulative_size_limit();
+  logger(INFO, BRIGHT_GREEN) << "size limit updated...";
 
   uint64_t timestamp_diff = time(NULL) - m_blocks.back().bl.timestamp;
   if (!m_blocks.back().bl.timestamp) {
