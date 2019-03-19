@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export MACOSX_DEPLOYMENT_TARGET=10.11
+
 # First, from home folder do...
 # note: but first on mac ONLY... ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" ... then brew install wget --with-libressl ... then rename the download file to boost_1_65_0.tar.gz and unzip that in your home folder
 # wget "https://sourceforge.net/projects/boost/files/boost/1.65.0/boost_1_65_0.tar.gz/download"
@@ -41,8 +43,9 @@ export Boost_USE_MULTITHREADED ON
 
 # using full path here... just edit on each platform...
 #./bootstrap.sh --prefix=/home/fork/boostfedora 
-./bootstrap.sh --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0
+./bootstrap.sh --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0 macos-version=10.11
 #./b2 install --prefix=/home/fork/boostfedora --layout=tagged --threading=multi --without-mpi --build-type=complete
-./b2 install --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0 --layout=tagged --threading=multi --without-mpi --build-type=complete
+./b2 install --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0 --layout=tagged --threading=multi --without-mpi --build-type=complete -std=libc++ -a macosx-version-min=10.11 cxxflags="-stdlib=libc++ -std=c++11 -mmacosx-version-min=10.11 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk"
+
 cd ..
 ls

@@ -3,8 +3,9 @@
 # may need brew install cmake on mac...
 
 make clean
-export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
-#export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
+export MACOSX_DEPLOYMENT_TARGET=10.11
+#export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
+export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 
 # on Windows
 # need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)
