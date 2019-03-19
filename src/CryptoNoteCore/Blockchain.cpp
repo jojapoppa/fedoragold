@@ -432,6 +432,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     logger(INFO, BRIGHT_WHITE)
       << "Generating genesis block because blockchain not loaded at: " << blockFilePath;
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
+    logger(INFO, BRIGHT_WHITE) << "pushBlock into context now...";
     pushBlock(m_currency.genesisBlock(), bvc);
     if (bvc.m_verifivation_failed) {
       logger(ERROR, BRIGHT_RED) << "Failed to add genesis block to blockchain";
