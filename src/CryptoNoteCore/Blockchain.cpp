@@ -1697,12 +1697,16 @@ bool Blockchain::transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTra
 
 bool Blockchain::pushBlock(const Block& blockData, block_verification_context& bvc) {
   std::vector<Transaction> transactions;
+
+  logger(INFO, BRIGHT_WHITE) << "Loading transactions...";
   if (!loadTransactions(blockData, transactions)) {
+    logger(INFO, BRIGHT_WHITE) << "failed to load transactions.";
     bvc.m_verifivation_failed = true;
     return false;
   }
 
   if (!pushBlock(blockData, transactions, bvc)) {
+    logger(INFO, BRIGHT_WHITE) << "pushBlock failed, saving transactions...";
     saveTransactions(transactions);
     return false;
   }
@@ -1711,6 +1715,8 @@ bool Blockchain::pushBlock(const Block& blockData, block_verification_context& b
 }
 
 bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction>& transactions, block_verification_context& bvc) {
+
+  logger(INFO, BRIGHT_WHITE) << "pushBlock with transactions vector...";
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
   auto blockProcessingStart = std::chrono::steady_clock::now();
@@ -1739,6 +1745,8 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   }
 
   auto targetTimeStart = std::chrono::steady_clock::now();
+
+  logger(INFO, BRIGHT_WHITE) << "get diff for next block...";
   difficulty_type currentDifficulty = getDifficultyForNextBlock();
   auto target_calculating_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - targetTimeStart).count();
 
@@ -1787,8 +1795,11 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   // code for blocks.size() used to have a static_cast<uint64_t> & static_cast<uint16_t>
   //
   // jojapoppa this transactionIndex definitely needs the first param expanded to uint64 at least
+
+  logger(INFO, BRIGHT_WHITE) << "About to set transactionIndex...";
   TransactionIndex transactionIndex = {(uint32_t)(m_blocks.size()), (uint16_t)(0) };
   pushTransaction(block, minerTransactionHash, transactionIndex);
+  logger(INFO, BRIGHT_WHITE) << "transactionIndex is set.";
 
   size_t coinbase_blob_size = getObjectBinarySize(blockData.baseTransaction);
   size_t cumulative_block_size = coinbase_blob_size;
@@ -1819,6 +1830,8 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     fee_summary += fee;
   }
 
+  logger(INFO, BRIGHT_WHITE) << "check cumulativeBlockSize...";
+
   if (!checkCumulativeBlockSize(blockHash, cumulative_block_size, m_blocks.size())) {
     bvc.m_verifivation_failed = true;
     return false;
@@ -1846,6 +1859,8 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   }
 
   pushBlock(block);
+
+  logger(INFO, BRIGHT_WHITE) << "block added...";
 
   auto block_processing_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - blockProcessingStart).count();
 
