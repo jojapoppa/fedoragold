@@ -352,7 +352,8 @@ bool Currency::parseAmount(const std::string& str, uint64_t& amount) const {
   return Common::fromString(strAmount, amount);
 }
 
-difficulty_type Currency::nextDifficulty(std::vector<uint64_t> timestamps,
+// No longer in use, this was vulnerable to nasty harassment attacks that deadlock our chain
+difficulty_type Currency::nextDifficultyLegacy(std::vector<uint64_t> timestamps,
   std::vector<difficulty_type> cumulativeDifficulties) const {
   assert(m_difficultyWindow >= 2);
 
@@ -390,11 +391,72 @@ difficulty_type Currency::nextDifficulty(std::vector<uint64_t> timestamps,
 
   uint64_t low, high;
   low = mul128(totalWork, m_difficultyTarget, &high);
-  if (high != 0 || low + timeSpan - 1 < low) {
-    return 0;
+  if (high != 0 || std::numeric_limits<uint64_t>::max() - low < (timeSpan - 1)) {
+      	  return 0;
   }
 
   return (low + timeSpan - 1) / timeSpan;
+}
+
+difficulty_type Currency::nextDifficulty(std::vector<uint64_t> timestamps, std::vector<difficulty_type> cumulativeDifficulties) const 
+{
+    // LWMA difficulty algorithm
+    // Copyright (c) 2017-2018 Zawy
+    // MIT license http://www.opensource.org/licenses/mit-license.php.
+    // This is an improved version of Tom Harding's (Deger8) "WT-144"  
+    // Karbowanec, Masari, Bitcoin Gold, and Bitcoin Cash have contributed.
+    // See https://github.com/zawy12/difficulty-algorithms/issues/1 for other algos.
+    // Do not use "if solvetime < 0 then solvetime = 1" which allows a catastrophic exploit.
+    // T= target_solvetime;
+    // N = int(45 * (600 / T) ^ 0.3));
+    //
+    // You cannot manually assign N: ZAWY_LWMA_DIFFICULTY_N in this implementation
+
+    const int64_t T = static_cast<int64_t>(m_difficultyTarget);
+    const size_t N = uint32_t(45 * std::pow(((double)600 / T), 0.3));
+
+    if (timestamps.size() > N + 1) {
+      timestamps.resize(N + 1);
+      cumulativeDifficulties.resize(N + 1);
+    }
+    size_t n = timestamps.size();
+    assert(n == cumulativeDifficulties.size());
+    assert(n <= N);
+    if (n <= 1)
+      return 1;
+
+    // To get an average solvetime to within +/- ~0.1%, use an adjustment factor.
+    const double_t adjust = 0.998;
+    // The divisor k normalizes LWMA.
+    const double_t k = N * (N + 1) / 2;
+
+    double_t LWMA(0), sum_inverse_D(0), harmonic_mean_D(0), nextDifficulty(0);
+    int64_t solveTime(0);
+    uint64_t difficulty(0), next_difficulty(0);
+
+    // Loop through N most recent blocks.
+    for (int64_t i = 1; i <= N; i++) {
+      solveTime = static_cast<int64_t>(timestamps[i]) - static_cast<int64_t>(timestamps[i - 1]);
+      solveTime = std::min<int64_t>((T * 7), std::max<int64_t>(solveTime, (-6 * T)));
+      difficulty = cumulativeDifficulties[i] - cumulativeDifficulties[i - 1];
+      LWMA += solveTime * i / k;
+      sum_inverse_D += 1 / static_cast<double_t>(difficulty);
+    }
+
+    // Keep LWMA sane in case something unforeseen occurs.
+    if (static_cast<int64_t>(std::round(LWMA)) < T / 20)
+      LWMA = static_cast<double_t>(T / 20);
+
+    harmonic_mean_D = N / sum_inverse_D * adjust;
+    nextDifficulty = harmonic_mean_D * T / LWMA;
+    next_difficulty = static_cast<uint64_t>(nextDifficulty);
+    
+    // minimum limit
+    if (next_difficulty < 100000) {
+      next_difficulty = 100000;
+    }
+
+    return next_difficulty;
 }
 
 bool Currency::checkProofOfWork(Crypto::cn_context& context, const Block& block, difficulty_type currentDiffic,
