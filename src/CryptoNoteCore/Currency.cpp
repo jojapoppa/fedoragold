@@ -353,7 +353,7 @@ bool Currency::parseAmount(const std::string& str, uint64_t& amount) const {
 }
 
 // No longer in use, this was vulnerable to nasty harassment attacks that deadlock our chain
-difficulty_type Currency::nextDifficultyLegacy(std::vector<uint64_t> timestamps,
+difficulty_type Currency::nextDifficulty(std::vector<uint64_t> timestamps,
   std::vector<difficulty_type> cumulativeDifficulties) const {
   assert(m_difficultyWindow >= 2);
 
@@ -398,7 +398,7 @@ difficulty_type Currency::nextDifficultyLegacy(std::vector<uint64_t> timestamps,
   return (low + timeSpan - 1) / timeSpan;
 }
 
-difficulty_type Currency::nextDifficulty(std::vector<uint64_t> timestamps, std::vector<difficulty_type> cumulativeDifficulties) const 
+difficulty_type Currency::nextDifficultyLWMA(std::vector<uint64_t> timestamps, std::vector<difficulty_type> cumulativeDifficulties) const 
 {
     // LWMA difficulty algorithm
     // Copyright (c) 2017-2018 Zawy
