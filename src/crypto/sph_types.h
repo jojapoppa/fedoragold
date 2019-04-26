@@ -999,10 +999,10 @@ typedef long long sph_s64;
 #define SPH_SPARCV9_GCC 0
 #define SPH_I386_GCC 0
 #define SPH_I386_MSVC 0
-#define SPH_AMD64_MSVC 0
+#define SPH_AMD64_MSVC 1
 #define SPH_PPC32_GCC 0 
 #define SPH_PPC64_GCC 0
-#define SPH_AMD64_GCC 1
+#define SPH_AMD64_GCC 0 
 
 /*
  * 32-bit x86, aka "i386 compatible".

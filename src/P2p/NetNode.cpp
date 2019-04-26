@@ -69,7 +69,7 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
       portString << port;
       if (UPNP_AddPortMapping(urls.controlURL, igdData.first.servicetype, portString.str().c_str(),
         portString.str().c_str(), lanAddress, CryptoNote::CRYPTONOTE_NAME, "TCP", 0, "0") != 0) {
-        logger(ERROR) << "UPNP_AddPortMapping failed.";
+        logger((Logging::Level)ERROR) << "UPNP_AddPortMapping failed.";
       } else {
         logger(INFO, BRIGHT_GREEN) << "Added IGD port mapping.";
       }
@@ -78,7 +78,7 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
     } else if (result == 3) {
       logger(INFO) << "UPnP device was found but not recoginzed as IGD.";
     } else {
-      logger(ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
+      logger((Logging::Level)ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
     }
 
     FreeUPNPUrls(&urls);
@@ -300,7 +300,7 @@ namespace CryptoNote
 
       m_first_connection_maker_call = true;
     } catch (const std::exception& e) {
-      logger(ERROR) << "init_config failed: " << e.what();
+      logger((Logging::Level)ERROR) << "init_config failed: " << e.what();
       return false;
     }
     return true;
@@ -345,7 +345,7 @@ namespace CryptoNote
         PeerlistEntry pe = boost::value_initialized<PeerlistEntry>();
         pe.id = Crypto::rand<uint64_t>();
         bool r = parse_peer_from_string(pe.adr, pr_str);
-        if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to parse address from string: " << pr_str; return false; }
+        if (!(r)) { logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to parse address from string: " << pr_str; return false; }
         m_command_line_peers.push_back(pe);
       }
     }
@@ -395,7 +395,7 @@ namespace CryptoNote
   bool NodeServer::append_net_address(std::vector<NetworkAddress>& nodes, const std::string& addr) {
     size_t pos = addr.find_last_of(':');
     if (!(std::string::npos != pos && addr.length() - 1 != pos && 0 != pos)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to parse seed address from string: '" << addr << '\'';
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to parse seed address from string: '" << addr << '\'';
       return false;
     }
     
@@ -411,7 +411,7 @@ namespace CryptoNote
       logger(TRACE) << "Added seed node: " << nodes.back() << " (" << host << ")";
 
     } catch (const std::exception& e) {
-      logger(ERROR, BRIGHT_YELLOW) << "Failed to resolve host name '" << host << "': " << e.what();
+      logger((Logging::Level)ERROR, BRIGHT_YELLOW) << "Failed to resolve host name '" << host << "': " << e.what();
       return false;
     }
 
@@ -431,19 +431,19 @@ namespace CryptoNote
     }
 
     if (!handleConfig(config)) { 
-      logger(ERROR, BRIGHT_RED) << "Failed to handle command line"; 
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to handle command line"; 
       return false; 
     }
     m_config_folder = config.getConfigFolder();
     m_p2p_state_filename = config.getP2pStateFilename();
 
     if (!init_config()) {
-      logger(ERROR, BRIGHT_RED) << "Failed to init config."; 
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to init config."; 
       return false; 
     }
 
     if (!m_peerlist.init(m_allow_local_ip)) { 
-      logger(ERROR, BRIGHT_RED) << "Failed to init peerlist."; 
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to init peerlist."; 
       return false; 
     }
 
@@ -565,19 +565,19 @@ namespace CryptoNote
     m_payload_handler.get_payload_sync_data(arg.payload_data);
 
     if (!proto.invoke(COMMAND_HANDSHAKE::ID, arg, rsp)) {
-      logger(Logging::ERROR) << context << "Failed to invoke COMMAND_HANDSHAKE, closing connection.";
+      logger((Logging::Level)ERROR) << context << "Failed to invoke COMMAND_HANDSHAKE, closing connection.";
       return false;
     }
 
     context.version = rsp.node_data.version;
 
     if (rsp.node_data.network_id != m_network_id) {
-      logger(Logging::ERROR) << context << "COMMAND_HANDSHAKE Failed, wrong network!  (" << rsp.node_data.network_id << "), closing connection.";
+      logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE Failed, wrong network!  (" << rsp.node_data.network_id << "), closing connection.";
       return false;
     }
 
     if (!handle_remote_peerlist(rsp.local_peerlist, rsp.node_data.local_time, context)) {
-      logger(Logging::ERROR) << context << "COMMAND_HANDSHAKE: failed to handle_remote_peerlist(...), closing connection.";
+      logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE: failed to handle_remote_peerlist(...), closing connection.";
       return false;
     }
 
@@ -586,7 +586,7 @@ namespace CryptoNote
     }
 
     if (!m_payload_handler.process_payload_sync_data(rsp.payload_data, context, true)) {
-      logger(Logging::ERROR) << context << "COMMAND_HANDSHAKE invoked, but process_payload_sync_data returned false, dropping connection.";
+      logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE invoked, but process_payload_sync_data returned false, dropping connection.";
       return false;
     }
 
@@ -626,7 +626,7 @@ namespace CryptoNote
     }
 
     if (!handle_remote_peerlist(rsp.local_peerlist, rsp.local_time, context)) {
-      logger(Logging::ERROR) << context << "COMMAND_TIMED_SYNC: failed to handle_remote_peerlist(...), closing connection.";
+      logger((Logging::Level)ERROR) << context << "COMMAND_TIMED_SYNC: failed to handle_remote_peerlist(...), closing connection.";
       return false;
     }
 
@@ -788,7 +788,7 @@ namespace CryptoNote
     while(rand_count < (max_random_index+1)*3 &&  try_count < 10 && !m_stop) {
       ++rand_count;
       size_t random_index = get_random_index_with_fixed_probability(max_random_index);
-      if (!(random_index < local_peers_count)) { logger(ERROR, BRIGHT_RED) << "random_starter_index < peers_local.size() failed!!"; return false; }
+      if (!(random_index < local_peers_count)) { logger((Logging::Level)ERROR, BRIGHT_RED) << "random_starter_index < peers_local.size() failed!!"; return false; }
 
       if(tried_peers.count(random_index))
         continue;
@@ -796,7 +796,7 @@ namespace CryptoNote
       tried_peers.insert(random_index);
       PeerlistEntry pe = boost::value_initialized<PeerlistEntry>();
       bool r = use_white_list ? m_peerlist.get_white_peer_by_index(pe, random_index):m_peerlist.get_gray_peer_by_index(pe, random_index);
-      if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to get random peer from peerlist(white:" << use_white_list << ")"; return false; }
+      if (!(r)) { logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to get random peer from peerlist(white:" << use_white_list << ")"; return false; }
 
       ++try_count;
 
@@ -834,7 +834,7 @@ namespace CryptoNote
           break;
 
         if(++try_count > m_seed_nodes.size()) {
-          logger(ERROR) << "Failed to connect to any of seed peers, continuing without seeds";
+          logger((Logging::Level)ERROR) << "Failed to connect to any of seed peers, continuing without seeds";
           break;
         }
         if(++current_index >= m_seed_nodes.size())
@@ -921,7 +921,7 @@ namespace CryptoNote
     {
       if(be.last_seen > uint64_t(local_time))
       {
-        logger(ERROR) << "FOUND FUTURE peerlist for entry " << be.adr << " last_seen: " << be.last_seen << ", local_time(on remote node):" << local_time;
+        logger((Logging::Level)ERROR) << "FOUND FUTURE peerlist for entry " << be.adr << " last_seen: " << be.last_seen << ", local_time(on remote node):" << local_time;
         return false;
       }
       be.last_seen += delta;
@@ -965,17 +965,17 @@ namespace CryptoNote
     uint64_t time_delata = local_time > tr.time ? local_time - tr.time : tr.time - local_time;
 
     if (time_delata > 24 * 60 * 60) {
-      logger(ERROR) << "check_trust failed to check time conditions, local_time=" << local_time << ", proof_time=" << tr.time;
+      logger((Logging::Level)ERROR) << "check_trust failed to check time conditions, local_time=" << local_time << ", proof_time=" << tr.time;
       return false;
     }
 
     if (m_last_stat_request_time >= tr.time) {
-      logger(ERROR) << "check_trust failed to check time conditions, last_stat_request_time=" << m_last_stat_request_time << ", proof_time=" << tr.time;
+      logger((Logging::Level)ERROR) << "check_trust failed to check time conditions, last_stat_request_time=" << m_last_stat_request_time << ", proof_time=" << tr.time;
       return false;
     }
 
     if (m_config.m_peer_id != tr.peer_id) {
-      logger(ERROR) << "check_trust failed: peer_id mismatch (passed " << tr.peer_id << ", expected " << m_config.m_peer_id << ")";
+      logger((Logging::Level)ERROR) << "check_trust failed: peer_id mismatch (passed " << tr.peer_id << ", expected " << m_config.m_peer_id << ")";
       return false;
     }
 
@@ -983,7 +983,7 @@ namespace CryptoNote
     Common::podFromHex(CryptoNote::P2P_STAT_TRUSTED_PUB_KEY, pk);
     Crypto::Hash h = get_proof_of_trust_hash(tr);
     if (!Crypto::check_signature(h, pk, tr.sign)) {
-      logger(ERROR) << "check_trust failed: sign check failed";
+      logger((Logging::Level)ERROR) << "check_trust failed: sign check failed";
       return false;
     }
 
@@ -1113,7 +1113,7 @@ namespace CryptoNote
   int NodeServer::handle_timed_sync(int command, COMMAND_TIMED_SYNC::request& arg, COMMAND_TIMED_SYNC::response& rsp, P2pConnectionContext& context)
   {
     if(!m_payload_handler.process_payload_sync_data(arg.payload_data, context, false)) {
-      logger(Logging::ERROR) << context << "Failed to process_payload_sync_data(), dropping connection";
+      logger((Logging::Level)ERROR) << context << "Failed to process_payload_sync_data(), dropping connection";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
       return 1;
     }
@@ -1138,19 +1138,19 @@ namespace CryptoNote
     }
 
     if(!context.m_is_income) {
-      logger(Logging::ERROR) << context << "COMMAND_HANDSHAKE came not from incoming connection";
+      logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE came not from incoming connection";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
       return 1;
     }
 
     if(context.peerId) {
-      logger(Logging::ERROR) << context << "COMMAND_HANDSHAKE came, but seems that connection already have associated peer_id (double COMMAND_HANDSHAKE?)";
+      logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE came, but seems that connection already have associated peer_id (double COMMAND_HANDSHAKE?)";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
       return 1;
     }
 
     if(!m_payload_handler.process_payload_sync_data(arg.payload_data, context, true))  {
-      logger(Logging::ERROR) << context << "COMMAND_HANDSHAKE came, but process_payload_sync_data returned false, dropping connection.";
+      logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE came, but process_payload_sync_data returned false, dropping connection.";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
       return 1;
     }
@@ -1263,7 +1263,7 @@ namespace CryptoNote
     for(const std::string& pr_str: perrs) {
       NetworkAddress na;
       if (!parse_peer_from_string(na, pr_str)) { 
-        logger(ERROR, BRIGHT_RED) << "Failed to parse address from string: " << pr_str; 
+        logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to parse address from string: " << pr_str; 
         return false; 
       }
       container.push_back(na);

@@ -48,6 +48,11 @@ using Common::JsonValue;
 
 namespace po = boost::program_options;
 
+#ifdef min
+#undef min
+#undef max
+#endif
+
 #define EXTENDED_LOGS_FILE "wallet_details.log"
 #undef ERROR
 
@@ -196,8 +201,7 @@ struct TransferCommand {
           auto value = ar.next();
           bool ok = m_currency.parseAmount(value, de.amount);
           if (!ok || 0 == de.amount) {
-            logger(ERROR, BRIGHT_RED) << "amount is wrong: " << arg << ' ' << value <<
-              ", expected number from 0 to " << m_currency.formatAmount(std::numeric_limits<uint64_t>::max());
+            logger((Logging::Level)ERROR, BRIGHT_RED) << "amount is wrong: " << arg << ' ' << value << ", expected number from 0 to " << m_currency.formatAmount(std::numeric_limits<uint64_t>::max());
             return false;
           }
           destination.address = arg;
@@ -295,7 +299,7 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
         try {
           CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
         } catch (std::exception& e) {
-          logger(ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
+          logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
           throw std::runtime_error("error saving wallet file '" + walletFileName + "'");
         }
 
@@ -329,7 +333,7 @@ std::string tryToOpenWalletOrLoadKeysOrThrow(LoggerRef& logger, std::unique_ptr<
     try {
       CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
     } catch(std::exception& e) {
-      logger(ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
       throw std::runtime_error("error saving wallet file '" + walletFileName + "'");
     }
 
@@ -591,12 +595,12 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
     std::string walletAddressFile = prepareWalletAddressFilename(m_generate_new);
     boost::system::error_code ignore;
     if (boost::filesystem::exists(walletAddressFile, ignore)) {
-      logger(ERROR, BRIGHT_RED) << "Address file already exists: " + walletAddressFile;
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Address file already exists: " + walletAddressFile;
       return false;
     }
 
     if (!new_wallet(walletFileName, pwd_container.password())) {
-      logger(ERROR, BRIGHT_RED) << "account creation failed";
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "account creation failed";
       return false;
     }
 
@@ -1127,17 +1131,17 @@ int main(int argc, char* argv[]) {
   if (command_line::has_arg(vm, Tools::wallet_rpc_server::arg_rpc_bind_port)) {
     //runs wallet with rpc interface
     if (!command_line::has_arg(vm, arg_wallet_file)) {
-      logger(ERROR, BRIGHT_RED) << "Wallet file not set.";
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Wallet file not set.";
       return 1;
     }
 
     if (!command_line::has_arg(vm, arg_daemon_address)) {
-      logger(ERROR, BRIGHT_RED) << "Daemon address not set.";
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Daemon address not set.";
       return 1;
     }
 
     if (!command_line::has_arg(vm, arg_password)) {
-      logger(ERROR, BRIGHT_RED) << "Wallet password not set.";
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Wallet password not set.";
       return 1;
     }
 
@@ -1153,7 +1157,7 @@ int main(int argc, char* argv[]) {
 
     if (!daemon_address.empty()) {
       if (!parseUrlAddress(daemon_address, daemon_host, daemon_port)) {
-        logger(ERROR, BRIGHT_RED) << "failed to parse daemon address: " << daemon_address;
+        logger((Logging::Level)ERROR, BRIGHT_RED) << "failed to parse daemon address: " << daemon_address;
         return 1;
       }
     }
@@ -1165,7 +1169,7 @@ int main(int argc, char* argv[]) {
     auto callback = [&errorPromise](std::error_code e) {errorPromise.set_value(e); };
     node->init(callback);
     if (error.get()) {
-      logger(ERROR, BRIGHT_RED) << ("failed to init NodeRPCProxy");
+      logger((Logging::Level)ERROR, BRIGHT_RED) << ("failed to init NodeRPCProxy");
       return 1;
     }
 
@@ -1180,14 +1184,14 @@ int main(int argc, char* argv[]) {
 
       logger(INFO, BRIGHT_GREEN) << "Loaded ok";
     } catch (const std::exception& e)  {
-      logger(ERROR, BRIGHT_RED) << "Wallet initialize failed: " << e.what();
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Wallet initialize failed: " << e.what();
       return 1;
     }
 
     Tools::wallet_rpc_server wrpc(dispatcher, logManager, *wallet, *node, currency, walletFileName);
 
     if (!wrpc.init(vm)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize wallet rpc server";
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to initialize wallet rpc server";
       return 1;
     }
 
@@ -1204,7 +1208,7 @@ int main(int argc, char* argv[]) {
       CryptoNote::WalletHelper::storeWallet(*wallet, walletFileName);
       logger(INFO, BRIGHT_GREEN) << "Stored ok";
     } catch (const std::exception& e) {
-      logger(ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to store wallet: " << e.what();
       return 1;
     }
   } else {
@@ -1212,7 +1216,7 @@ int main(int argc, char* argv[]) {
     CryptoNote::simple_wallet wal(dispatcher, currency, logManager);
     
     if (!wal.init(vm)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize wallet"; 
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to initialize wallet"; 
       return 1; 
     }
 
@@ -1227,7 +1231,7 @@ int main(int argc, char* argv[]) {
     wal.run();
 
     if (!wal.deinit()) {
-      logger(ERROR, BRIGHT_RED) << "Failed to close wallet";
+      logger((Logging::Level)ERROR, BRIGHT_RED) << "Failed to close wallet";
     } else {
       logger(INFO) << "Wallet closed";
     }

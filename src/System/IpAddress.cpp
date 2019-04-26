@@ -20,6 +20,8 @@
 
 namespace System {
 
+#include <In6addr.h>
+
 namespace {
 
 uint8_t readUint8(const std::string& source, size_t& offset) {
