@@ -84,13 +84,13 @@ namespace Tools
         uint64_t res = 0;
         switch (9 - size)
         {
-        case 1:            res |= *data++; // for MSVC [[fallthrough]];
-        case 2: res <<= 8; res |= *data++; // [[fallthrough]];
-        case 3: res <<= 8; res |= *data++; // [[fallthrough]];
-        case 4: res <<= 8; res |= *data++; // [[fallthrough]];
-        case 5: res <<= 8; res |= *data++; // [[fallthrough]];
-        case 6: res <<= 8; res |= *data++; // [[fallthrough]];
-        case 7: res <<= 8; res |= *data++; // [[fallthrough]];
+        case 1:            res |= *data++; [[fallthrough]];
+        case 2: res <<= 8; res |= *data++; [[fallthrough]];
+        case 3: res <<= 8; res |= *data++; [[fallthrough]];
+        case 4: res <<= 8; res |= *data++; [[fallthrough]];
+        case 5: res <<= 8; res |= *data++; [[fallthrough]];
+        case 6: res <<= 8; res |= *data++; [[fallthrough]];
+        case 7: res <<= 8; res |= *data++; [[fallthrough]];
         case 8: res <<= 8; res |= *data; break;
         default: assert(false);
         }

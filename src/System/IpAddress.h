@@ -7,8 +7,11 @@
 #include <cstdint>
 #include <string>
 
-//#include <netdb.h>
+#ifdef _WIN32
 #include <winsock2.h>
+#else
+#include <netdb.h>
+#endif
 
 namespace System {
 

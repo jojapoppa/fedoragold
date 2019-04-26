@@ -20,7 +20,9 @@
 
 namespace System {
 
+#ifdef _WIN32
 #include <In6addr.h>
+#endif
 
 namespace {
 
