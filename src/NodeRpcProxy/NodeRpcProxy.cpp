@@ -461,6 +461,16 @@ void NodeRpcProxy::isSynchronized(bool& syncStatus, const Callback& callback) {
   callback(std::error_code());
 }
 
+void NodeRpcProxy::bindDaemon(std::string nodeHost, unsigned short nodePort, const Callback& callback) {
+  std::lock_guard<std::mutex> lock(m_mutex);
+  if (m_state != STATE_INITIALIZED) {
+    return;
+  }
+
+  m_nodeHost = nodeHost;
+  m_nodePort = nodePort;
+}
+
 std::error_code NodeRpcProxy::doRelayTransaction(const CryptoNote::Transaction& transaction) {
   COMMAND_RPC_SEND_RAW_TX::request req;
   COMMAND_RPC_SEND_RAW_TX::response rsp;

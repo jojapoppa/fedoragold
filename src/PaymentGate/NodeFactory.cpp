@@ -70,7 +70,7 @@ public:
     const Callback& callback) override { }
 
   virtual void isSynchronized(bool& syncStatus, const Callback& callback) override { }
-
+  virtual void bindDaemon(std::string nodeHost, unsigned short nodePort, const Callback& callback) override { }
 };
 
 

@@ -329,4 +329,17 @@ struct SendDelayedTransaction {
   };
 };
 
+struct BindDaemon {
+  struct Request {
+    std::string daemonIP;
+    std::string daemonPort;
+
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
 } //namespace PaymentService

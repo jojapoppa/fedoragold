@@ -984,6 +984,19 @@ void InProcessNode::isSynchronized(bool& syncStatus, const Callback& callback) {
   );
 }
 
+void InProcessNode::bindDaemon(std::string nodeHost, unsigned short nodePort, const Callback& callback) {
+
+  std::unique_lock<std::mutex> lock(mutex);
+  if (state != INITIALIZED) {
+    lock.unlock();
+    callback(make_error_code(CryptoNote::error::NOT_INITIALIZED));
+    return;
+  }
+
+  // do nothing...
+
+}
+
 void InProcessNode::isSynchronizedAsync(bool& syncStatus, const Callback& callback) {
   syncStatus = protocol.isSynchronized();
   callback(std::error_code());

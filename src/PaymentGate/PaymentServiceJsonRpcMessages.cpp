@@ -21,6 +21,12 @@ void GetViewKey::Response::serialize(CryptoNote::ISerializer& serializer) {
   serializer(viewSecretKey, "viewSecretKey");
 }
 
+void BindDaemon::Request::serialize(CryptoNote::ISerializer& serializer) {
+}
+
+void BindDaemon::Response::serialize(CryptoNote::ISerializer& serializer) {
+}
+
 void GetStatus::Request::serialize(CryptoNote::ISerializer& serializer) {
 }
 

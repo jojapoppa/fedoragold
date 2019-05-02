@@ -17,6 +17,8 @@
 #include "Common/Util.h"
 #include "Common/StringTools.h"
 
+#include "INode.h"
+
 #include "crypto/crypto.h"
 #include "CryptoNote.h"
 #include "CryptoNoteCore/CryptoNoteFormatUtils.h"
@@ -1028,6 +1030,27 @@ std::error_code WalletService::sendDelayedTransaction(const std::string& transac
     return x.code();
   } catch (std::exception& x) {
     logger(Logging::WARNING) << "Error while sending delayed transaction hashes: " << x.what();
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+  }
+
+  return std::error_code();
+}
+
+std::error_code WalletService::bindDaemon(const std::string& daemonIP, const std::string& daemonPort) {
+
+  CryptoNote::INode::Callback cb;
+
+  try {
+
+    System::EventLock lk(readyEvent);
+    node.bindDaemon(daemonIP, std::atoi(daemonPort.c_str()), cb);
+    logger(Logging::DEBUGGING) << "Switched to new daemon at:" << daemonIP;
+
+  } catch (std::system_error& x) {
+    logger(Logging::WARNING) << "Error while switching to new daemon: " << x.what();
+    return x.code();
+  } catch (std::exception& x) {
+    logger(Logging::WARNING) << "Error while switching to new daemon: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
 

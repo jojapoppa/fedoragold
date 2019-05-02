@@ -70,6 +70,7 @@ public:
   std::error_code getDelayedTransactionHashes(std::vector<std::string>& transactionHashes);
   std::error_code deleteDelayedTransaction(const std::string& transactionHash);
   std::error_code sendDelayedTransaction(const std::string& transactionHash);
+  std::error_code bindDaemon(const std::string& daemonIP, const std::string& daemonPort);
   std::error_code getUnconfirmedTransactionHashes(const std::vector<std::string>& addresses, std::vector<std::string>& transactionHashes);
   std::error_code getStatus(uint32_t& blockCount, uint32_t& knownBlockCount, std::string& lastBlockHash, uint32_t& peerCount);
 

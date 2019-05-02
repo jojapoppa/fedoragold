@@ -650,6 +650,10 @@ void INodeTrivialRefreshStub::isSynchronized(bool& syncStatus, const Callback& c
   callback(std::error_code());
 }
 
+void INodeTrivialRefreshStub::bindDaemon(std::string daemonIP, unsigned short daemonPort, const Callback& callback) {
+  // do nothing
+}
+
 void INodeTrivialRefreshStub::setSynchronizedStatus(bool status) {
   m_synchronized = status;
   if (m_synchronized) {
