@@ -3,7 +3,7 @@
 # may need brew install cmake on mac...
 
 make clean
-export MACOSX_DEPLOYMENT_TARGET=10.11
+#export MACOSX_DEPLOYMENT_TARGET=10.11
 export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 
