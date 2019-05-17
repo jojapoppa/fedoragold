@@ -543,9 +543,11 @@
 #if GTEST_HAS_TR1_TUPLE
 
 # if GTEST_USE_OWN_TR1_TUPLE
-#  include "gtest/internal/gtest-tuple.h"
+#include "gtest/internal/gtest-tuple.h"
 # elif GTEST_ENV_HAS_STD_TUPLE_
-#  include <tuple>
+#include <tuple>
+#include <string.h>
+
 // C++11 puts its tuple into the ::std namespace rather than
 // ::std::tr1.  gtest expects tuple to live in ::std::tr1, so put it there.
 // This causes undefined behavior, but supported compilers react in

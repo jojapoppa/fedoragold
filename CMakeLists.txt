@@ -1,10 +1,20 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-set(VERSION "0.1")
+set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
+set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
+set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
+set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
+set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
+set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+
+enable_language(CXX)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
@@ -13,30 +23,29 @@ if(APPLE)
 #increase default OSX stack size to 256 MB
 #set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
 else()
-set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
-set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
-set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++11 -static -pthread -Wl,-Bstatic -Llibc.a")
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -pthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
 endif()
-set(BOOST_DEBUG ON)
+set(BOOST_DEBUG ON) #joja
 set(BOOST_HAS_THREADS ON)
-set(BOOST_HAS_PTHREADS ON)
+set(BOOST_HAS_PTHREADS ON) 
 set(BUILD_SHARED_LIBS OFF)
 set(STATIC ON CACHE BOOL "Link libraries statically")
 set(BOOST_THREAD_LIBRARY libboost_thread.a)
-#add_library(c STATIC IMPORTED)
+add_library(c STATIC IMPORTED)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL)
+
+#joja what is this stuff?
 set(CMAKE_SKIP_INSTALL_RULES ON)
 set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_SUPPRESS_REGENERATION ON)
+
+#joja what is this?
 enable_testing()
+
 # copy CTestCustom.cmake to build dir to disable long running tests in 'make test'
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR})
 
@@ -54,6 +63,7 @@ elseif(APPLE)
 include_directories(src/Platform/OSX)
 else()
 include_directories(src/Platform/Linux)
+include_directories(SYSTEM /usr/include)
 endif()
 
 # set(STATIC ${MSVC} CACHE BOOL "Link libraries statically")
@@ -97,10 +107,12 @@ else()
   endif()
   set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
   set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
+  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes") 
   if(NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -pthread")
   endif()
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
@@ -128,9 +140,12 @@ else()
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${RELEASE_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-  if(STATIC AND NOT APPLE)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
-  endif()
+
+  #joja
+  #if(STATIC AND NOT APPLE)
+  #  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++11") #joja 11
+  #endif()
+
 endif()
 
 if(STATIC)

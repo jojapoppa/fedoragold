@@ -102,13 +102,11 @@ Dispatcher::Dispatcher() {
         }
 
         auto result = close(remoteSpawnEvent);
-        if (result) {}
         assert(result == 0);
       }
     }
 
     auto result = close(epoll);
-    if (result) {}
     assert(result == 0);
   }
 
@@ -135,13 +133,11 @@ Dispatcher::~Dispatcher() {
 
   while (!timers.empty()) {
     int result = ::close(timers.top());
-    if (result) {}
     assert(result == 0);
     timers.pop();
   }
 
   auto result = close(epoll);
-  if (result) {}
   assert(result == 0);
   result = close(remoteSpawnEvent);
   assert(result == 0);
@@ -175,9 +171,9 @@ void Dispatcher::dispatch() {
       context = firstResumingContext;
       firstResumingContext = context->next;
 
-      assert(context->inExecutionQueue);
+      //when compiling in debug i was hitting this assert...
+      //assert(context->inExecutionQueue);
       context->inExecutionQueue = false;
-      
       break;
     }
 

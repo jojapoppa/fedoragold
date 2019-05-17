@@ -38,6 +38,7 @@
 #ifndef GTEST_INCLUDE_GTEST_INTERNAL_GTEST_TUPLE_H_
 #define GTEST_INCLUDE_GTEST_INTERNAL_GTEST_TUPLE_H_
 
+#include <stdlib.h>
 #include <utility>  // For ::std::pair.
 
 // The compiler used in Symbian has a bug that prevents us from declaring the
