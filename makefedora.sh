@@ -4,12 +4,34 @@
 
 make clean
 
-export CC=gcc-7
-export CXX=g++-7
+# for Alpine Linux
+# sudo apk --no-cache add bsd-compat-headers
+# apk add --no-cache linux-headers
+# sudo apk --no-cache add libucontext
+# sudo apk --no-cache add gcompat (needed for libucontext build)
+# sudo apk add --no-cache --update git bash libffi-dev openssl-dev bzip2-dev readline-dev sqlite-dev build-base python python-dev
+# sudo apk add --no-cache --update python3
+# wget "http://distfiles.dereferenced.org/libucontext/libucontext-0.1.0.tar.xz"
+# tar -xf libucontext-0.1.0.tar.xz
+# cd libucontext-0.1.0
+# make
+#
+# issue where fortify breaks build when compiling on Alpine Linux
+#added to /usr/include/fortify/fortify-headers.h
+# #define _FORTIFY_FN_NOTALWAYS(fn) _FORTIFY_ORIG(__USER_LABEL_PREFIX__,fn); \
+#       extern __inline__ __attribute__((__gnu_inline__,__artificial__))
+#then edited line 70 of /usr/include/fortify/stdio.h
+# _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
+#       __builtin_va_list __v)
+
+#export CC=gcc-7
+#export CXX=g++-7
 
 #export MACOSX_DEPLOYMENT_TARGET=10.11
-export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
+export BOOST_ROOT=/home/jojapoppa/fedoragold-release/boostfedora
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
+
+export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
 
 # on Windows
 # need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)

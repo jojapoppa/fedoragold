@@ -19,11 +19,13 @@ set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+
 if(APPLE)
 #increase default OSX stack size to 256 MB
 #set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
 else()
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -pthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -pthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
+# -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
 endif()
 set(BOOST_DEBUG ON) #joja
 set(BOOST_HAS_THREADS ON)
@@ -52,9 +54,12 @@ configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR})
 project(CryptoNote)
 
 include_directories(include src external "${CMAKE_BINARY_DIR}/version")
+
+enable_language(ASM)
+
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
-  enable_language(ASM)
+#  enable_language(ASM)
 endif()
 
 if(MSVC)

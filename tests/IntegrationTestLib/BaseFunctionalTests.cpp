@@ -201,7 +201,7 @@ void BaseFunctionalTests::startNode(size_t index) {
     close(2);
     std::string dataDir = "--data-dir=" + dataDirPath + "";
     LOG_TRACE(pathToDaemon);
-    if (execl(pathToDaemon.c_str(), (std::string(CRYPTONOTE_NAME) + "d").c_str(), "--testnet", dataDir.c_str(), "--config-file=daemon.conf", NULL) == -1) {
+    if (execl(pathToDaemon.c_str(), (std::string(CRYPTONOTE_NAME) + "d").c_str(), "--testnet", dataDir.c_str(), "--config-file=daemon.conf", (char *)0) == -1) {
       LOG_ERROR(TO_STRING(errno));
     }
     abort();

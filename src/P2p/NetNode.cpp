@@ -833,6 +833,7 @@ namespace CryptoNote
         if(try_to_connect_and_handshake_with_new_peer(m_seed_nodes[current_index], true))
           break;
 
+        // jojapoppa, how can this work?  how does it work without peers?  (test on blank install... it appears to work!
         if(++try_count > m_seed_nodes.size()) {
           logger((Logging::Level)ERROR) << "Failed to connect to any of seed peers, continuing without seeds";
           break;

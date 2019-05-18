@@ -206,114 +206,113 @@ TEST_F(DispatcherTests, pushedContextMustGoOnFromNestedSpawns) {
   ASSERT_TRUE(spawnDone);
 }
 
-//jojapoppa, to turn these back on we need to upgrade the gtest suite
-//TEST_F(DispatcherTests, remoteSpawnActuallySpawns) {
-//  Event remoteSpawnDone(dispatcher);
-//  auto remoteSpawnThread = std::thread([&] {
-//    dispatcher.remoteSpawn([&]() {
-//      remoteSpawnDone.set();
-//    });
-//  });
-//
-//  if (remoteSpawnThread.joinable()) {
-//    remoteSpawnThread.join();
-//  }
-//
-//  dispatcher.yield();
-//  ASSERT_TRUE(remoteSpawnDone.get());
-//}
+TEST_F(DispatcherTests, remoteSpawnActuallySpawns) {
+  Event remoteSpawnDone(dispatcher);
+  auto remoteSpawnThread = std::thread([&] {
+    dispatcher.remoteSpawn([&]() {
+      remoteSpawnDone.set();
+    });
+  });
 
-//TEST_F(DispatcherTests, remoteSpawnActuallySpawns2) {
-//  Event remoteSpawnDone(dispatcher);
-//  auto remoteSpawnThread = std::thread([&] { 
-//    dispatcher.remoteSpawn([&]() { 
-//      remoteSpawnDone.set(); 
-//    }); 
-//  });
-//
-//  if (remoteSpawnThread.joinable()) {
-//    remoteSpawnThread.join();
-//  }
-//
-//  Timer(dispatcher).sleep(std::chrono::milliseconds(3));
-//  ASSERT_TRUE(remoteSpawnDone.get());
-//}
+  if (remoteSpawnThread.joinable()) {
+    remoteSpawnThread.join();
+  }
 
-//TEST_F(DispatcherTests, remoteSpawnActuallySpawns3) {
-//  Event remoteSpawnDone(dispatcher);
-//  auto mainCtx = dispatcher.getCurrentContext();
-//  auto remoteSpawnThread = std::thread([&, this] {
-//    std::this_thread::sleep_for(std::chrono::seconds(1));
-//    dispatcher.remoteSpawn([&, this]() {
-//      remoteSpawnDone.set();
-//      dispatcher.pushContext(mainCtx);
-//    });
-//  });
-//
-//  dispatcher.dispatch();
-//  ASSERT_TRUE(remoteSpawnDone.get());
-//  if (remoteSpawnThread.joinable()) {
-//    remoteSpawnThread.join();
-//  }
-//}
+  dispatcher.yield();
+  ASSERT_TRUE(remoteSpawnDone.get());
+}
 
-//TEST_F(DispatcherTests, remoteSpawnSpawnsProcedureInDispatcherThread) {
-//  Event remoteSpawnDone(dispatcher);
-//  auto mainSpawnThrId = std::this_thread::get_id();
-//  decltype(mainSpawnThrId) remoteSpawnThrId;
-//  auto remoteSpawnThread = std::thread([&] {
-//    dispatcher.remoteSpawn([&]() {
-//      remoteSpawnThrId = std::this_thread::get_id();
-//      remoteSpawnDone.set();
-//    });
-//  });
-//
-//  remoteSpawnDone.wait();
-//  if (remoteSpawnThread.joinable()) {
-//    remoteSpawnThread.join();
-//  }
-//
-//  ASSERT_EQ(mainSpawnThrId, remoteSpawnThrId);
-//}
+TEST_F(DispatcherTests, remoteSpawnActuallySpawns2) {
+  Event remoteSpawnDone(dispatcher);
+  auto remoteSpawnThread = std::thread([&] { 
+    dispatcher.remoteSpawn([&]() { 
+      remoteSpawnDone.set(); 
+    }); 
+  });
 
-//TEST_F(DispatcherTests, remoteSpawnSpawnsProcedureAndKeepsOrder) {
-//  Event remoteSpawnDone(dispatcher);
-//  std::deque<size_t> executionOrder;
-//  std::deque<size_t> expectedOrder = { 1, 2 };
-//  auto remoteSpawnThread = std::thread([&] {
-//    dispatcher.remoteSpawn([&]() {
-//      executionOrder.push_back(1);
-//    });
-//
-//    dispatcher.remoteSpawn([&]() {
-//      executionOrder.push_back(2);
-//      remoteSpawnDone.set();
-//    });
-//  });
-//
-//  if (remoteSpawnThread.joinable()) {
-//    remoteSpawnThread.join();
-//  }
-//
-//  remoteSpawnDone.wait();
-//  ASSERT_EQ(executionOrder, expectedOrder);
-//}
+  if (remoteSpawnThread.joinable()) {
+    remoteSpawnThread.join();
+  }
 
-//TEST_F(DispatcherTests, remoteSpawnActuallyWorksParallel) {
-//  Event remoteSpawnDone(dispatcher);
-//  auto remoteSpawnThread = std::thread([&] {
-//    dispatcher.remoteSpawn([&]() {
-//      remoteSpawnDone.set();
-//    });
-//  });
-//
-//  Timer(dispatcher).sleep(std::chrono::milliseconds(100));
-//  ASSERT_TRUE(remoteSpawnDone.get());
-//
-//  if (remoteSpawnThread.joinable()) {
-//    remoteSpawnThread.join();
-//  }
-//}
+  Timer(dispatcher).sleep(std::chrono::milliseconds(3));
+  ASSERT_TRUE(remoteSpawnDone.get());
+}
+
+TEST_F(DispatcherTests, remoteSpawnActuallySpawns3) {
+  Event remoteSpawnDone(dispatcher);
+  auto mainCtx = dispatcher.getCurrentContext();
+  auto remoteSpawnThread = std::thread([&, this] {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    dispatcher.remoteSpawn([&, this]() {
+      remoteSpawnDone.set();
+      dispatcher.pushContext(mainCtx);
+    });
+  });
+
+  dispatcher.dispatch();
+  ASSERT_TRUE(remoteSpawnDone.get());
+  if (remoteSpawnThread.joinable()) {
+    remoteSpawnThread.join();
+  }
+}
+
+TEST_F(DispatcherTests, remoteSpawnSpawnsProcedureInDispatcherThread) {
+  Event remoteSpawnDone(dispatcher);
+  auto mainSpawnThrId = std::this_thread::get_id();
+  decltype(mainSpawnThrId) remoteSpawnThrId;
+  auto remoteSpawnThread = std::thread([&] {
+    dispatcher.remoteSpawn([&]() {
+      remoteSpawnThrId = std::this_thread::get_id();
+      remoteSpawnDone.set();
+    });
+  });
+
+  remoteSpawnDone.wait();
+  if (remoteSpawnThread.joinable()) {
+    remoteSpawnThread.join();
+  }
+
+  ASSERT_EQ(mainSpawnThrId, remoteSpawnThrId);
+}
+
+TEST_F(DispatcherTests, remoteSpawnSpawnsProcedureAndKeepsOrder) {
+  Event remoteSpawnDone(dispatcher);
+  std::deque<size_t> executionOrder;
+  std::deque<size_t> expectedOrder = { 1, 2 };
+  auto remoteSpawnThread = std::thread([&] {
+    dispatcher.remoteSpawn([&]() {
+      executionOrder.push_back(1);
+    });
+
+    dispatcher.remoteSpawn([&]() {
+      executionOrder.push_back(2);
+      remoteSpawnDone.set();
+    });
+  });
+
+  if (remoteSpawnThread.joinable()) {
+    remoteSpawnThread.join();
+  }
+
+  remoteSpawnDone.wait();
+  ASSERT_EQ(executionOrder, expectedOrder);
+}
+
+TEST_F(DispatcherTests, remoteSpawnActuallyWorksParallel) {
+  Event remoteSpawnDone(dispatcher);
+  auto remoteSpawnThread = std::thread([&] {
+    dispatcher.remoteSpawn([&]() {
+      remoteSpawnDone.set();
+    });
+  });
+
+  Timer(dispatcher).sleep(std::chrono::milliseconds(100));
+  ASSERT_TRUE(remoteSpawnDone.get());
+
+  if (remoteSpawnThread.joinable()) {
+    remoteSpawnThread.join();
+  }
+}
 
 TEST_F(DispatcherTests, spawnActuallySpawns) {
   bool spawnDone = false;

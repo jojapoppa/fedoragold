@@ -389,7 +389,7 @@ int CryptoNoteProtocolHandler::handle_response_get_objects(int command, NOTIFY_R
   uint32_t height;
   Crypto::Hash top;
   m_core.get_blockchain_top(height, top);
-  logger(DEBUGGING, BRIGHT_GREEN) << "Local blockchain updated, new height = " << height;
+  logger(INFO, BRIGHT_GREEN) << "Local blockchain updated, new height = " << height;
 
   if (!m_stop && context.m_state == CryptoNoteConnectionContext::state_synchronizing) {
     request_missing_objects(context, true);

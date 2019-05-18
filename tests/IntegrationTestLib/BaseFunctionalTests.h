@@ -155,7 +155,7 @@ namespace Tests {
 
     private:
 #ifdef __linux__
-      std::vector<__pid_t> pids;
+      std::vector<pid_t> pids;
 #endif
 
 

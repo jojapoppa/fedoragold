@@ -25,6 +25,8 @@
 #include <bits/reg.h>
 #endif
 
+#include <ucontext.h>
+
 namespace System {
 
 struct NativeContextGroup;

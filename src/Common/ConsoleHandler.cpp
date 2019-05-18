@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <sstream>
 
+#include <sys/select.h>
+
 #ifdef _WIN32
 #include <Windows.h>
 #else
