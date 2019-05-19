@@ -7,11 +7,10 @@ make clean
 # for Alpine Linux
 # sudo apk --no-cache add bsd-compat-headers
 # apk add --no-cache linux-headers
-# sudo apk --no-cache add libucontext
-# sudo apk --no-cache add gcompat (needed for libucontext build)
+# sudo apk --no-cache add gcompat (needed for libucontext build) - maybe NOT ... CAUSES ISSUES WITH ELECTRON
 # sudo apk add --no-cache --update git bash libffi-dev openssl-dev bzip2-dev readline-dev sqlite-dev build-base python python-dev
 # sudo apk add --no-cache --update python3
-# wget "http://distfiles.dereferenced.org/libucontext/libucontext-0.1.0.tar.xz"
+# wget "http://distfiles.dereferenced.org/libucontext/libucontext-0.1.0.tar.xz" (THIS IS COMPILED IN LOCAL NOW... in src/Platform/Linux/System)
 # tar -xf libucontext-0.1.0.tar.xz
 # cd libucontext-0.1.0
 # make
