@@ -45,6 +45,23 @@ struct COMMAND_RPC_GET_HEIGHT {
   };
 };
 
+struct COMMAND_RPC_GET_ISCOREREADY { 
+  struct request {                                                    
+    void serialize(ISerializer &s) {                               
+    }                               
+  };                                             
+                                        
+  struct response {                                                                                                     
+    bool iscoreready;                
+    std::string status;                   
+                                                   
+    void serialize(ISerializer &s) {
+      KV_MEMBER(iscoreready) 
+      KV_MEMBER(status) 
+    }                                           
+  };                                         
+}; 
+
 struct COMMAND_RPC_GET_BLOCKS_FAST {
 
     struct request {

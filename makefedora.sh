@@ -13,6 +13,8 @@ make clean
 # wget "http://distfiles.dereferenced.org/libucontext/libucontext-0.1.0.tar.xz" (THIS IS COMPILED IN LOCAL NOW... in src/Platform/Linux/System)
 # tar -xf libucontext-0.1.0.tar.xz
 # cd libucontext-0.1.0
+# ... install gold linker too...
+# and ... sudo pip install wllvm
 # make
 #
 # issue where fortify breaks build when compiling on Alpine Linux
@@ -23,8 +25,14 @@ make clean
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
-#export CC=gcc-7
-#export CXX=g++-7
+#wllvm
+#wllvm++
+#gclang
+export CC=clang
+export CXX=clang++
+AR="llvm-ar" 
+NM="llvm-nm" 
+RANLIB="llvm-ranlib" 
 
 #export MACOSX_DEPLOYMENT_TARGET=10.11
 export BOOST_ROOT=/home/jojapoppa/fedoragold-release/boostfedora
@@ -48,4 +56,6 @@ export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
 # cmake -G "Visual Studio 15 2017 Win64" ..
 # cmake --build . --config Release
 
-make build-release 
+export LLVM_COMPILER=clang
+make VERBOSE=1 build-release
+# make build-release 
