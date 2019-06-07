@@ -35,7 +35,7 @@ NM="llvm-nm"
 RANLIB="llvm-ranlib" 
 
 #export MACOSX_DEPLOYMENT_TARGET=10.11
-export BOOST_ROOT=/home/jojapoppa/fedoragold-release/boostfedora
+export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 
 export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
