@@ -17,9 +17,9 @@ set(VERSION "0.2")
 # ...etc. I have specified from where to get the libraries with -isystem "path_to_lib". 
 # The command was something like clang -cc1 -isystem "path" --analyze...
 #
-# -flto -fno-autolink -save-temps 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto=thin")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto=thin")
+# -flto -fno-autolink -save-temps -flto=thin 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto --target=wasm32-wasi --sysroot=/home/jojapoppa/wasi-sysroot")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto --target=wasm32-wasi --sysroot=/home/jojapoppa/wasi-sysroot")
 
 SET(CMAKE_RANLIB "/usr/bin/llvm-ranlib" CACHE INTERNAL STRING)
 SET(CMAKE_AR "/usr/bin/llvm-ar" CACHE INTERNAL STRING)
@@ -40,9 +40,9 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
 set(CMAKE_SYSTEM_NAME "Linux")
 set(CMAKE_CROSSCOMPILING "ON")
-set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-pc-linux-musl")
-set(LLVM_TARGETS_TO_BUILD "X86")
-set(LLVM_TARGET_ARCH "x86_64")
+//set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-pc-linux-musl")
+//set(LLVM_TARGETS_TO_BUILD "X86")
+//set(LLVM_TARGET_ARCH "x86_64")
 
 #set(LLVM_ENABLE_ASSERTIONS "ON")
 #set(LLVM_ENABLE_THREADS "ON") 
@@ -58,7 +58,8 @@ if(APPLE)
 #set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
 else()
 # -static-libgcc -static-libstdc++ 
-set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=gold -use-gold-plugin -static -pthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
+set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=gold -use-gold-plugin -static -pthread")
+# -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
 endif()
 set(BOOST_DEBUG ON) #joja
 set(BOOST_HAS_THREADS ON)
