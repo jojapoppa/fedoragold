@@ -37,7 +37,7 @@ void writeElementName(IOutputStream& s, Common::StringView name) {
   write(s, name.getData(), len);
 }
 
-size_t writeArraySize(IOutputStream& s, size_t val) {
+size_t writeArraySize(IOutputStream& s, uint64_t val) {
   if (val <= 63) {
     return packVarint<uint8_t>(s, PORTABLE_RAW_SIZE_MARK_BYTE, val);
   } else if (val <= 16383) {

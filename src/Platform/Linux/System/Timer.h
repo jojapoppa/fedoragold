@@ -7,6 +7,7 @@
 #include <chrono>
 
 #include <System/ErrorMessage.h>
+#include <errno.h>
 
 namespace System {
 

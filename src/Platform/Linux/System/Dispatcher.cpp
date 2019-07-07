@@ -25,6 +25,8 @@
 #include <string.h>
 #include <ucontext.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <errno.h>
 #include "ErrorMessage.h"
 
 namespace System {
@@ -53,7 +55,14 @@ private:
   pthread_mutex_t& mutex;
 };
 
-static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
+//static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
+
+template<size_t A, size_t B> struct TAssertEquality {
+  static_assert(A == B, "invalid pthread mutex size");
+  static constexpr bool _cResult = (A==B);
+};
+
+static constexpr bool _cIsEqual = TAssertEquality<Dispatcher::SIZEOF_PTHREAD_MUTEX_T, sizeof(pthread_mutex_t)>::_cResult;
 
 const size_t STACK_SIZE = 64 * 1024;
 

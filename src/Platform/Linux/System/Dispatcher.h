@@ -17,6 +17,8 @@
 
 #pragma once
 
+#define __EMSCRIPTEN 1
+
 #include <cstddef>
 #include <functional>
 #include <queue>
@@ -85,16 +87,20 @@ public:
   int getTimer();
   void pushTimer(int timer);
 
-#ifdef __x86_64__
+#ifdef __EMSCRIPTEN
+  static const int SIZEOF_PTHREAD_MUTEX_T = 28; 
+#else
+  #ifdef __x86_64__
     # if __WORDSIZE == 64
     static const int SIZEOF_PTHREAD_MUTEX_T = 40;
     # else
     static const int SIZEOF_PTHREAD_MUTEX_T = 32;
     # endif
-#elif __aarch64__
-static const int SIZEOF_PTHREAD_MUTEX_T = 48;
-#else
-static const int SIZEOF_PTHREAD_MUTEX_T = 24;
+  #elif __aarch64__
+    static const int SIZEOF_PTHREAD_MUTEX_T = 48;
+  #else
+    static const int SIZEOF_PTHREAD_MUTEX_T = 24;
+  #endif
 #endif
 
 private:

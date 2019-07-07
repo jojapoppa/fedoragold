@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <errno.h>
 #include "Dispatcher.h"
 
 #include <System/ErrorMessage.h>

@@ -28,17 +28,16 @@ make clean
 #wllvm
 #wllvm++
 #gclang
-export CC=clang
-export CXX=clang++
-AR="llvm-ar" 
-NM="llvm-nm" 
-RANLIB="llvm-ranlib" 
+#clang
+export CC=emcc
+export CXX=em++
+export AR="llvm-ar"
+export NM="llvm-nm"
+export RANLIB="llvm-ranlib"
 
 #export MACOSX_DEPLOYMENT_TARGET=10.11
-export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
-#export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
-
-export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
+export BOOST_ROOT=boostfedora
+export Boost_INCLUDE_DIR=boostfedora/include
 
 # on Windows
 # need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)
@@ -57,5 +56,16 @@ export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
 # cmake --build . --config Release
 
 export LLVM_COMPILER=clang
+
+cmake -D CMAKE_C_COMPILER=emcc -D CMAKE_CXX_COMPILER=em++ -D BOOST_ROOT=boostfedora -D Boost_INCLUDE_DIR=boostfedora/include --build build 
+
 make VERBOSE=1 build-release
 # make build-release 
+
+#shows cross-compiled asm
+#https://idea.popcount.org/2013-07-24-ir-is-better-than-assembly/
+#llc -march=wasm64 fedoragold_daemon
+#gcc fedoragold_daemon.s -no-pie -o fedoragold_daemon_e
+#
+# also llc -march=arm -mattr=help is really helpful to see what ARM features you can use...
+

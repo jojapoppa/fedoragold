@@ -18,7 +18,7 @@ http://creativecommons.org/publicdomain/zero/1.0/
 #include "KeccakF-1600-opt64-settings.h"
 #include "KeccakF-1600-interface.h"
 
-#include <immintrin.h>
+//#include <immintrin.h>
 
 typedef unsigned char UINT8;
 
