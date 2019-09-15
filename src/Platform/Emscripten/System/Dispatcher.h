@@ -27,7 +27,7 @@
 #include <bits/reg.h>
 #endif
 
-#include <ucontext.h>
+#include "Sys.h"
 
 namespace System {
 
@@ -70,6 +70,7 @@ public:
   Dispatcher(const Dispatcher&) = delete;
   ~Dispatcher();
   Dispatcher& operator=(const Dispatcher&) = delete;
+
   void clear();
   void dispatch();
   NativeContext* getCurrentContext() const;
@@ -104,6 +105,8 @@ public:
 #endif
 
 private:
+  Sys sys;
+
   void spawn(std::function<void()>&& procedure);
   int epoll;
   alignas(void*) uint8_t mutex[SIZEOF_PTHREAD_MUTEX_T];

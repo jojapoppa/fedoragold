@@ -1,0 +1,10 @@
+~/emsdk/upstream/emscripten/system/lib$ vi libc.symbols
+~/emsdk/upstream/emscripten/system/lib$ vi fetch/asmfs.cpp
+~/emsdk/upstream/emscripten/src$ vi library_syscall.js
+~/emsdk/upstream/emscripten/system/lib/libc/musl/src$  (syscall.c duplicated?  one is blank)
+~/emsdk/upstream/emscripten/tools$ vi system_libs.py
+
+error: undefined symbol: _ZN10CryptoNote29BlockchainExplorerDataBuilder12getPaymentIdERKNS_11TransactionERN6Crypto4HashE
+
+was working with ... # -s EXPORT_ALL=1
+

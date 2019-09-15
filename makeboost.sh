@@ -8,9 +8,6 @@
 # then... tar -xvzf boost_1_65_0.tar.gz
 # just put boost source 1 folder up
 
-# to redo boost build...
-# b2 --clean-all -n
-
 #cd /Users/jojapoppa/Desktop/FEDG_BUILD/fedoragold
 
 # for Windows
@@ -41,18 +38,86 @@ export BOOST_HAS_THREADS ON
 export BOOST_HAS_PTHREADS ON
 export Boost_USE_MULTITHREADED ON
 
-#the boost jam file will have ... clang : emscripten ;
+#the boost jam file will have ... clang : emscripten ; like this...
 
-# using full path here... just edit on each platform...
-#./bootstrap.sh --with-toolset=clang --prefix=/home/jojapoppa/fedoragold/boostfedora
-./bootstrap.sh --with-toolset=emscripten --prefix=/home/jojapoppa/fedoragold/boostfedora
-./b2 clean
+emcc --clear-cache --clear-ports
+export NO_BZIP2=1  # supplied by emscripten
+
+then...
+
+#address-model=64 architecture=x86
+
+rm -rf bin.v2
+sudo updatedb
+
+./b2 --clean-all -n
+
+# only done the first time...
+./bootstrap.sh address-model=64 --with-toolset=clang-emscripten --without-icu --prefix=/home/jojapoppa/fedoragold/boostfedora
+
+then edit project-config.jam ...
+# Compiler configuration. This definition will be used unless
+# you already have defined some toolsets in your user-config.jam
+# file.
+if ! clang-emscripten in [ feature.values <toolset> ]
+{
+    using clang : emscripten
+      : emcc -s USE_ZLIB=1 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 --memory-init-file 1
+      :   <root>${EMSCRIPTEN_PATH}
+          <archiver>${EMSCRIPTEN_PATH}/emar
+          <ranlib>${EMSCRIPTEN_PATH}/emranlib
+          <linker>${EMSCRIPTEN_PATH}/emlink
+          <cxxflags>-std=c++11 -Wno-null-character -emit-llvm
+    ;
+}
+
+# mac build stuff...
 #./bootstrap.sh --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0 macos-version=10.11
 
 #./b2 toolset=clang cxxflags="-emit-llvm" install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --build-type=complete
+#address-model=64 architecture=x86
 
-./b2 toolset=clang install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --build-type=complete
+export EMSCRIPTEN_PATH=/home/jojapoppa/emsdk/upstream/emscripten
 
+USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+
+THEN... when you're done run:
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_*.a
+(replacing * with the name of each of your linked boost archives, they need to be run 1-at-a-time...)
+Like this:
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_atomic-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_iostreams-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_stacktrace_basic-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_chrono-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_locale-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_stacktrace_noop-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_container-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_log-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_system-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_context-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_log_setup-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_test_exec_monitor-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_coroutine-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_prg_exec_monitor-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_thread-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_date_time-mt-s.a
+...and like this...
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_program_options-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_timer-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_exception-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_random-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_type_erasure-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_fiber-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_regex-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_unit_test_framework-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_filesystem-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_serialization-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_wave-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_graph-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_signals-mt-s.a
+/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_wserialization-mt-s.a
+
+# Mac stuff...
 #./b2 install --prefix=/Users/jojapoppa/Desktop/FEDG/boost_1_65_0 --layout=tagged --threading=multi --without-mpi --build-type=complete -std=libc++ -a macosx-version-min=10.11 cxxflags="-stdlib=libc++ -std=c++11 -mmacosx-version-min=10.11 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk"
 
 cd ..

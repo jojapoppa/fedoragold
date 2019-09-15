@@ -27,6 +27,8 @@
 #include <System/ErrorMessage.h>
 #include <System/InterruptedException.h>
 
+#include "Sys.h"
+
 namespace System {
 
 Timer::Timer() : dispatcher(nullptr) {
@@ -79,7 +81,7 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
     expires.it_interval.tv_nsec = expires.it_interval.tv_sec = 0;
     expires.it_value.tv_sec = seconds.count();
     expires.it_value.tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(duration - seconds).count();
-    timerfd_settime(timer, 0, &expires, NULL);
+    Sys::timerfd_settime(timer, 0, &expires, NULL);
 
     ContextPair contextPair;
     OperationContext timerContext;
@@ -92,7 +94,7 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
     timerEvent.events = EPOLLIN | EPOLLONESHOT;
     timerEvent.data.ptr = &contextPair;
 
-    if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer, &timerEvent) == -1) {
+    if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer, &timerEvent) == -1) {
       throw std::runtime_error("Timer::sleep, epoll_ctl failed, " + lastErrorMessage());
     }
     dispatcher->getCurrentContext()->interruptProcedure = [&]() {
@@ -121,7 +123,7 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
           timerEvent.events = EPOLLONESHOT;
           timerEvent.data.ptr = nullptr;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer, &timerEvent) == -1) {
+          if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer, &timerEvent) == -1) {
             throw std::runtime_error("Timer::sleep, interrupt procedure, epoll_ctl failed, " + lastErrorMessage());
           }
         }

@@ -14,6 +14,8 @@
 //  #pragma message ("info: Using slow-hash-portable.c")
 
   #include "slow-hash-common.h"
+  #include "aesb.h"
+
 
 void slow_hash_allocate_state(void)
 {
@@ -39,13 +41,21 @@ void slow_hash_free_state(void)
 
   #define U64(x) ((uint64_t *) (x))
 
-static void (*const extra_hashes[4])(const void *, size_t, char *) =
+static void (*const extra_hashes[8])(const void *, size_t, char *) =
 {
+    //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+    //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
+
+    // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
+    // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
+    // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
+
+    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
     hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
 };
 
-extern void aesb_single_round(const uint8_t *in, uint8_t*out, const uint8_t *expandedKey);
-extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *expandedKey);
+//extern void aesb_single_round(const uint8_t *in, uint8_t*out, const uint8_t *expandedKey);
+//extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *expandedKey);
 
 static inline uint64_t hi_dword(uint64_t val) {
   return val >> 32;
@@ -161,8 +171,9 @@ void cn_slow_hash(const void *data, size_t length, char *hash, int light, int va
     uint8_t *p = NULL;
     oaes_ctx *aes_ctx;
 
-    static void (*const extra_hashes[4])(const void *, size_t, char *) =
+    static void (*const extra_hashes[8])(const void *, size_t, char *) =
     {
+        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
         hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
     };
 
@@ -256,12 +267,26 @@ void cn_slow_hash(const void *data, size_t length, char *hash, int light, int va
     oaes_free((OAES_CTX **) &aes_ctx);
     memcpy(state.init, text, INIT_SIZE_BYTE);
     hash_permutation(&state.hs);
-    extra_hashes[state.hs.b[0] & 3](&state, 200, hash);
+    extra_hashes[state.hs.b[0] & 7](&state, 200, hash);
     oaes_free((OAES_CTX **) &aes_ctx);
 
     #ifdef FORCE_USE_HEAP
     free(long_state);
     #endif /* FORCE_USE_HEAP */
+}
+
+/* Standard for Cryptonight v1 */
+#define CN_PAGE_SIZE                    2097152    /* 2 MiB */
+#define CN_SCRATCHPAD                   2097152
+#define CN_ITERATIONS                   1048576
+
+/* jojapoppa note: the contextData parameter below is not used... so remove from caller */
+
+void cn_slow_hash_f(void * contextData, const void * data, size_t length, void * hash){
+    // not cryptonight light so 'light' flag is zero, cn variant is 1
+    // set 'prehashed' to false for now...
+
+    cn_slow_hash(data, length, (char *)hash, 0, 1, 0, (uint32_t)CN_PAGE_SIZE, (uint32_t)CN_SCRATCHPAD, CN_ITERATIONS);
 }
 
 #endif

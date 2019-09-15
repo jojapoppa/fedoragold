@@ -7,14 +7,13 @@ make clean
 # for Alpine Linux
 # sudo apk --no-cache add bsd-compat-headers
 # apk add --no-cache linux-headers
-# sudo apk --no-cache add gcompat (needed for libucontext build) - maybe NOT ... CAUSES ISSUES WITH ELECTRON
+# sudo apk --no-cache add libucontext
+# sudo apk --no-cache add gcompat (needed for libucontext build)
 # sudo apk add --no-cache --update git bash libffi-dev openssl-dev bzip2-dev readline-dev sqlite-dev build-base python python-dev
 # sudo apk add --no-cache --update python3
-# wget "http://distfiles.dereferenced.org/libucontext/libucontext-0.1.0.tar.xz" (THIS IS COMPILED IN LOCAL NOW... in src/Platform/Linux/System)
+# wget "http://distfiles.dereferenced.org/libucontext/libucontext-0.1.0.tar.xz"
 # tar -xf libucontext-0.1.0.tar.xz
 # cd libucontext-0.1.0
-# ... install gold linker too...
-# and ... sudo pip install wllvm
 # make
 #
 # issue where fortify breaks build when compiling on Alpine Linux
@@ -25,19 +24,14 @@ make clean
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
-#wllvm
-#wllvm++
-#gclang
-#clang
-export CC=emcc
-export CXX=em++
-export AR="llvm-ar"
-export NM="llvm-nm"
-export RANLIB="llvm-ranlib"
+#export CC=gcc-7
+#export CXX=g++-7
 
 #export MACOSX_DEPLOYMENT_TARGET=10.11
-export BOOST_ROOT=boostfedora
-export Boost_INCLUDE_DIR=boostfedora/include
+export BOOST_ROOT=/home/jojapoppa/fedoragold-release/boostfedora
+#export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
+
+export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
 
 # on Windows
 # need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)
@@ -55,17 +49,4 @@ export Boost_INCLUDE_DIR=boostfedora/include
 # cmake -G "Visual Studio 15 2017 Win64" ..
 # cmake --build . --config Release
 
-export LLVM_COMPILER=clang
-
-cmake -D CMAKE_C_COMPILER=emcc -D CMAKE_CXX_COMPILER=em++ -D BOOST_ROOT=boostfedora -D Boost_INCLUDE_DIR=boostfedora/include --build build 
-
-make VERBOSE=1 build-release
-# make build-release 
-
-#shows cross-compiled asm
-#https://idea.popcount.org/2013-07-24-ir-is-better-than-assembly/
-#llc -march=wasm64 fedoragold_daemon
-#gcc fedoragold_daemon.s -no-pie -o fedoragold_daemon_e
-#
-# also llc -march=arm -mattr=help is really helpful to see what ARM features you can use...
-
+make build-release 

@@ -30,6 +30,8 @@
 #include "ErrorMessage.h"
 #include "TcpConnection.h"
 
+#include "Sys.h"
+
 namespace System {
 
 namespace {
@@ -111,7 +113,7 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
             epoll_event connectEvent;
             connectEvent.events = EPOLLOUT | EPOLLRDHUP | EPOLLERR | EPOLLONESHOT;
             connectEvent.data.ptr = &contextPair;
-            if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_ADD, connection, &connectEvent) == -1) {
+            if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_ADD, connection, &connectEvent) == -1) {
               message = "epoll_ctl failed, " + lastErrorMessage();
             } else {
               context = &connectorContext;
@@ -139,7 +141,7 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
                 throw InterruptedException();
               }
 
-              if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_DEL, connection, NULL) == -1) {
+              if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_DEL, connection, NULL) == -1) {
                 message = "epoll_ctl failed, " + lastErrorMessage();
               } else {
                 if((connectorContext.events & (EPOLLERR | EPOLLHUP)) != 0) {

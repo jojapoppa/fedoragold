@@ -31,6 +31,8 @@
 #include <System/InterruptedException.h>
 #include <System/IpAddress.h>
 
+#include "Sys.h"
+
 namespace System {
 
 TcpListener::TcpListener() : dispatcher(nullptr) {
@@ -63,7 +65,7 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
           listenEvent.events = EPOLLONESHOT;
           listenEvent.data.ptr = nullptr;
 
-          if (epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, listener, &listenEvent) == -1) {
+          if (Sys::epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, listener, &listenEvent) == -1) {
             message = "epoll_ctl failed, " + lastErrorMessage();
           } else {
             context = nullptr;
@@ -137,7 +139,7 @@ TcpConnection TcpListener::accept() {
   listenEvent.events = EPOLLIN | EPOLLONESHOT;
   listenEvent.data.ptr = &contextPair;
   std::string message;
-  if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener, &listenEvent) == -1) {
+  if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener, &listenEvent) == -1) {
     message = "epoll_ctl failed, " + lastErrorMessage();
   } else {
     context = &listenerContext;
@@ -150,7 +152,7 @@ TcpConnection TcpListener::accept() {
           listenEvent.events = EPOLLONESHOT;
           listenEvent.data.ptr = nullptr;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener, &listenEvent) == -1) {
+          if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener, &listenEvent) == -1) {
             throw std::runtime_error("TcpListener::accept, interrupt procedure, epoll_ctl failed, " + lastErrorMessage() );
           }
 

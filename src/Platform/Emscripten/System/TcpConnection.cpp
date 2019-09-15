@@ -26,6 +26,8 @@
 #include <System/InterruptedException.h>
 #include <System/IpAddress.h>
 
+#include "Sys.h"
+
 namespace System {
 
 TcpConnection::TcpConnection() : dispatcher(nullptr) {
@@ -102,7 +104,7 @@ size_t TcpConnection::read(uint8_t* data, size_t size) {
         connectionEvent.events = EPOLLIN | EPOLLONESHOT;
       }
 
-      if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+      if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
         message = "epoll_ctl failed, " + lastErrorMessage();
       } else {
         dispatcher->getCurrentContext()->interruptProcedure = [&]() {
@@ -112,7 +114,7 @@ size_t TcpConnection::read(uint8_t* data, size_t size) {
             connectionEvent.events = EPOLLONESHOT;
             connectionEvent.data.ptr = nullptr;
 
-            if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+            if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
               throw std::runtime_error("TcpConnection::read, interrupt procedure, epoll_ctl failed, " + lastErrorMessage());
             }
 
@@ -137,7 +139,7 @@ size_t TcpConnection::read(uint8_t* data, size_t size) {
           connectionEvent.events = EPOLLOUT | EPOLLONESHOT;
           connectionEvent.data.ptr = &contextPair;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+          if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
             message = "epoll_ctl failed, " + lastErrorMessage();
             throw std::runtime_error("TcpConnection::read");
           }
@@ -202,7 +204,7 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size) {
         connectionEvent.events = EPOLLOUT | EPOLLONESHOT;
       }
 
-      if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+      if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
         message = "epoll_ctl failed, " + lastErrorMessage();
       } else {
         dispatcher->getCurrentContext()->interruptProcedure = [&]() {
@@ -212,7 +214,7 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size) {
             connectionEvent.events = EPOLLONESHOT;
             connectionEvent.data.ptr = nullptr;
 
-            if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+            if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
               throw std::runtime_error("TcpConnection::write, interrupt procedure, epoll_ctl failed, " + lastErrorMessage());
             }
 
@@ -237,7 +239,7 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size) {
           connectionEvent.events = EPOLLIN | EPOLLONESHOT;
           connectionEvent.data.ptr = &contextPair;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+          if (Sys::epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
             message = "epoll_ctl failed, " + lastErrorMessage();
             throw std::runtime_error("TcpConnection::write, " + message);
           }
@@ -282,7 +284,7 @@ TcpConnection::TcpConnection(Dispatcher& dispatcher, int socket) : dispatcher(&d
   connectionEvent.events = EPOLLONESHOT;
   connectionEvent.data.ptr = nullptr;
 
-  if (epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, socket, &connectionEvent) == -1) {
+  if (Sys::epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, socket, &connectionEvent) == -1) {
     throw std::runtime_error("TcpConnection::TcpConnection, epoll_ctl failed, " + lastErrorMessage());
   }
 }

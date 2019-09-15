@@ -17,16 +17,15 @@
 
 #include "Dispatcher.h"
 #include <cassert>
-
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/timerfd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <ucontext.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <errno.h>
+
 #include "ErrorMessage.h"
 
 namespace System {
@@ -70,15 +69,15 @@ const size_t STACK_SIZE = 64 * 1024;
 
 Dispatcher::Dispatcher() {
   std::string message;
-  epoll = ::epoll_create1(0);
+  epoll = Sys::epoll_create1(0);
   if (epoll == -1) {
     message = "epoll_create1 failed, " + lastErrorMessage();
   } else {
-    mainContext.ucontext = new ucontext_t;
-    if (getcontext(reinterpret_cast<ucontext_t*>(mainContext.ucontext)) == -1) {
+    mainContext.ucontext = new NativeContext;
+    if (sys.getcontext(reinterpret_cast<NativeContext *>(mainContext.ucontext)) == -1) {
       message = "getcontext failed, " + lastErrorMessage();
     } else {
-      remoteSpawnEvent = eventfd(0, O_NONBLOCK);
+      remoteSpawnEvent = sys.eventfd(0, O_NONBLOCK);
       if(remoteSpawnEvent == -1) {
         message = "eventfd failed, " + lastErrorMessage();
       } else {
@@ -89,7 +88,7 @@ Dispatcher::Dispatcher() {
         remoteSpawnEventEpollEvent.events = EPOLLIN;
         remoteSpawnEventEpollEvent.data.ptr = &remoteSpawnEventContext;
 
-        if (epoll_ctl(epoll, EPOLL_CTL_ADD, remoteSpawnEvent, &remoteSpawnEventEpollEvent) == -1) {
+        if (Sys::epoll_ctl(epoll, EPOLL_CTL_ADD, remoteSpawnEvent, &remoteSpawnEventEpollEvent) == -1) {
           message = "epoll_ctl failed, " + lastErrorMessage();
         } else {
           *reinterpret_cast<pthread_mutex_t*>(this->mutex) = pthread_mutex_t(PTHREAD_MUTEX_INITIALIZER);
@@ -133,11 +132,11 @@ Dispatcher::~Dispatcher() {
   assert(firstResumingContext == nullptr);
   assert(runningContextCount == 0);
   while (firstReusableContext != nullptr) {
-    auto ucontext = static_cast<ucontext_t*>(firstReusableContext->ucontext);
+    auto ucontext = firstReusableContext->ucontext;
     auto stackPtr = static_cast<uint8_t *>(firstReusableContext->stackPtr);
     firstReusableContext = firstReusableContext->next;
     delete[] stackPtr;
-    delete ucontext;
+    sys.deletecontext(ucontext);
   }
 
   while (!timers.empty()) {
@@ -156,11 +155,11 @@ Dispatcher::~Dispatcher() {
 
 void Dispatcher::clear() {
   while (firstReusableContext != nullptr) {
-    auto ucontext = static_cast<ucontext_t*>(firstReusableContext->ucontext);
+    auto ucontext = firstReusableContext->ucontext;
     auto stackPtr = static_cast<uint8_t *>(firstReusableContext->stackPtr);
     firstReusableContext = firstReusableContext->next;
     delete[] stackPtr;
-    delete ucontext;
+    sys.deletecontext(ucontext);
   }
 
   while (!timers.empty()) {
@@ -187,7 +186,7 @@ void Dispatcher::dispatch() {
     }
 
     epoll_event event;
-    int count = epoll_wait(epoll, &event, 1, -1);
+    int count = Sys::epoll_wait(epoll, &event, 1, -1);
     if (count == 1) {
       ContextPair *contextPair = static_cast<ContextPair*>(event.data.ptr);
       if(((event.events & (EPOLLIN | EPOLLOUT)) != 0) && contextPair->readContext == nullptr && contextPair->writeContext == nullptr) {
@@ -226,10 +225,10 @@ void Dispatcher::dispatch() {
   }
 
   if (context != currentContext) {
-    ucontext_t* oldContext = static_cast<ucontext_t*>(currentContext->ucontext);
+    void* oldContext = static_cast<void*>(currentContext->ucontext);
     currentContext = context;
-    if (swapcontext(oldContext, static_cast<ucontext_t *>(context->ucontext)) == -1) {
-      throw std::runtime_error("Dispatcher::dispatch, swapcontext failed, " + lastErrorMessage());
+    if (sys.swapcontext(oldContext, static_cast<void*>(context->ucontext)) == -1) {
+      throw std::runtime_error("Dispatcher::dispatch, sys.swapcontext failed, " + lastErrorMessage());
     }
   }
 }
@@ -317,7 +316,7 @@ void Dispatcher::spawn(std::function<void()>&& procedure) {
 void Dispatcher::yield() {
   for(;;){
     epoll_event events[16];
-    int count = epoll_wait(epoll, events, 16, 0);
+    int count = Sys::epoll_wait(epoll, events, 16, 0);
     if (count == 0) {
       break;
     }
@@ -380,20 +379,19 @@ int Dispatcher::getEpoll() const {
 
 NativeContext& Dispatcher::getReusableContext() {
   if(firstReusableContext == nullptr) {
-    ucontext_t* newlyCreatedContext = new ucontext_t;
-    if (getcontext(newlyCreatedContext) == -1) { //makecontext precondition
+    NativeContext* newlyCreatedContext = new NativeContext;
+    if (sys.getcontext(newlyCreatedContext) == -1) { //makecontext precondition
       throw std::runtime_error("Dispatcher::getReusableContext, getcontext failed, " + lastErrorMessage());
     }
 
     auto stackPointer = new uint8_t[STACK_SIZE];
-    newlyCreatedContext->uc_stack.ss_sp = stackPointer;
-    newlyCreatedContext->uc_stack.ss_size = STACK_SIZE;
+    newlyCreatedContext->stackPtr = stackPointer;
 
-    ContextMakingData makingContextData {this, newlyCreatedContext};
-    makecontext(newlyCreatedContext, (void(*)())contextProcedureStatic, 1, reinterpret_cast<int*>(&makingContextData));
+    ContextMakingData makingContextData {this, (void *)newlyCreatedContext};
+    sys.makecontext(newlyCreatedContext, STACK_SIZE, (void(*)())contextProcedureStatic, 1, reinterpret_cast<int*>(&makingContextData));
 
-    ucontext_t* oldContext = static_cast<ucontext_t*>(currentContext->ucontext);
-    if (swapcontext(oldContext, newlyCreatedContext) == -1) {
+    void* oldContext = static_cast<void*>(currentContext->ucontext);
+    if (sys.swapcontext(oldContext, newlyCreatedContext) == -1) {
       throw std::runtime_error("Dispatcher::getReusableContext, swapcontext failed, " + lastErrorMessage());
     }
 
@@ -416,12 +414,12 @@ void Dispatcher::pushReusableContext(NativeContext& context) {
 int Dispatcher::getTimer() {
   int timer;
   if (timers.empty()) {
-    timer = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+    timer = Sys::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     epoll_event timerEvent;
     timerEvent.events = EPOLLONESHOT;
     timerEvent.data.ptr = nullptr;
 
-    if (epoll_ctl(getEpoll(), EPOLL_CTL_ADD, timer, &timerEvent) == -1) {
+    if (Sys::epoll_ctl(getEpoll(), EPOLL_CTL_ADD, timer, &timerEvent) == -1) {
       throw std::runtime_error("Dispatcher::getTimer, epoll_ctl failed, "  + lastErrorMessage());
     }
   } else {
@@ -444,8 +442,8 @@ void Dispatcher::contextProcedure(void* ucontext) {
   context.next = nullptr;
   context.inExecutionQueue = false;
   firstReusableContext = &context;
-  ucontext_t* oldContext = static_cast<ucontext_t*>(context.ucontext);
-  if (swapcontext(oldContext, static_cast<ucontext_t*>(currentContext->ucontext)) == -1) {
+  void* oldContext = static_cast<void*>(context.ucontext);
+  if (sys.swapcontext(oldContext, static_cast<void*>(currentContext->ucontext)) == -1) {
     throw std::runtime_error("Dispatcher::contextProcedure, swapcontext failed, " + lastErrorMessage());
   }
 

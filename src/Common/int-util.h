@@ -198,9 +198,7 @@ static_assert(false, "BYTE_ORDER is undefined. Perhaps, GNU extensions are not e
 #define mem_inplace_swap64be mem_inplace_swap64
 #define memcpy_swap64le memcpy_ident64
 #define memcpy_swap64be memcpy_swap64
-#endif
-
-#if BYTE_ORDER == BIG_ENDIAN
+#elif BYTE_ORDER == BIG_ENDIAN
 #define SWAP32BE IDENT32
 #define SWAP32LE SWAP32
 #define swap32be ident32

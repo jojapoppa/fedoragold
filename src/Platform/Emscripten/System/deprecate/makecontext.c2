@@ -10,10 +10,12 @@
  * from the use of this software.
  */
 
-/* #define _GNU_SOURCE */
+#define _GNU_SOURCE 1
+
 #include <stddef.h>
 #include <stdarg.h>
 #include <signal.h>
+#include <ucontext.h>
 #include <string.h>
 #include <stdint.h>
 
