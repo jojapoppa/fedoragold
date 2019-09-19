@@ -1,8 +1,12 @@
-// Copyright (c) 2011-2016 The Cryptonote developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
 
 #pragma once
+
+#include "BlockingQueue.h"
+#include "ConsoleTools.h"
 
 #include <atomic>
 #include <functional>
@@ -11,63 +15,87 @@
 #include <thread>
 #include <vector>
 
-#include "BlockingQueue.h"
-#include "ConsoleTools.h"
+#ifndef _WIN32
+#include <sys/select.h>
+#endif
 
-namespace Common {
+namespace Common
+{
+    class AsyncConsoleReader
+    {
+      public:
+        AsyncConsoleReader();
 
-class AsyncConsoleReader {
+        ~AsyncConsoleReader();
 
-public:
+        void start();
 
-  AsyncConsoleReader();
-  ~AsyncConsoleReader();
+        bool getline(std::string &line);
 
-  void start();
-  bool getline(std::string& line);
-  void stop();
-  bool stopped() const;
+        void stop();
 
-private:
+        bool stopped() const;
 
-  void consoleThread();
-  bool waitInput();
+        void pause();
 
-  std::atomic<bool> m_stop;
-  std::thread m_thread;
-  BlockingQueue<std::string> m_queue;
-};
+        void unpause();
 
+      private:
+        void consoleThread();
 
-class ConsoleHandler {
-public:
+        bool waitInput();
 
-  ~ConsoleHandler();
+        std::atomic<bool> m_stop;
 
-  typedef std::function<bool(const std::vector<std::string> &)> ConsoleCommandHandler;
+        std::thread m_thread;
 
-  std::string getUsage() const;
-  void setHandler(const std::string& command, const ConsoleCommandHandler& handler, const std::string& usage = "");
-  void requestStop();
-  bool runCommand(const std::vector<std::string>& cmdAndArgs);
+        BlockingQueue<std::string> m_queue;
+    };
 
-  void start(bool startThread = true, const std::string& prompt = "", Console::Color promptColor = Console::Color::Default);
-  void stop();
-  void wait(); 
+    class ConsoleHandler
+    {
+      public:
+        ~ConsoleHandler();
 
-private:
+        typedef std::function<bool(const std::vector<std::string> &)> ConsoleCommandHandler;
 
-  typedef std::map<std::string, std::pair<ConsoleCommandHandler, std::string>> CommandHandlersMap;
+        std::string getUsage() const;
 
-  virtual void handleCommand(const std::string& cmd);
+        void
+            setHandler(const std::string &command, const ConsoleCommandHandler &handler, const std::string &usage = "");
 
-  void handlerThread();
+        void requestStop();
 
-  std::thread m_thread;
-  std::string m_prompt;
-  Console::Color m_promptColor = Console::Color::Default;
-  CommandHandlersMap m_handlers;
-  AsyncConsoleReader m_consoleReader;
-};
+        bool runCommand(const std::vector<std::string> &cmdAndArgs);
 
-}
+        void start(
+            bool startThread = true,
+            const std::string &prompt = "",
+            Console::Color promptColor = Console::Color::Default);
+
+        void stop();
+
+        void wait();
+
+        void pause();
+
+        void unpause();
+
+      private:
+        typedef std::map<std::string, std::pair<ConsoleCommandHandler, std::string>> CommandHandlersMap;
+
+        virtual void handleCommand(const std::string &cmd);
+
+        void handlerThread();
+
+        std::thread m_thread;
+
+        std::string m_prompt;
+
+        Console::Color m_promptColor = Console::Color::Default;
+
+        CommandHandlersMap m_handlers;
+
+        AsyncConsoleReader m_consoleReader;
+    };
+} // namespace Common

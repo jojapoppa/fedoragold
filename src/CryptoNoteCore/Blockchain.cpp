@@ -695,7 +695,7 @@ bool Blockchain::rollback_blockchain_switching(std::list<Block> &original_chain,
 bool Blockchain::add_block_as_invalid(const BlockEntry& bei, const Crypto::Hash& h)
 {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  auto i_res = m_invalid_blocks.insert(blocks_ext_by_hash::value_type(h, bei));
+  m_invalid_blocks.insert(blocks_ext_by_hash::value_type(h, bei));
   logger(INFO, BRIGHT_WHITE) << "BLOCK ADDED AS INVALID: " << h << ENDL;
   return true;
 }
@@ -1263,7 +1263,7 @@ uint32_t Blockchain::findBlockchainSupplement(const std::vector<Crypto::Hash>& q
   assert(qblock_ids.back() == m_blockIndex.getBlockId(0));
 
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  uint32_t blockIndex;
+  uint32_t blockIndex=0;
   // assert above guarantees that method returns true
   m_blockIndex.findSupplement(qblock_ids, blockIndex);
   return blockIndex;

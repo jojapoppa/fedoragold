@@ -50,12 +50,15 @@ then...
 rm -rf bin.v2
 sudo updatedb
 
+# only done the first time... for emscripten
+./bootstrap.sh address-model=64 --with-toolset=clang-emscripten --without-icu --prefix=/home/jojapoppa/fedoragold/boostfedora_emscripten
+
+# non-emscripten bootstrap...
+./bootstrap.sh address-model=64 --with-toolset=gcc --without-icu --prefix=/home/jojapoppa/fedoragold/boostfedora
+
 ./b2 --clean-all -n
 
-# only done the first time...
-./bootstrap.sh address-model=64 --with-toolset=clang-emscripten --without-icu --prefix=/home/jojapoppa/fedoragold/boostfedora
-
-then edit project-config.jam ...
+then edit project-config.jam ... for Emscripten
 # Compiler configuration. This definition will be used unless
 # you already have defined some toolsets in your user-config.jam
 # file.
@@ -79,9 +82,13 @@ if ! clang-emscripten in [ feature.values <toolset> ]
 
 export EMSCRIPTEN_PATH=/home/jojapoppa/emsdk/upstream/emscripten
 
-USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+#non emscripten does this...
+./b2 toolset=gcc address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
-THEN... when you're done run:
+# emscripten does this...
+USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora_emscripten --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+
+THEN for emscripten... when you're done run:
 /home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_*.a
 (replacing * with the name of each of your linked boost archives, they need to be run 1-at-a-time...)
 Like this:

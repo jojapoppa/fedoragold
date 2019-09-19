@@ -2093,7 +2093,7 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin) 
   std::unique_ptr<ITransaction> fusionTransaction;
   size_t transactionSize;
   int round = 0;
-  uint64_t transactionAmount;
+  //uint64_t transactionAmount=0;
   do {
     if (round != 0) {
       fusionInputs.pop_back();
@@ -2104,7 +2104,7 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin) 
       return amount + input.out.amount;
     });
 
-    transactionAmount = inputsAmount;
+    //transactionAmount = inputsAmount;
 
     ReceiverAmounts decomposedOutputs = decomposeFusionOutputs(inputsAmount);
     assert(decomposedOutputs.amounts.size() <= MAX_FUSION_OUTPUT_COUNT);

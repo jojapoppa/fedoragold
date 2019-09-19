@@ -3,146 +3,161 @@ cmake_minimum_required(VERSION 2.8.6)
 set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
-MESSAGE("${INCLUDE_DIR}")
-
-set(EMSCRIPTEN 1 CACHE BOOL "If true, we are targeting Emscripten output." FORCE)
-
-set(CMAKE_AR "/home/jojapoppa/emsdk/upstream/bin/llvm-ar")
-set(CMAKE_NM "/home/jojapoppa/emsdk/upstream/bin/llvm-nm")
-set(CMAKE_RANLIB "/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib")
-
-#set(EMMAKEN_CFLAGS "${EMMAKEN_CFLAGS} -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1")
-
-# –enable-coroutines --clear-cache
-# --js-library /home/jojapoppa/emsdk/upstream/emscripten/src/library_syscall.js
-
-# -s EXPORT_ALL=1
-
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 -s ASYNCIFY=1 -s FILESYSTEM=1 -s PRECISE_I64_MATH=2 -s SYSCALL_DEBUG=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='[memcpy, memset, malloc, free]' -s ENVIRONMENT='web,worker' --memory-init-file 1 --source-map-base http://localhost:8000/") 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 -s ASYNCIFY=1 -s FILESYSTEM=1 -s PRECISE_I64_MATH=2 -s SYSCALL_DEBUG=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='[memcpy, memset, malloc, free]' -s ENVIRONMENT='web,worker' --memory-init-file 1 --source-map-base http://localhost:8000/")
-
-# --target=wasm32-wasi --sysroot=/home/jojapoppa/wasi-sysroot -I/home/jojapoppa/wasi-sysroot/include -v")
-#include_directories(SYSTEM /home/jojapoppa/wasi-sysroot/include)
-#set(CMAKE_REQUIRED_INCLUDES /home/jojapoppa/wasi-sysroot/include)
-#set(CMAKE_THREAD_LIBS_INIT "-L/home/jojapoppa/wasi-sysroot/lib/wasm32-wasi/libpthread.a")
-
-set(CMAKE_THREAD_LIBS_INIT "-L/home/jojapoppa/fedoragold/boostfedora/lib/libboost_thread-mt-s.a")
+set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
+set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
+set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
+set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
+set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
 enable_language(CXX)
-set(CMAKE_HAVE_THREADS_LIBRARY ON)
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
-# use this to generate documentation for our REST api's
-# set(LLVM_ENABLE_SPHINX "ON")
-# LLVM_BUILD_DOCS
-# LLVM_ENABLE_DOXYGEN
-
-#set(LLVM_TARGETS_TO_BUILD "x86")
-#set(LLVM_TARGET_ARCH "x86_64")
-#set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-pc-win64-musl")
-#set(LLVM_DEFAULT_TARGET_TRIPLE "x86_64-pc-linux-musl")
-#set(LIBCXX_TARGET_TRIPLE "x86_64-pc-linux-musl")
-#set(LIBCXXABI_TARGET_TRIPLE "x86_64-pc-linux-musl")
-#set(LIBUNWIND_TARGET_TRIPLE "x86_64-pc-linux-musl")
-
-set(LIBCXXABI_USE_COMPILER_RT "ON")
-set(LIBCXXABI_USE_LLVM_UNWINDER "ON")
-
-#set(LIBCXX_HAS_MUSL_LIBC "ON")
-#set(LLVM_ENABLE_LIBCXX "ON")
-#set(LLVM_ENABLE_ASSERTIONS "ON")
-#set(LLVM_ENABLE_THREADS "ON") 
-#set(LLVM_ENABLE_LTO "ON")
-#set(LLVM_OPTIMIZED_TABLEGEN "ON")
-#set(LLVM_USE_OPROFILE "ON")
-
-set(CMAKE_EXE_LINKER_FLAGS "-lpthread -v -s SIMD=1 -s USE_PTHREADS=1 -s BINARYEN=1 --emrun") # -msse3
-
+if(APPLE)
+#increase default OSX stack size to 256 MB
 #set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
-
-#set(CMAKE_EXE_LINKER_FLAGS "-static -Wl,-Bstatic -L/usr/lib/llvm-8/lib/libc++.bca -L/usr/lib/x86_64-linux-musl/libpthread.a -Wl,-Bstatic -L/usr/lib/x86_64-linux-musl/libc.bca -Wl,-Bstatic -L/usr/lib/x86_64-linux-musl/libm.a")
-
-#-fuse-ld=gold -use-llvm-plugin       -Wl,-plugin-opt=save-temps or emit-llvm
-#                                      (creates both llvm and exe ... good)
-
-#trying emscriptem
-#set(CMAKE_EXE_LINKER_FLAGS "-flto -fuse-ld=gold -Wl,-plugin-opt=emit-llvm -static -Wl,-Bstatic -L/home/jojapoppa/muslclib/lib/libc.a -Wl,-Bstatic -L/home/jojapoppa/muslclib/lib/libm.a -Wl,-Bstatic -L/home/jojapoppa/libc++/lib/libc++.a -Wl,-Bstatic -L/home/jojapoppa/muslclib/lib/libpthread.a")
-
+else()
+#jojapoppa
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -pthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
+# -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
+endif()
+set(BOOST_DEBUG ON) #joja
 set(BOOST_HAS_THREADS ON)
 set(BOOST_HAS_PTHREADS ON) 
 set(BUILD_SHARED_LIBS OFF)
 set(STATIC ON CACHE BOOL "Link libraries statically")
-
-#set(BOOST_LIBRARYDIR /home/jojapoppa/fedoragold/boostfedora/lib)
-#set(BOOST_THREAD_LIBRARY libboost_thread-mt.a) 
+set(BOOST_THREAD_LIBRARY libboost_thread.a)
 add_library(c STATIC IMPORTED)
-
-#set(CMAKE_CXX_STANDARD 11)
-#set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CONFIGURATION_TYPES "Debug RelWithDebInfo Release CACHE TYPE INTERNAL")
-
-#set(CMAKE_SKIP_INSTALL_RULES ON)
-#set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
-#set(CMAKE_SUPPRESS_REGENERATION ON)
-
+set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL)
+set(CMAKE_SKIP_INSTALL_RULES ON)
+set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
+set(CMAKE_SUPPRESS_REGENERATION ON)
 enable_testing()
+
 # copy CTestCustom.cmake to build dir to disable long running tests in 'make test'
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR})
 
 project(CryptoNote)
+
 include_directories(include src external "${CMAKE_BINARY_DIR}/version")
+
 enable_language(ASM)
 
-include_directories(src/Platform/Emscripten)
+if(APPLE)
+  include_directories(SYSTEM /usr/include/malloc)
+#  enable_language(ASM)
+endif()
 
-#  set(ARCH native CACHE STRING "CPU to build for: -march value or default")
-#  if("${ARCH}" STREQUAL "default")
-#    set(ARCH_FLAG "")
-#  else()
-#    set(ARCH_FLAG "-march=${ARCH}")
-#  endif()
+if(MSVC)
+include_directories(src/Platform/Windows)
+elseif(APPLE)
+include_directories(src/Platform/OSX)
+else()
+include_directories(src/Platform/Linux)
+include_directories(SYSTEM /usr/include)
+endif()
 
-  set(WARNINGS "-Wall -Wno-unused-private-field -Wno-shift-op-parentheses -Wno-bitwise-op-parentheses -Wextra -Wpointer-arith -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result -Wno-error=shift-count-overflow -Wno-error=unused-function -Wno-error=odr -Wno-error=#warnings")
-
-#  set(MINGW_FLAG "")
+if(MSVC)
+  add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /STACK:10485760")
+  if(STATIC)
+    foreach(VAR CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE)
+      string(REPLACE "/MD" "/MT" ${VAR} "${${VAR}}")
+    endforeach()
+  endif()
+  include_directories(SYSTEM src/platform/msc)
+else()
+  if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    # This option has no effect in glibc version less than 2.20. 
+    # Since glibc 2.20 _BSD_SOURCE is deprecated, this macro is recomended instead
+    add_definitions("-D_DEFAULT_SOURCE -D_GNU_SOURCE")
+  endif()
+  set(ARCH native CACHE STRING "CPU to build for: -march value or default")
+  if("${ARCH}" STREQUAL "default")
+    set(ARCH_FLAG "")
+  else()
+    set(ARCH_FLAG "-march=${ARCH}")
+  endif()
+  set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
+  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function")
+  else()
+    set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-error=clobbered -Wno-error=unused-but-set-variable")
+  endif()
+  if(MINGW)
+    set(WARNINGS "${WARNINGS} -Wno-error=unused-value")
+    set(MINGW_FLAG "-DWIN32_LEAN_AND_MEAN")
+    include_directories(SYSTEM src/platform/mingw)
+  else()
+    set(MINGW_FLAG "")
+  endif()
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 5.1))
+    set(WARNINGS "${WARNINGS} -Wno-error=odr -Wno-unused-function -Wno-enum-compare -Wunused-but-set-variable")
+  endif()
   set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
   set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
-
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG}")
-  set(DEBUG_FLAGS "-g4 -O0 -fno-vectorize -Wno-unused-variable")
-  set(RELEASE_FLAGS "-O0 -DNDEBUG -fno-vectorize -Wno-unused-variable") # -Ofast -O3 gives me vectorize errs
-
+  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes") 
+  if(NOT APPLE)
+  #jojapoppa
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -pthread")
+  endif()
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
+  if(APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
+  endif()
+  set(DEBUG_FLAGS "-g3 -rdynamic -Og")
+  set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
+  if(NOT APPLE)
     # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
-    if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_BUILD_TYPE STREQUAL "Release" AND ((CMAKE_C_COMPILER_VERSION VERSION_GREATER 4.9) OR (CMAKE_C_COMPILER_VERSION VERSION_EQUAL 4.9)))
+    if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux" 
+        AND CMAKE_BUILD_TYPE STREQUAL "Release" AND ((CMAKE_C_COMPILER_VERSION VERSION_GREATER 4.9) OR (CMAKE_C_COMPILER_VERSION VERSION_EQUAL 4.9)))
       # On linux, to build in lto mode, check that ld.gold linker is used: 'update-alternatives --install /usr/bin/ld ld /usr/bin/ld.gold HIGHEST_PRIORITY'
-#      set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
+      set(CMAKE_AR gcc-ar)
+      set(CMAKE_RANLIB gcc-ranlib)
     endif()
-
+    set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
+  endif()
+  #if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
+  #  set(RELEASE_FLAGS "${RELEASE_FLAGS} -fno-fat-lto-objects")
+  #endif()
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${RELEASE_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS}")
 
+  #joja - earlier
+  #if(STATIC AND NOT APPLE)
+  #  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++11") #joja 11
+  #endif()
+
+endif()
+
 if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-
-# this just shows what libraries it's looking for during find_package
-set(Boost_DEBUG on)
-find_package(Boost 1.65 REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
+find_package(Boost 1.55 REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-#  set(Boost_LIBRARIES "${Boost_LIBRARIES};rt")
+if(MINGW)
+  set(Boost_LIBRARIES "${Boost_LIBRARIES};ws2_32;mswsock")
+elseif(APPLE)
+  set(Boost_LIBRARIES "${Boost_LIBRARIES}")
+elseif(NOT MSVC)
+  set(Boost_LIBRARIES "${Boost_LIBRARIES};rt")
+endif()
 
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/version")

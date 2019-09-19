@@ -890,7 +890,7 @@ TEST_F(TransfersConsumerTest, onPoolUpdated_deleteTransaction) {
     TestTransactionBuilder b1;
     auto unknownSender = generateAccountKeys();
     b1.addTestInput(10000, unknownSender);
-    auto out = b1.addTestKeyOutput(10000, UNCONFIRMED_TRANSACTION_GLOBAL_OUTPUT_INDEX, m_accountKeys);
+    //auto out = b1.addTestKeyOutput(10000, UNCONFIRMED_TRANSACTION_GLOBAL_OUTPUT_INDEX, m_accountKeys);
 
     auto tx = std::shared_ptr<ITransactionReader>(b1.build().release());
 

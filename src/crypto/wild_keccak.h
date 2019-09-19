@@ -31,6 +31,25 @@ extern "C" {
 
 namespace Crypto {
 
+inline size_t sizz(size_t siz, size_t mdlen) {
+    size_t val=0;
+    if (mdlen > 0) {
+      val = HASH_DATA_AREA;
+    }
+    else {
+      val = 200 - 2 * mdlen;
+    }
+
+    size_t rsiz=0;
+    if (siz == val) {
+      rsiz = 1;
+    }
+    else {
+      rsiz = 0;
+    }
+  return rsiz;
+}
+
 inline
   void wild_keccak_dbl_opt(const uint8_t *in, size_t inlen, uint8_t *md, size_t mdlen, const UINT64* pscr, UINT64 scr_sz)
     {      
@@ -70,8 +89,8 @@ inline
     uint8_t temp[144];
     size_t i, rsiz, rsizw;
 
-    rsiz = sizeof(state_t_m) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
-    rsizw = rsiz / 8;
+    //rsiz = sizeof(state_t_m) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
+    rsizw = sizz(sizeof(state_t_m), mdlen) / 8;
 
     memset(st, 0, sizeof(st));
 
@@ -114,10 +133,9 @@ inline
     uint8_t temp[144];
     uint64_t rsiz, rsizw;
 
-    rsiz = sizeof(state_t_m) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
-    rsizw = rsiz / 8;
+    //rsiz = sizeof(state_t_m) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;
+    rsizw = sizz(sizeof(state_t_m), mdlen) / 8;
     memset(&st[0], 0, 25*sizeof(st[0]));
-    
 
     for ( ; inlen >= rsiz; inlen -= rsiz, in += rsiz) 
     {

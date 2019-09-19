@@ -148,7 +148,7 @@ public:
 
 
 TEST_F(IntegrationTest, Wallet2Wallet) {
-  const uint64_t FEE = 1000000;
+  //const uint64_t FEE = 1000000;
 
   launchTestnet(2);
 

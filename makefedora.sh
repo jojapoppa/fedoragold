@@ -1,8 +1,10 @@
 #!/bin/sh
 
+cp CMakeListsLinuxWindowsMac.txt CMakeLists.txt
+
 # may need brew install cmake on mac...
 
-make clean
+#make clean
 
 # for Alpine Linux
 # sudo apk --no-cache add bsd-compat-headers
@@ -24,14 +26,14 @@ make clean
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
-#export CC=gcc-7
-#export CXX=g++-7
+export CC=gcc-8
+export CXX=g++-8
 
 #export MACOSX_DEPLOYMENT_TARGET=10.11
-export BOOST_ROOT=/home/jojapoppa/fedoragold-release/boostfedora
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 
-export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
+export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
+export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
 
 # on Windows
 # need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)
@@ -49,4 +51,10 @@ export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold-release/boostfedora/include
 # cmake -G "Visual Studio 15 2017 Win64" ..
 # cmake --build . --config Release
 
-make build-release 
+cp CMakeListsLinuxWindowsMac.txt CMakeLists.txt
+
+#built with gcc 8 (https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/)
+
+make build-debug
+#make build-release 
+

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cp CMakeListsEmscripten.txt CMakeLists.txt
+
 # need to call source ./emsdk/emsdk_env.sh ... but that doesn't work from shell?
 #. ~/emsdk/emsdk_env.sh
 
@@ -40,8 +42,8 @@ export NM="/home/jojapoppa/emsdk/upstream/bin/llvm-nm"
 export RANLIB="/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib"
 
 # export MACOSX_DEPLOYMENT_TARGET=10.11
-export BOOST_ROOT=boostfedora
-export Boost_INCLUDE_DIR=boostfedora/include
+export BOOST_ROOT=boostfedora_emscripten
+export Boost_INCLUDE_DIR=boostfedora_emscripten/include
 
 # on Windows
 # need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)
@@ -64,7 +66,7 @@ export LLVM_COMPILER=clang
 
 cp CMakeListsEmscripten.txt CMakeLists.txt
 
-cmake -D CMAKE_C_COMPILER=emcc -D CMAKE_CXX_COMPILER=em++ -D BOOST_ROOT=boostfedora -D Boost_INCLUDE_DIR=boostfedora/include -S. -Bbuild
+cmake -D CMAKE_C_COMPILER=emcc -D CMAKE_CXX_COMPILER=em++ -D BOOST_ROOT=boostfedora_emscripten -D Boost_INCLUDE_DIR=boostfedora_emscripten/include -S. -Bbuild
 
 #make VERBOSE=1 build-release
 # make build-release 

@@ -60,18 +60,18 @@ const size_t STACK_SIZE = 64 * 1024;
 };
 
 Dispatcher::Dispatcher() {
-  std::string message;
+  //std::string message;
   epoll = ::epoll_create1(0);
   if (epoll == -1) {
-    message = "epoll_create1 failed, " + lastErrorMessage();
+    //message = "epoll_create1 failed, " + lastErrorMessage();
   } else {
     mainContext.ucontext = new ucontext_t;
     if (getcontext(reinterpret_cast<ucontext_t*>(mainContext.ucontext)) == -1) {
-      message = "getcontext failed, " + lastErrorMessage();
+      //message = "getcontext failed, " + lastErrorMessage();
     } else {
       remoteSpawnEvent = eventfd(0, O_NONBLOCK);
       if(remoteSpawnEvent == -1) {
-        message = "eventfd failed, " + lastErrorMessage();
+        //message = "eventfd failed, " + lastErrorMessage();
       } else {
         remoteSpawnEventContext.writeContext = nullptr;
         remoteSpawnEventContext.readContext = nullptr;
@@ -81,7 +81,7 @@ Dispatcher::Dispatcher() {
         remoteSpawnEventEpollEvent.data.ptr = &remoteSpawnEventContext;
 
         if (epoll_ctl(epoll, EPOLL_CTL_ADD, remoteSpawnEvent, &remoteSpawnEventEpollEvent) == -1) {
-          message = "epoll_ctl failed, " + lastErrorMessage();
+          //message = "epoll_ctl failed, " + lastErrorMessage();
         } else {
           *reinterpret_cast<pthread_mutex_t*>(this->mutex) = pthread_mutex_t(PTHREAD_MUTEX_INITIALIZER);
 
@@ -110,7 +110,7 @@ Dispatcher::Dispatcher() {
     assert(result == 0);
   }
 
-  throw std::runtime_error("Dispatcher::Dispatcher, "+message);
+  throw std::runtime_error("Dispatcher::Dispatcher, epoll failed: "+lastErrorMessage());
 }
 
 Dispatcher::~Dispatcher() {

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <execinfo.h>
 
 #include <boost/foreach.hpp>
 #include <boost/uuid/random_generator.hpp>
@@ -1360,6 +1361,7 @@ namespace CryptoNote
     System::Context<> context(m_dispatcher, [this, &connectionId, &ctx] {
       System::Context<> writeContext(m_dispatcher, std::bind(&NodeServer::writeHandler, this, std::ref(ctx)));
 
+int pos=0;
       try {
         on_connection_new(ctx);
 
@@ -1367,6 +1369,7 @@ namespace CryptoNote
         LevinProtocol::Command cmd;
 
         for (;;) {
+          pos=0;
           if (ctx.m_state == CryptoNoteConnectionContext::state_sync_required) {
             ctx.m_state = CryptoNoteConnectionContext::state_synchronizing;
             m_payload_handler.start_sync(ctx);
@@ -1374,14 +1377,17 @@ namespace CryptoNote
             ctx.m_state = CryptoNoteConnectionContext::state_normal;
             m_payload_handler.requestMissingPoolTransactions(ctx);
           }
+          pos=1;
 
-          if (!proto.readCommand(cmd)) {
+          if (!proto.readCommand(cmd, &pos)) {
             break;
           }
+          pos=10;
 
           BinaryArray response;
           bool handled = false;
           auto retcode = handleCommand(cmd, response, ctx, handled);
+          pos=11;
 
           // send response
           if (cmd.needReply()) {
@@ -1392,7 +1398,7 @@ namespace CryptoNote
 
             ctx.pushMessage(P2pMessage(P2pMessage::REPLY, cmd.command, std::move(response), retcode));
           }
-
+          pos=12; 
           if (ctx.m_state == CryptoNoteConnectionContext::state_shutdown) {
             break;
           }
@@ -1400,7 +1406,7 @@ namespace CryptoNote
       } catch (System::InterruptedException&) {
         logger(DEBUGGING) << ctx << "connectionHandler() inner context is interrupted";
       } catch (std::exception& e) {
-        logger(WARNING) << ctx << "Exception in connectionHandler: " << e.what();
+        logger(WARNING) << ctx << "Exception in connectionHandler: at pos " << pos << "  " << e.what();
       }
 
       ctx.interrupt();

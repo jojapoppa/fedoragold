@@ -9,8 +9,7 @@ Public domain.
 #include <sys/param.h>
 
 #include "chacha8.h"
-#include "c99_endian.h"
-//#include "Common/int-util.h"
+#include "Common/int-util.h"
 
 /*
  * The following macros are used to obtain exact-width results.

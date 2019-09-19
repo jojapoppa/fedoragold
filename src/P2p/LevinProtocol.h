@@ -39,7 +39,11 @@ public:
     sendMessage(command, encode(request), true);
 
     Command cmd;
-    readCommand(cmd);
+
+    int pos=0;
+    if (!readCommand(cmd, &pos)) {
+      return false;
+    }
 
     if (!cmd.isResponse) {
       return false;
@@ -62,7 +66,7 @@ public:
     bool needReply() const;
   };
 
-  bool readCommand(Command& cmd);
+  bool readCommand(Command& cmd, int *pos);
 
   void sendMessage(uint32_t command, const BinaryArray& out, bool needResponse);
   void sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode);

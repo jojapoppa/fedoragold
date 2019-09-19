@@ -206,7 +206,7 @@ TEST_F(NodeTest, generateBlockchain) {
 
 TEST_F(NodeTest, dumpBlockchain) {
   startNetworkWithBlockchain("testnet_300");
-  auto& daemon = network.getNode(0);
+  //auto& daemon = network.getNode(0);
   auto mainNode = network.getNode(0).makeINode();
   dumpBlockchainInfo(*mainNode);
 }

@@ -82,11 +82,10 @@ size_t TcpConnection::read(uint8_t* data, size_t size) {
   std::string message;
   ssize_t transferred = ::recv(connection, (void *)data, size, 0);
   if (transferred == -1) {
-//jojapoppa - this pragma doesn't work with clang
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wlogical-op"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlogical-op"
     if (errno != EAGAIN  && errno != EWOULDBLOCK) {
-//#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
       message = "recv failed, " + lastErrorMessage();
     } else {
       epoll_event connectionEvent;
@@ -182,11 +181,10 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size) {
 
   ssize_t transferred = ::send(connection, (void *)data, size, MSG_NOSIGNAL);
   if (transferred == -1) {
-//jojapoppa, this pragma is not known to clang
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Wlogical-op"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlogical-op"
     if (errno != EAGAIN  && errno != EWOULDBLOCK) {
-//#pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
       message = "send failed, " + lastErrorMessage();
     } else {
       epoll_event connectionEvent;

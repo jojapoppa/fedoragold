@@ -58,20 +58,30 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool n
   writeStrict(writeBuffer.data(), writeBuffer.size());
 }
 
-bool LevinProtocol::readCommand(Command& cmd) {
+bool LevinProtocol::readCommand(Command& cmd, int *pos) {
   bucket_head2 head = { 0 };
+
+  *pos = 2;
 
   if (!readStrict(reinterpret_cast<uint8_t*>(&head), sizeof(head))) {
     return false;
   }
 
+  *pos = 3;
+
   if (head.m_signature != LEVIN_SIGNATURE) {
-    throw std::runtime_error("Levin signature mismatch");
+    //throw std::runtime_error("Levin signature mismatch");
+    return false;
   }
 
+  *pos = 4;
+
   if (head.m_cb > LEVIN_DEFAULT_MAX_PACKET_SIZE) {
-    throw std::runtime_error("Levin packet size is too big");
+    //throw std::runtime_error("Levin packet size is too big");
+    return false;
   }
+
+  *pos = 5;
 
   BinaryArray buf;
 
@@ -82,10 +92,14 @@ bool LevinProtocol::readCommand(Command& cmd) {
     }
   }
 
+  *pos = 6;
+
   cmd.command = head.m_command;
   cmd.buf = std::move(buf);
   cmd.isNotify = !head.m_have_to_return_data;
   cmd.isResponse = (head.m_flags & LEVIN_PACKET_RESPONSE) == LEVIN_PACKET_RESPONSE;
+
+  *pos = 7;
 
   return true;
 }

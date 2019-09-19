@@ -18,14 +18,13 @@
 #pragma once
 
 #include <cstddef>
-#include <functional>
 #include <queue>
 #include <stack>
+#include <ucontext.h>
+#include <functional>
 #ifndef __GLIBC__
 #include <bits/reg.h>
 #endif
-
-#include <ucontext.h>
 
 namespace System {
 
