@@ -413,7 +413,7 @@ difficulty_type Currency::nextDifficultyLWMA(std::vector<uint64_t> timestamps, s
     // You cannot manually assign N: ZAWY_LWMA_DIFFICULTY_N in this implementation
 
     const int64_t T = static_cast<int64_t>(m_difficultyTarget);
-    const size_t N = uint32_t(45 * std::pow(((double)600 / T), 0.3));
+    const uint64_t N = uint32_t(45 * std::pow(((double)600 / T), 0.3));
 
     if (timestamps.size() > N + 1) {
       timestamps.resize(N + 1);
@@ -435,7 +435,7 @@ difficulty_type Currency::nextDifficultyLWMA(std::vector<uint64_t> timestamps, s
     uint64_t difficulty(0), next_difficulty(0);
 
     // Loop through N most recent blocks.
-    for (int64_t i = 1; i <= N; i++) {
+    for (uint64_t i = 1; i <= N; i++) {
       solveTime = static_cast<int64_t>(timestamps[i]) - static_cast<int64_t>(timestamps[i - 1]);
       solveTime = std::min<int64_t>((T * 7), std::max<int64_t>(solveTime, (-6 * T)));
       difficulty = cumulativeDifficulties[i] - cumulativeDifficulties[i - 1];

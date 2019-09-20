@@ -223,7 +223,7 @@ bool fill_tx_sources(std::vector<TransactionSourceEntry>& sources, const std::ve
             ts.amount = oi.amount;
             ts.realOutputIndexInTransaction = oi.out_no;
             ts.realTransactionPublicKey = getTransactionPublicKeyFromExtra(oi.p_tx->extra); // incoming tx public key
-            size_t realOutput;
+            size_t realOutput=0;
             if (!fill_output_entries(outs[o.first], sender_out, nmix, realOutput, ts.outputs))
               continue;
 

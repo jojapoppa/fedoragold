@@ -137,12 +137,15 @@ Dispatcher::~Dispatcher() {
     timers.pop();
   }
 
-  auto result = close(epoll);
+  int result = 0;
+  result = close(epoll);
   assert(result == 0);
   result = close(remoteSpawnEvent);
   assert(result == 0);
   result = pthread_mutex_destroy(reinterpret_cast<pthread_mutex_t*>(this->mutex));
-  assert(result == 0);
+  if (result != 0) {
+    assert(result == 0);
+  }
 }
 
 void Dispatcher::clear() {

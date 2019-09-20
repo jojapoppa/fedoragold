@@ -40,8 +40,7 @@ public:
 
     Command cmd;
 
-    int pos=0;
-    if (!readCommand(cmd, &pos)) {
+    if (!readCommand(cmd)) {
       return false;
     }
 
@@ -66,7 +65,7 @@ public:
     bool needReply() const;
   };
 
-  bool readCommand(Command& cmd, int *pos);
+  bool readCommand(Command& cmd);
 
   void sendMessage(uint32_t command, const BinaryArray& out, bool needResponse);
   void sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode);

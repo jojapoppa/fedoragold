@@ -90,8 +90,7 @@ bool P2pContext::readCommand(LevinProtocol::Command& cmd) {
   }
 
   EventLock lk(readEvent);
-int pos=0;
-  bool result = LevinProtocol(connection).readCommand(cmd, &pos);
+  bool result = LevinProtocol(connection).readCommand(cmd);
   lastReadTime = Clock::now();
   return result;
 }

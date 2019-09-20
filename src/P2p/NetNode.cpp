@@ -497,7 +497,7 @@ namespace CryptoNote
 
     m_stopEvent.wait();
 
-    logger(INFO) << "Stopping NodeServer and it's" << m_connections.size() << " connections...";
+    logger(INFO) << "Stopping NodeServer and it's " << m_connections.size() << " connections...";
     m_workingContextGroup.interrupt();
     m_workingContextGroup.wait();
 
@@ -1369,7 +1369,6 @@ int pos=0;
         LevinProtocol::Command cmd;
 
         for (;;) {
-          pos=0;
           if (ctx.m_state == CryptoNoteConnectionContext::state_sync_required) {
             ctx.m_state = CryptoNoteConnectionContext::state_synchronizing;
             m_payload_handler.start_sync(ctx);
@@ -1377,17 +1376,14 @@ int pos=0;
             ctx.m_state = CryptoNoteConnectionContext::state_normal;
             m_payload_handler.requestMissingPoolTransactions(ctx);
           }
-          pos=1;
 
-          if (!proto.readCommand(cmd, &pos)) {
+          if (!proto.readCommand(cmd)) {
             break;
           }
-          pos=10;
 
           BinaryArray response;
           bool handled = false;
           auto retcode = handleCommand(cmd, response, ctx, handled);
-          pos=11;
 
           // send response
           if (cmd.needReply()) {
@@ -1398,7 +1394,7 @@ int pos=0;
 
             ctx.pushMessage(P2pMessage(P2pMessage::REPLY, cmd.command, std::move(response), retcode));
           }
-          pos=12; 
+
           if (ctx.m_state == CryptoNoteConnectionContext::state_shutdown) {
             break;
           }

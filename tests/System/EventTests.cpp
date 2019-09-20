@@ -46,7 +46,8 @@ TEST(EventTests, movedEventKeepsState) {
   });
 
   event.wait();
-  Event event2(std::move(event));
+  Event event2(dispatcher);
+  event2 = std::move(event);
   ASSERT_TRUE(event2.get());
 }
 
@@ -71,7 +72,7 @@ TEST(EventTests, movedEventKeepsState2) {
   });
 
   event.wait();
-  Event dstEvent;
+  Event dstEvent(dispatcher);
   dstEvent = std::move(event);
   ASSERT_TRUE(dstEvent.get());
 }
