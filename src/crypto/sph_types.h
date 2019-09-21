@@ -49,6 +49,10 @@
 
 #include <limits.h>
 
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wundef"  // skip warnings about undefined SPH macros
+#endif
+
 /*
  * All our I/O functions are defined over octet streams. We do not know
  * how to handle input data if bytes are not octets.
@@ -522,7 +526,9 @@ typedef __arch_dependant__ sph_s64;
  * type (and the <code>sph_u64</code> type also, if it is defined) has
  * an exact width (i.e. exactly 32-bit, respectively 64-bit).
  */
-#define SPH_LITTLE_ENDIAN
+#ifdef PLATFORM_BYTE_ORDER IS_LITTLE_ENDIAN
+#define SPH_LITTLE_ENDIAN 1
+#endif
 
 /**
  * This macro is defined if the platform has been detected as using
@@ -530,7 +536,9 @@ typedef __arch_dependant__ sph_s64;
  * type (and the <code>sph_u64</code> type also, if it is defined) has
  * an exact width (i.e. exactly 32-bit, respectively 64-bit).
  */
-#define SPH_BIG_ENDIAN
+#ifdef PLATFORM_BYTE_ORDER IS_BIG_ENDIAN
+#define SPH_BIG_ENDIAN 1
+#endif
 
 /**
  * This macro is defined if 32-bit words (and 64-bit words, if defined)
@@ -993,16 +1001,6 @@ typedef long long sph_s64;
  * The CPU-specific-with-GCC macros are useful only for inline assembly,
  * normally restrained to this header file.
  */
-
-#define SPH_SPARCV9_GCC_32 0
-#define SPH_SPARCV9_GCC_64 0
-#define SPH_SPARCV9_GCC 0
-#define SPH_I386_GCC 0
-#define SPH_I386_MSVC 0
-#define SPH_AMD64_MSVC 1
-#define SPH_PPC32_GCC 0 
-#define SPH_PPC64_GCC 0
-#define SPH_AMD64_GCC 0 
 
 /*
  * 32-bit x86, aka "i386 compatible".
@@ -1984,4 +1982,3 @@ sph_dec64le_aligned(const void *src)
 #endif /* Doxygen excluded block */
 
 #endif
-
