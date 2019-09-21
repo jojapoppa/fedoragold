@@ -30,11 +30,6 @@ cp CMakeListsEmscripten.txt CMakeLists.txt
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
-#wllvm
-#wllvm++
-#gclang
-#clang
-
 export CC=emcc
 export CXX=em++
 export AR="/home/jojapoppa/emsdk/upstream/bin/llvm-ar"

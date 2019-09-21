@@ -12,7 +12,12 @@
 #include <stdint.h>
 
 #include "../Common/static_assert.h"
-#include "Common/int-util.h"
+
+#if defined(__EMSCRIPTEN__)
+#  include "c99_endian.h"
+#else
+#  include "Common/int-util.h"
+#endif
 
 static inline void *padd(void *p, size_t i) {
   return (char *) p + i;
