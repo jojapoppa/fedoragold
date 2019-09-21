@@ -177,6 +177,17 @@ static inline void memcpy_swap64(void *dst, const void *src, uint64_t n) {
   }
 }
 
+// emscripten is ALWAYS little endian
+#if !defined(LITTLE_ENDIAN)
+#define LITTLE_ENDIAN 1234
+#endif
+#if !defined(BIG_ENDIAN)
+#define BIG_ENDIAN 4321
+#endif
+#if !defined(BYTE_ORDER)
+#define BYTE_ORDER LITTLE_ENDIAN
+#endif
+
 #if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN) || !defined(BIG_ENDIAN)
 static_assert(false, "BYTE_ORDER is undefined. Perhaps, GNU extensions are not enabled");
 #endif

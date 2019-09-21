@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <fstream>
-#include <execinfo.h>
+//#include <execinfo.h>
 
 #include <boost/foreach.hpp>
 #include <boost/uuid/random_generator.hpp>
