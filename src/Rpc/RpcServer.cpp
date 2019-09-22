@@ -143,7 +143,6 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
   JsonRpcResponse jsonResponse;
 
   try {
-    logger(TRACE) << "JSON-RPC request: " << request.getBody();
     jsonRequest.parseRequest(request.getBody());
     jsonResponse.setId(jsonRequest.getId()); 
 
@@ -716,8 +715,8 @@ bool RpcServer::on_get_last_block_header(const COMMAND_RPC_GET_LAST_BLOCK_HEADER
   Hash last_block_hash;
   m_core.get_blockchain_top(last_block_height, last_block_hash);
 
-  logger(INFO) << "last block header is at: " << last_block_height;
-  logger(INFO) << "last block hash is: " << last_block_hash;
+  logger(INFO) << "block height: " << last_block_height;
+  //logger(INFO) << "last block hash is: " << last_block_hash;
 
   Block last_block;
   if (!m_core.getBlockByHash(last_block_hash, last_block)) {

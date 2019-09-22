@@ -280,8 +280,7 @@ void cn_slow_hash(const void *data, size_t length, char *hash, int light, int va
 #define CN_SCRATCHPAD                   2097152
 #define CN_ITERATIONS                   1048576
 
-/* jojapoppa note: the contextData parameter below is not used... so remove from caller */
-
+/* note: passed contextData parameter below is not used in this "portable" version, so it is ignored here */
 void cn_slow_hash_f(void * contextData, const void * data, size_t length, void * hash){
     // not cryptonight light so 'light' flag is zero, cn variant is 1
     // set 'prehashed' to false for now...

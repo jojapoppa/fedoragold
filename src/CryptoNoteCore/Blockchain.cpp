@@ -1860,7 +1860,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   pushBlock(block);
 
-  //logger(INFO, BRIGHT_WHITE) << "block added...";
+  logger(INFO, BRIGHT_GREEN) << "Block: " << block.height;
 
   auto block_processing_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - blockProcessingStart).count();
 

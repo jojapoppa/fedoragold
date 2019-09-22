@@ -65,6 +65,7 @@ void hash_extra_jh(const void *data, size_t length, char *hash);
 void hash_extra_skein(const void *data, size_t length, char *hash);
 void hash_extra_fugue(const void *data, size_t length, char *hash);
 void hash_extra_gost(const void *data, size_t length, char *hash);
+void hash_extra_argon2(const void *data, size_t length, char *hash);
 
 void tree_hash(const char (*hashes)[HASH_SIZE], size_t count, char *root_hash);
 size_t tree_depth(size_t count);
