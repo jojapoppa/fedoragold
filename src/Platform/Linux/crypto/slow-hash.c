@@ -21,10 +21,10 @@
 #include "crypto/hash-ops.h"
 #include "crypto/oaes_lib.h"
 
-void (*cn_slow_hash_fp)(void *, const void *, size_t, void *);
+void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *);
 
-void cn_slow_hash_f(void * a, const void * b, size_t c, void * d){
-(*cn_slow_hash_fp)(a, b, c, d);
+void cn_slow_hash_f(size_t v, void * a, const void * b, size_t c, void * d){
+(*cn_slow_hash_fp)(v, a, b, c, d);
 }
 
 #if defined(__GNUC__)
@@ -157,18 +157,30 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   keys[14] = tmp1;
 }
 
-static void (*const extra_hashes[8])(const void *, size_t, char *) =
-{
-    //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
-    //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
+  // jojapoppa, soft fork here...
+  //size_t majorVersion = 1; // DON'T HARD CODE (IT'S PASSED IN)
+  //static void (*const extra_hashes[8])(const void *, size_t, char *);
+  //if (majorVersion <= 1) {
+  static void (*const extra_hashes[8])(const void *, size_t, char *) =
+    {
+        //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+        //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
 
-    // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
-    // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
-    // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
+        // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
+        // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
+        // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
 
-    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
-    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein 
-};
+        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
+        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+    };
+  //{
+  //else {
+  //  extra_hashes =
+  //  {
+  //      hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
+  //      hash_extra_fugue, hash_extra_argon2, hash_extra_argon2, hash_extra_gost
+  //  };
+  //}
 
 #include "crypto/slow-hash.inl"
 #define AESNI

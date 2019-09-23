@@ -41,18 +41,7 @@ void slow_hash_free_state(void)
 
   #define U64(x) ((uint64_t *) (x))
 
-static void (*const extra_hashes[8])(const void *, size_t, char *) =
-{
-    //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
-    //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
-
-    // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
-    // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
-    // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
-
-    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
-    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
-};
+//static void (*const extra_hashes[8])(const void *, size_t, char *) = {};
 
 //extern void aesb_single_round(const uint8_t *in, uint8_t*out, const uint8_t *expandedKey);
 //extern void aesb_pseudo_round(const uint8_t *in, uint8_t *out, const uint8_t *expandedKey);
@@ -151,31 +140,50 @@ static void xor64(uint8_t* left, const uint8_t* right)
     }
 }
 
-void cn_slow_hash(const void *data, size_t length, char *hash, int light, int variant, int prehashed, uint32_t page_size, uint32_t scratchpad, uint32_t iterations)
+void cn_slow_hash(size_t majorVersion, const void *data, size_t length, char *hash, int light, int variant, int prehashed, uint32_t page_size, uint32_t scratchpad, uint32_t iterations)
 {
-    uint32_t init_rounds = (scratchpad / INIT_SIZE_BYTE);
-    uint32_t aes_rounds = (iterations / 2);
-    size_t lightFlag = (light ? 2: 1);
+  uint32_t init_rounds = (scratchpad / INIT_SIZE_BYTE);
+  uint32_t aes_rounds = (iterations / 2);
+  size_t lightFlag = (light ? 2: 1);
 
-    uint8_t text[INIT_SIZE_BYTE];
-    uint8_t a[AES_BLOCK_SIZE];
-    uint8_t b[AES_BLOCK_SIZE * 2];
-    uint8_t c[AES_BLOCK_SIZE];
-    uint8_t c1[AES_BLOCK_SIZE];
-    uint8_t d[AES_BLOCK_SIZE];
-    RDATA_ALIGN16 uint8_t expandedKey[256];
+  uint8_t text[INIT_SIZE_BYTE];
+  uint8_t a[AES_BLOCK_SIZE];
+  uint8_t b[AES_BLOCK_SIZE * 2];
+  uint8_t c[AES_BLOCK_SIZE];
+  uint8_t c1[AES_BLOCK_SIZE];
+  uint8_t d[AES_BLOCK_SIZE];
+  RDATA_ALIGN16 uint8_t expandedKey[256];
 
-    union cn_slow_hash_state state;
+  union cn_slow_hash_state state;
 
-    size_t i, j;
-    uint8_t *p = NULL;
-    oaes_ctx *aes_ctx;
+  size_t i, j;
+  uint8_t *p = NULL;
+  oaes_ctx *aes_ctx;
 
-    static void (*const extra_hashes[8])(const void *, size_t, char *) =
+  // jojapoppa, soft fork here...
+  //size_t majorVersion = 1; // DON'T HARD CODE (IT'S PASSED IN)
+  //static void (*const extra_hashes[8])(const void *, size_t, char *);
+  //if (majorVersion <= 1) {
+  static void (*const extra_hashes[8])(const void *, size_t, char *) =
     {
+        //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+        //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
+
+        // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
+        // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
+        // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
+
         hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
         hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
     };
+  //{
+  //else {
+  //  extra_hashes =
+  //  {
+  //      hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
+  //      hash_extra_fugue, hash_extra_argon2, hash_extra_argon2, hash_extra_gost
+  //  };
+  //}
 
   #ifndef FORCE_USE_HEAP
     uint8_t long_state[page_size];
@@ -281,11 +289,11 @@ void cn_slow_hash(const void *data, size_t length, char *hash, int light, int va
 #define CN_ITERATIONS                   1048576
 
 /* note: passed contextData parameter below is not used in this "portable" version, so it is ignored here */
-void cn_slow_hash_f(void * contextData, const void * data, size_t length, void * hash){
+void cn_slow_hash_f(size_t majorVersion, void * contextData, const void * data, size_t length, void * hash){
     // not cryptonight light so 'light' flag is zero, cn variant is 1
     // set 'prehashed' to false for now...
 
-    cn_slow_hash(data, length, (char *)hash, 0, 1, 0, (uint32_t)CN_PAGE_SIZE, (uint32_t)CN_SCRATCHPAD, CN_ITERATIONS);
+    cn_slow_hash(majorVersion, data, length, (char *)hash, 0, 1, 0, (uint32_t)CN_PAGE_SIZE, (uint32_t)CN_SCRATCHPAD, CN_ITERATIONS);
 }
 
 #endif

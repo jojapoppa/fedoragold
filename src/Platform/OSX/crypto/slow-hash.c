@@ -21,10 +21,10 @@
 #include "hash-ops.h"
 #include "oaes_lib.h"
 
-void (*cn_slow_hash_fp)(void *, const void *, size_t, void *);
+void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *);
 
-void cn_slow_hash_f(void * a, const void * b, size_t c, void * d){
-(*cn_slow_hash_fp)(a, b, c, d);
+void cn_slow_hash_f(size_t v, void * a, const void * b, size_t c, void * d){
+(*cn_slow_hash_fp)(v, a, b, c, d);
 }
 
 #if defined(__GNUC__)
@@ -156,6 +156,10 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   ExpandAESKey256_sub1(&tmp1, &tmp2);
   keys[14] = tmp1;
 }
+
+// jojapoppa, soft fork here...
+//if (majorVersion >= ....) {
+//}
 
 static void (*const extra_hashes[8])(const void *, size_t, char *) =
 {

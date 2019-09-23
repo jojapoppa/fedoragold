@@ -502,7 +502,8 @@ bool get_block_longhash(cn_context &context, const Block& b, Hash& res) {
     return false;
   }
 
-  cn_slow_hash(context, bd.data(), bd.size(), res);
+  //jojapoppa, soft fork requires setting majorVersion based on height in config.h
+  cn_slow_hash(b.majorVersion, context, bd.data(), bd.size(), res);
   return true;
 }
 
