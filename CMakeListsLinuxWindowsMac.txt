@@ -23,14 +23,17 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
-if(APPLE)
+#if(APPLE)
 #increase default OSX stack size to 256 MB
 #set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
-else()
-#jojapoppa
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -pthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
+#else()
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
+
+set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
+
 # -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
-endif()
+#endif()
+
 set(BOOST_DEBUG ON) #joja
 set(BOOST_HAS_THREADS ON)
 set(BOOST_HAS_PTHREADS ON) 
@@ -114,7 +117,7 @@ else()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes") 
   if(NOT APPLE)
   #jojapoppa
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -pthread")
+  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -lpthread")
   endif()
   #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")

@@ -18,8 +18,8 @@ set(CMAKE_RANLIB "/home/jojapoppa/emsdk/upstream/bin/llvm-ranlib")
 
 # -s EXPORT_ALL=1
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 -s ASYNCIFY=1 -s FILESYSTEM=1 -s PRECISE_I64_MATH=2 -s SYSCALL_DEBUG=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='[memcpy, memset, malloc, free]' -s ENVIRONMENT='web,worker' --memory-init-file 1 --source-map-base http://localhost:8000/") 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 -s ASYNCIFY=1 -s FILESYSTEM=1 -s PRECISE_I64_MATH=2 -s SYSCALL_DEBUG=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='[memcpy, memset, malloc, free]' -s ENVIRONMENT='web,worker' --memory-init-file 1 --source-map-base http://localhost:8000/")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 -s ASYNCIFY=1 -s FILESYSTEM=1 -s PRECISE_I64_MATH=2 -s SYSCALL_DEBUG=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='[memcpy, memset, malloc, free]' -s ENVIRONMENT='web,worker' --memory-init-file 1 --source-map-base http://10.0.2.4:8000/") 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -s USE_PTHREADS=1 -s WASM=1 -s EMIT_EMSCRIPTEN_METADATA=1 -s DEMANGLE_SUPPORT=1 -s SIMD=1 -s BINARYEN=1 -s ASYNCIFY=1 -s FILESYSTEM=1 -s PRECISE_I64_MATH=2 -s SYSCALL_DEBUG=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE='[memcpy, memset, malloc, free]' -s ENVIRONMENT='web,worker' --memory-init-file 1 --source-map-base http://10.0.2.4:8000/")
 
 # --target=wasm32-wasi --sysroot=/home/jojapoppa/wasi-sysroot -I/home/jojapoppa/wasi-sysroot/include -v")
 #include_directories(SYSTEM /home/jojapoppa/wasi-sysroot/include)
