@@ -75,7 +75,7 @@ set_property(TARGET
   PerformanceTests
   SystemTests
   TransfersTests
-#  UnitTests
+  UnitTests
 
   DifficultyTests
   HashTargetTests
