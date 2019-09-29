@@ -34,6 +34,8 @@
 #include "Wallet/LegacyKeysImporter.h"
 #include "WalletLegacy/WalletHelper.h"
 
+#include "Transfer.h"
+
 #include "version.h"
 
 #include <Logging/LoggerManager.h>
@@ -474,6 +476,7 @@ simple_wallet::simple_wallet(System::Dispatcher& dispatcher, const CryptoNote::C
   m_consoleHandler.setHandler("address", boost::bind(&simple_wallet::print_address, this, _1), "Show current wallet public address");
   m_consoleHandler.setHandler("save", boost::bind(&simple_wallet::save, this, _1), "Save wallet synchronized data");
   m_consoleHandler.setHandler("reset", boost::bind(&simple_wallet::reset, this, _1), "Discard cache data and start synchronizing from the start");
+  m_consoleHandler.setHandler("optimize", boost::bind(&simple_wallet::optimize, this, _1), "Optimize your wallet to send large amounts");
   m_consoleHandler.setHandler("help", boost::bind(&simple_wallet::help, this, _1), "Show this help");
   m_consoleHandler.setHandler("exit", boost::bind(&simple_wallet::exit, this, _1), "Close wallet");
 }
@@ -823,12 +826,22 @@ bool simple_wallet::save(const std::vector<std::string> &args)
   return true;
 }
 
-bool simple_wallet::reset(const std::vector<std::string> &args) {
-  {
-    std::unique_lock<std::mutex> lock(m_walletSynchronizedMutex);
-    m_walletSynchronized = false;
+bool simple_wallet::optimize(const std::vector<std::string> &args) {
+
+  //jojapoppa, wait and see what Jerry does with B2B on this... does he create
+  // an upgrade path from legacy to green?  is the new file format supported?
+  //fullOptimize(m_wallet);
+
+  std::unique_lock<std::mutex> lock(m_walletSynchronizedMutex);
+  while (!m_walletSynchronized) {
+    m_walletSynchronizedCV.wait(lock);
   }
 
+  success_msg_writer(true) << "Optimize completed.";
+  return true;
+}
+
+bool simple_wallet::reset(const std::vector<std::string> &args) {
   m_wallet->reset();
   success_msg_writer(true) << "Reset completed successfully.";
 
@@ -1161,6 +1174,8 @@ void simple_wallet::printConnectionError() const {
   fail_msg_writer() << "wallet failed to connect to daemon (" << m_daemon_address << ").";
 }
 
+// Fee address is declared here so we can access it from other source files - Not Used
+std::string remote_fee_address="";
 
 int main(int argc, char* argv[]) {
 #ifdef WIN32

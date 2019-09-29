@@ -17,6 +17,7 @@ file(GLOB_RECURSE P2p P2p/*)
 file(GLOB_RECURSE Rpc Rpc/*)
 file(GLOB_RECURSE Serialization Serialization/*)
 file(GLOB_RECURSE SimpleWallet SimpleWallet/*)
+
 if(MSVC)
 file(GLOB_RECURSE Crypto argon2 crypto/* Platform/Windows/crypto/*)
 file(GLOB_RECURSE System System/* Platform/Windows/System/*)
@@ -77,7 +78,6 @@ target_link_libraries(PaymentGateService PaymentGate JsonRpcServer Wallet NodeRp
 target_link_libraries(Miner CryptoNoteCore Rpc Serialization System Http Logging Common Crypto ${Boost_LIBRARIES})
 
 add_dependencies(Rpc version)
-
 add_dependencies(ConnectivityTool version)
 add_dependencies(Daemon version)
 add_dependencies(SimpleWallet version)

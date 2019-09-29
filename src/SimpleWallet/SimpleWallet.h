@@ -11,7 +11,7 @@
 
 #include <boost/program_options/variables_map.hpp>
 
-#include "IWalletLegacy.h"
+#include <IWallet.h>
 #include "PasswordContainer.h"
 
 #include "Common/ConsoleHandler.h"
@@ -80,6 +80,7 @@ namespace CryptoNote
     bool print_address(const std::vector<std::string> &args = std::vector<std::string>());
     bool save(const std::vector<std::string> &args);
     bool reset(const std::vector<std::string> &args);
+    bool optimize(const std::vector<std::string> &args); 
     bool set_log(const std::vector<std::string> &args);
 
     bool ask_wallet_create_if_needed();

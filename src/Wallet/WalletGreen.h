@@ -78,6 +78,10 @@ public:
   virtual bool isFusionTransaction(size_t transactionId) const override;
   virtual IFusionManager::EstimateResult estimate(uint64_t threshold) const override;
 
+  void updateInternalCache();
+  size_t getTxSize(const TransactionParameters &sendingTransaction);
+  bool txIsTooLarge(const TransactionParameters& sendingTransaction);
+
 protected:
   void throwIfNotInitialized() const;
   void throwIfStopped() const;

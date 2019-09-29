@@ -10,13 +10,11 @@ set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-enable_language(C)
-enable_language(CXX)
+enable_language(C CXX)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads REQUIRED)
 
-find_package (Threads)
+find_package(Threads) # REQUIRED)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)

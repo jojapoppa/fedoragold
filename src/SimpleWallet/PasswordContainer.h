@@ -23,10 +23,14 @@ namespace Tools
     const std::string& password() const { return m_password; }
     void password(std::string&& val) { m_password = std::move(val); m_empty = false; }
     bool read_password();
+    bool read_password(bool verify, std::string msg);
+
+    bool read_and_validate(std::string msg);
 
   private:
     bool read_from_file();
     bool read_from_tty();
+    bool read_from_tty(std::string& password);
 
   private:
     bool m_empty;
