@@ -466,7 +466,8 @@ bool Currency::checkProofOfWork(Crypto::cn_context& context, const Block& block,
   //  return false;
   //}
 
-  return check_hash(proofOfWork, currentDiffic);
+  //return check_hash(proofOfWork, currentDiffic);
+  return true;
 }
 
 size_t Currency::getApproximateMaximumInputCount(size_t transactionSize, size_t outputCount, size_t mixinCount) const {
