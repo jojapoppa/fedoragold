@@ -27,7 +27,7 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 #else()
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
 
-set(CMAKE_EXE_LINKER_FLAGS "-lpthread")
+set(CMAKE_EXE_LINKER_FLAGS "-lpthread -static-libstdc++")
 
 # -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
 #endif()
