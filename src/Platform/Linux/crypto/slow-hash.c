@@ -166,19 +166,15 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
         //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
         //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
 
-        // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
-        // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
-        // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
-
-        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
-        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein,
+        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl
     };
   //{
   //else {
   //  extra_hashes =
   //  {
-  //      hash_extra_fugue, hash_extra_argon2, hash_extra_argon2, hash_extra_gost,
-  //      hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein 
+  //      hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein,
+  //      hash_extra_fugue, hash_extra_argon2, hash_extra_argon2, hash_extra_gost
   //  };
   //}
 
