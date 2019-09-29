@@ -110,7 +110,7 @@ TEST_F(InProcessNodeTests, getPeersCountSuccess) {
 }
 
 TEST_F(InProcessNodeTests, getLastLocalBlockHeightSuccess) {
-  Crypto::Hash ignore;
+  Crypto::Hash ignore = CryptoNote::NULL_HASH;
   coreStub.set_blockchain_top(10, ignore);
 
   ASSERT_EQ(10, node.getLastLocalBlockHeight());
