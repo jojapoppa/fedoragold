@@ -462,12 +462,11 @@ difficulty_type Currency::nextDifficultyLWMA(std::vector<uint64_t> timestamps, s
 bool Currency::checkProofOfWork(Crypto::cn_context& context, const Block& block, difficulty_type currentDiffic,
   Crypto::Hash& proofOfWork) const {
 
-  //if (!get_block_longhash(context, block, proofOfWork)) {
-  //  return false;
-  //}
+  if (!get_block_longhash(context, block, proofOfWork)) {
+    return false;
+  }
 
-  //return check_hash(proofOfWork, currentDiffic);
-  return true;
+  return check_hash(proofOfWork, currentDiffic);
 }
 
 size_t Currency::getApproximateMaximumInputCount(size_t transactionSize, size_t outputCount, size_t mixinCount) const {
