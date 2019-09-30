@@ -496,11 +496,17 @@ bool get_block_longhash(const Block& b, Hash& res) {
   return get_blob_longhash(bd, res);
 }
 
-bool get_block_longhash(cn_context &context, const Block& b, Hash& res) {
+extern "C" {
+  uint32_t extrahashPos(void *);
+}
+
+bool get_block_longhash(cn_context &context, const Block& b, Hash& res, uint32_t &extrahashID) {
   BinaryArray bd;
   if (!get_block_hashing_blob(b, bd)) {
     return false;
   }
+
+  extrahashID = extrahashPos((void*)(context.data));
 
   //jojapoppa, soft fork requires setting majorVersion based on height in config.h
   cn_slow_hash(b.majorVersion, context, bd.data(), bd.size(), res);

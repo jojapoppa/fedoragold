@@ -39,9 +39,10 @@ namespace Crypto {
     void operator=(const cn_context &) = delete;
 #endif
 
+    void *data;
+
   private:
 
-    void *data;
     friend inline void cn_slow_hash(size_t, cn_context &, const void *, size_t, Hash &);
   };
 

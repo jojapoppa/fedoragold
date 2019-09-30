@@ -269,7 +269,8 @@ namespace CryptoNote
           for (uint32_t nonce = startNonce + i; !found; nonce += nthreads) {
             lb.nonce = nonce;
 
-            if (!get_block_longhash(localctx, lb, h)) {
+            uint32_t extrahashID=0;
+            if (!get_block_longhash(localctx, lb, h, extrahashID)) {
               return;
             }
 
@@ -294,7 +295,8 @@ namespace CryptoNote
     } else {
       for (; bl.nonce != std::numeric_limits<uint32_t>::max(); bl.nonce++) {
         Crypto::Hash h;
-        if (!get_block_longhash(context, bl, h)) {
+        uint32_t extrahashID=0;
+        if (!get_block_longhash(context, bl, h, extrahashID)) {
           return false;
         }
 
@@ -371,7 +373,8 @@ namespace CryptoNote
 
       b.nonce = nonce;
       Crypto::Hash h;
-      if (!m_stop && !get_block_longhash(context, b, h)) {
+      uint32_t extrahashID=0;
+      if (!m_stop && !get_block_longhash(context, b, h, extrahashID)) {
         logger(ERROR) << "Failed to get block long hash";
         m_stop = true;
       }
@@ -382,6 +385,7 @@ namespace CryptoNote
         ++m_config.current_extra_message_index;
 
         logger(INFO, GREEN) << "Found block for difficulty: " << local_diff;
+        logger(INFO, GREEN) << "  found for extra-hash position(0-7): " << extrahashID;
 
         if(!m_handler.handle_block_found(b)) {
           --m_config.current_extra_message_index;

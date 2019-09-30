@@ -462,7 +462,8 @@ difficulty_type Currency::nextDifficultyLWMA(std::vector<uint64_t> timestamps, s
 bool Currency::checkProofOfWork(Crypto::cn_context& context, const Block& block, difficulty_type currentDiffic,
   Crypto::Hash& proofOfWork) const {
 
-  if (!get_block_longhash(context, block, proofOfWork)) {
+  uint32_t extrahashID=0;
+  if (!get_block_longhash(context, block, proofOfWork, extrahashID)) {
     return false;
   }
 
