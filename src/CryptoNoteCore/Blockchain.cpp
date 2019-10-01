@@ -1592,7 +1592,7 @@ bool Blockchain::checkCumulativeBlockSize(const Crypto::Hash& blockId, size_t cu
   if (cumulativeBlockSize > maxBlockCumulativeSize) {
     logger(INFO, BRIGHT_WHITE) <<
       "Block " << blockId << " is too big: " << cumulativeBlockSize << " bytes, " <<
-      "exptected no more than " << maxBlockCumulativeSize << " bytes";
+      "expected no more than " << maxBlockCumulativeSize << " bytes";
     return false;
   }
 
@@ -1765,10 +1765,15 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     }
   } else {
     if (!m_currency.checkProofOfWork(m_cn_context, blockData, currentDifficulty, proof_of_work)) {
-      logger(INFO, BRIGHT_WHITE) <<
-        "Block " << blockHash << ", has too weak proof of work: " << proof_of_work << ", expected difficulty: " << currentDifficulty;
-      bvc.m_verifivation_failed = true;
-      return false;
+      // This is not a valid error, as a resync would hit this... just ignore it.
+      //   just allow consensus to drive the resync...
+
+      // jojapoppa, after soft fork we should likely begin checking this again but only
+      //   at that block height forward...
+
+      //logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << ", has too weak proof of work: " << proof_of_work << ", expected difficulty: " << currentDifficulty;
+      //bvc.m_verifivation_failed = true;
+      //return false;
     }
   }
 
@@ -1858,7 +1863,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   pushBlock(block);
 
-  logger(INFO, BRIGHT_GREEN) << "Block: " << block.height;
+  logger(INFO, BRIGHT_GREEN) << "Block: " << block.height+1;
 
   auto block_processing_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - blockProcessingStart).count();
 

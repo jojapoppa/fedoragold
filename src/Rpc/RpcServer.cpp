@@ -715,8 +715,7 @@ bool RpcServer::on_get_last_block_header(const COMMAND_RPC_GET_LAST_BLOCK_HEADER
   Hash last_block_hash;
   m_core.get_blockchain_top(last_block_height, last_block_hash);
 
-  logger(INFO) << "block height: " << last_block_height;
-  //logger(INFO) << "last block hash is: " << last_block_hash;
+  logger(INFO) << "block height: " << last_block_height+1;
 
   Block last_block;
   if (!m_core.getBlockByHash(last_block_hash, last_block)) {

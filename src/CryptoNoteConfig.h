@@ -116,7 +116,10 @@ const char     P2P_STAT_TRUSTED_PUB_KEY[]                    ="";
 const std::initializer_list<const char*> SEED_NODES = {
   "18.223.178.174:30158", // seed1
   "18.222.96.134:30158",  // seed2
-  "34.235.55.80:30158"    // goblin
+  "34.235.55.80:30158",   // goblin
+  "213.136.89.252:30158", // cryptonote.club server 1
+  "173.249.27.160:30158", // cryptonote.club server 2
+  "fed.cryptonote.club:30158" // cryptonote.club on DNS 
 };
 
 struct CheckpointData {

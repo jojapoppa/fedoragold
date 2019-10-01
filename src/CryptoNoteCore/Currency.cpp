@@ -464,6 +464,7 @@ bool Currency::checkProofOfWork(Crypto::cn_context& context, const Block& block,
 
   uint32_t extrahashID=0;
   if (!get_block_longhash(context, block, proofOfWork, extrahashID)) {
+    logger(ERROR, BRIGHT_RED) << "Failed to get longhash...";
     return false;
   }
 

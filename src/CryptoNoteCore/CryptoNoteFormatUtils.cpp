@@ -464,38 +464,6 @@ bool get_aux_block_header_hash(const Block& b, Hash& res) {
   return getObjectHash(blob, res);
 }
 
-Crypto::Hash get_blob_longhash(const BinaryArray& bd, uint64_t height, const std::vector<Crypto::Hash>& scratchpad)
-{
-//jojapoppa, WIP
-  Crypto::Hash h; // = null_hash;
-//  get_blob_longhash(bd, h, height, [&](uint64_t index) -> const Crypto::Hash&
-//  {
-//    return scratchpad[index%scratchpad.size()];
-//  });
-  return h;
-}
-
-bool get_blob_longhash(const BinaryArray& bd, Hash& res) {
-//jojapoppa, WIP
-//  Hash& scratchpad = res;
-//  if(!scratchpad.size())
-//    return get_blob_longhash(bd, 0, scratchpad);
-//  Crypto::Hash h2; // = null_hash;
-//  Crypto::wild_keccak_dbl(reinterpret_cast<const uint8_t*>(bd.data()), bd.size(), reinterpret_cast<uint8_t*>(&h2), sizeof(h2), (const UINT64*)&scratchpad[0], scratchpad.size()*4);
-//  res = h2;
-
-  return true;
-}
-
-bool get_block_longhash(const Block& b, Hash& res) {
-  BinaryArray bd;
-  if (!get_block_hashing_blob(b, bd)) {
-    return false;
-  }
-
-  return get_blob_longhash(bd, res);
-}
-
 extern "C" {
   uint32_t extrahashPos(void *);
 }
