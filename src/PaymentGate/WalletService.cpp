@@ -372,6 +372,8 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
   CryptoNote::INode* nodeStub = NodeFactory::createNodeStub();
   std::unique_ptr<CryptoNote::INode> nodeGuard(nodeStub);
 
+  /* old method prior to using Mnemonic keys method of Electrum... */
+  /*
   CryptoNote::IWallet* wallet = WalletFactory::createWallet(currency, *nodeStub, dispatcher);
   std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
 
@@ -382,6 +384,71 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
 
   wallet->initialize(conf.walletPassword);
   auto address = wallet->createAddress();
+  */
+
+  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub, logger);
+  std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
+
+  std::string address;
+  if (conf.secretSpendKey.empty() && conf.secretViewKey.empty() && conf.mnemonicSeed.empty()) {
+    log(Logging::INFO, Logging::BRIGHT_WHITE) << "Generating new wallet";
+
+    Crypto::SecretKey private_view_key;
+    CryptoNote::KeyPair spendKey;
+
+    Crypto::generate_keys(spendKey.publicKey, spendKey.secretKey);
+    CryptoNote::AccountBase::generateViewFromSpend(spendKey.secretKey, private_view_key);
+
+    wallet->initializeWithViewKey(conf.walletFile, conf.walletPassword, private_view_key);
+    address = wallet->createAddress(spendKey.secretKey);
+
+          log(Logging::INFO, Logging::BRIGHT_WHITE) << "New wallet is generated. Address: " << address;
+  }
+  else if (!conf.mnemonicSeed.empty()) {
+    log(Logging::INFO, Logging::BRIGHT_WHITE) << "Attempting to import wallet from mnemonic seed";
+
+    Crypto::SecretKey private_spend_key;
+    Crypto::SecretKey private_view_key;
+
+    if (!crypto::ElectrumWords::is_valid_mnemonic(conf.mnemonicSeed, private_spend_key))
+    {
+      return;
+    }
+
+    CryptoNote::AccountBase::generateViewFromSpend(private_spend_key, private_view_key);
+    wallet->initializeWithViewKey(conf.walletFile, conf.walletPassword, private_view_key);
+    address = wallet->createAddress(private_spend_key);
+    log(Logging::INFO, Logging::BRIGHT_WHITE) << "Imported wallet successfully.";
+  }
+  else
+  {
+          if (conf.secretSpendKey.empty() || conf.secretViewKey.empty())
+          {
+                  log(Logging::ERROR, Logging::BRIGHT_RED) << "Need both secret spend key and secret view key.";
+                  return;
+          }
+    else
+          {
+                  log(Logging::INFO, Logging::BRIGHT_WHITE) << "Attemping to import wallet from keys";
+                  Crypto::Hash private_spend_key_hash;
+                  Crypto::Hash private_view_key_hash;
+                  size_t size;
+                  if (!Common::fromHex(conf.secretSpendKey, &private_spend_key_hash, sizeof(private_spend_key_hash), size) || size != sizeof(private_spend_key_hash)) {
+                          log(Logging::ERROR, Logging::BRIGHT_RED) << "Invalid spend key... Aborting";
+                          return;
+                  }
+                  if (!Common::fromHex(conf.secretViewKey, &private_view_key_hash, sizeof(private_view_key_hash), size) || size != sizeof(private_spend_key_hash)) {
+                          log(Logging::ERROR, Logging::BRIGHT_RED) << "Invalid view key... Aborting";
+                          return;
+                  }
+                  Crypto::SecretKey private_spend_key = *(struct Crypto::SecretKey *) &private_spend_key_hash;
+                  Crypto::SecretKey private_view_key = *(struct Crypto::SecretKey *) &private_view_key_hash;
+
+                  wallet->initializeWithViewKey(conf.walletFile, conf.walletPassword, private_view_key);
+                  address = wallet->createAddress(private_spend_key);
+                  log(Logging::INFO, Logging::BRIGHT_WHITE) << "Imported wallet successfully.";
+          }
+  }
 
   log(Logging::INFO) << "New wallet is generated. Address: " << address;
 

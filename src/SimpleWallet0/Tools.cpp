@@ -2,7 +2,6 @@
 Copyright (C) 2018, The TurtleCoin developers
 Copyright (C) 2018, The PinkstarcoinV2 developers
 Copyright (C) 2018, The Bittorium developers
-Copyright (C) 2018, The B2Bcoin developers
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,31 +17,35 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <SimpleWallet2/Tools.h>
+#include <SimpleWallet/Tools.h>
 
-void confirmPassword(std::string walletPass) {
+void confirmPassword(std::string walletPass)
+{
     /* Password container requires an rvalue, we don't want to wipe our current
        pass so copy it into a tmp string and std::move that instead */
     std::string tmpString = walletPass;
     Tools::PasswordContainer pwdContainer(std::move(tmpString));
 
-    while (!pwdContainer.read_and_validate("Enter password: ")) {
+    while (!pwdContainer.read_and_validate("Enter password: "))
+    {
         std::cout << "Incorrect password! Try again." << std::endl;
     }
 }
 
-std::string formatAmount(uint64_t amount) {
-    uint64_t dollars = amount / 1000000000000;
-    uint64_t cents = amount % 1000000000000;
+std::string formatAmount(uint64_t amount)
+{
+    uint64_t dollars = amount / 100;
+    uint64_t cents = amount % 100;
 
-    return formatDollars(dollars) + "." + formatCents(cents) + " B2B";
+    return formatDollars(dollars) + "." + formatCents(cents) + " BTOR";
 }
 
-std::string formatDollars(uint64_t amount) {
+std::string formatDollars(uint64_t amount)
+{
     /* We want to format our number with comma separators so it's easier to
        use. Now, we could use the nice print_money() function to do this.
        However, whilst this initially looks pretty handy, if we have a locale
-       such as ja_JP.utf8, 1 B2B will actually be formatted as 100 B2B, which
+       such as ja_JP.utf8, 1 BTOR will actually be formatted as 100 BTOR, which
        is terrible, and could really screw over users.
 
        So, easy solution right? Just use en_US.utf8! Sure, it's not very
@@ -64,13 +67,16 @@ std::string formatDollars(uint64_t amount) {
 
     /* Thanks to https://stackoverflow.com/a/7277333/8737306 for this neat
        workaround */
-    class comma_numpunct : public std::numpunct<char> {
+    class comma_numpunct : public std::numpunct<char>
+    {
       protected:
-        virtual char do_thousands_sep() const {
+        virtual char do_thousands_sep() const
+        {
             return ',';
         }
 
-        virtual std::string do_grouping() const {
+        virtual std::string do_grouping() const
+        {
             return "\03";
         }
     };
@@ -82,15 +88,18 @@ std::string formatDollars(uint64_t amount) {
     return stream.str();
 }
 
-/* Pad to two spaces, e.g. 5 becomes 000000000005, 500000000000 remains 500000000000 */
-std::string formatCents(uint64_t amount) {
+/* Pad to two spaces, e.g. 5 becomes 05, 50 remains 50 */
+std::string formatCents(uint64_t amount)
+{
     std::stringstream stream;
-    stream << std::setfill('0') << std::setw(12) << amount;
+    stream << std::setfill('0') << std::setw(2) << amount;
     return stream.str();
 }
 
-bool confirm(std::string msg) {
-    while (true) {
+bool confirm(std::string msg)
+{
+    while (true)
+    {
         std::cout << InformationMsg(msg + " (Y/n): ");
 
         std::string answer;
@@ -99,13 +108,21 @@ bool confirm(std::string msg) {
         char c = std::tolower(answer[0]);
 
         /* Lets people spam enter in the transaction screen */
-        if (c == 'y' || c == '\0') {
+        if (c == 'y' || c == '\0')
+        {
             return true;
-        } else if (c == 'n') {
+        }
+        else if (c == 'n')
+        {
             return false;
-        } else if (c == std::ifstream::traits_type::eof()) { /* Don't loop forever on EOF */
+        }
+        /* Don't loop forever on EOF */
+        else if (c == std::ifstream::traits_type::eof())
+        {
             return false;
-        } else {
+        } 
+        else
+        {
             std::cout << WarningMsg("Bad input: ") << InformationMsg(answer)
                       << WarningMsg(" - please enter either Y or N.")
                       << std::endl;

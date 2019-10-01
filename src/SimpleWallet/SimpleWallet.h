@@ -1,172 +1,135 @@
-// Copyright (c) 2011-2016 The Cryptonote developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+/*
+Copyright (C) 2018, The TurtleCoin developers
+Copyright (C) 2018, The PinkstarcoinV2 developers
+Copyright (C) 2018, The Bittorium developers
+Copyright (C) 2018, The Karbo developers
+Copyright (C) 2019, The B2Bcoin developers
 
-#pragma once
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-#include <condition_variable>
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#ifdef _WIN32
+/* Prevents windows.h redefining min/max which breaks compilation */
+#define NOMINMAX
+#include <windows.h>
+#endif
+
+#include <cctype>
 #include <future>
-#include <memory>
-#include <mutex>
 
-#include <boost/program_options/variables_map.hpp>
+#include "INode.h"
+#include "version.h"
+#include "CryptoNote.h"
 
-#include <IWallet.h>
-#include "PasswordContainer.h"
+#include <Common/ConsoleHandler.h>
+#include <Common/SignalHandler.h>
 
-#include "Common/ConsoleHandler.h"
-#include "CryptoNoteCore/CryptoNoteBasicImpl.h"
-#include "CryptoNoteCore/Currency.h"
-#include "NodeRpcProxy/NodeRpcProxy.h"
-#include "WalletLegacy/WalletHelper.h"
+#include <CryptoNoteCore/Account.h>
+#include <CryptoNoteCore/CryptoNoteBasicImpl.h>
+#include <CryptoNoteCore/Currency.h>
 
-#include <Logging/LoggerRef.h>
+#include <Logging/FileLogger.h>
 #include <Logging/LoggerManager.h>
 
+#include <Mnemonics/electrum-words.h>
+
+#include <NodeRpcProxy/NodeRpcProxy.h>
+
+#include <SimpleWallet/PasswordContainer.h>
+#include <SimpleWallet/Transfer.h>
+#include <SimpleWallet/ParseArguments.h>
+
 #include <System/Dispatcher.h>
-#include <System/IpAddress.h>
 
-namespace CryptoNote
-{
-  /************************************************************************/
-  /*                                                                      */
-  /************************************************************************/
-  class simple_wallet : public CryptoNote::INodeObserver, public CryptoNote::IWalletLegacyObserver, public CryptoNote::INodeRpcProxyObserver {
-  public:
-    simple_wallet(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, Logging::LoggerManager& log);
+#include <Wallet/WalletGreen.h>
 
-    bool init(const boost::program_options::variables_map& vm);
-    bool deinit();
-    bool run();
-    void stop();
+#include <boost/thread/thread.hpp>
 
-    bool process_command(const std::vector<std::string> &args);
-    std::string get_commands_str();
+enum Action {Open, Generate, Import, SeedImport};
 
-    const CryptoNote::Currency& currency() const { return m_currency; }
+Action getAction(Config &config);
 
-  private:
+void logIncorrectMnemonicWords(std::vector<std::string> words);
 
-    Logging::LoggerMessage success_msg_writer(bool color = false) {
-      return logger(Logging::INFO, color ? Logging::GREEN : Logging::DEFAULT);
-    }
+void promptSaveKeys(CryptoNote::WalletGreen &wallet);
 
-    Logging::LoggerMessage fail_msg_writer() const {
-      auto msg = logger(Logging::Level::ERROR, Logging::BRIGHT_RED);
-      msg << "Error: ";
-      return msg;
-    }
+void printPrivateKeys(CryptoNote::WalletGreen &wallet, bool viewWallet, bool isNewWallet);
 
-    void handle_command_line(const boost::program_options::variables_map& vm);
+void balance(CryptoNote::INode &node, CryptoNote::WalletGreen &wallet, bool viewWallet);
 
-    bool run_console_handler();
+void welcomeMsg();
 
-    bool new_wallet(const std::string &wallet_file, const std::string& password);
-    bool new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey &view_key, const std::string &wallet_file, const std::string& password);
-    bool open_wallet(const std::string &wallet_file, const std::string& password);
-    bool close_wallet();
+void help(bool viewWallet);
 
-    bool help(const std::vector<std::string> &args = std::vector<std::string>());
-    bool exit(const std::vector<std::string> &args);
-    bool start_mining(const std::vector<std::string> &args);
-    bool stop_mining(const std::vector<std::string> &args);
-    bool show_balance(const std::vector<std::string> &args = std::vector<std::string>());
-    bool export_keys(const std::vector<std::string> &args = std::vector<std::string>());
-    bool show_incoming_transfers(const std::vector<std::string> &args);
-    bool show_payments(const std::vector<std::string> &args);
-    bool show_blockchain_height(const std::vector<std::string> &args);
-    bool listTransfers(const std::vector<std::string> &args);
-    bool transfer(const std::vector<std::string> &args);
-    bool print_address(const std::vector<std::string> &args = std::vector<std::string>());
-    bool save(const std::vector<std::string> &args);
-    bool reset(const std::vector<std::string> &args);
-    bool optimize(const std::vector<std::string> &args); 
-    bool set_log(const std::vector<std::string> &args);
+void inputLoop(std::shared_ptr<WalletInfo> &walletInfo, CryptoNote::INode &node);
 
-    bool ask_wallet_create_if_needed();
+void exportKeys(std::shared_ptr<WalletInfo> &walletInfo);
 
-    void printConnectionError() const;
+void run(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, Config &config);
 
-    //---------------- IWalletLegacyObserver -------------------------
-    virtual void initCompleted(std::error_code result) override;
-    virtual void externalTransactionCreated(CryptoNote::TransactionId transactionId) override;
-    virtual void synchronizationCompleted(std::error_code result) override;
-    virtual void synchronizationProgressUpdated(uint32_t current, uint32_t total) override;
-    //----------------------------------------------------------
+void blockchainHeight(CryptoNote::INode &node, CryptoNote::WalletGreen &wallet);
 
-    //----------------- INodeRpcProxyObserver --------------------------
-    virtual void connectionStatusUpdated(bool connected) override;
-    //----------------------------------------------------------
+void listTransfers(bool incoming, bool outgoing, CryptoNote::WalletGreen &wallet, CryptoNote::INode &node);
 
-    friend class refresh_progress_reporter_t;
+void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &walletInfo);
 
-    class refresh_progress_reporter_t
-    {
-    public:
-      refresh_progress_reporter_t(CryptoNote::simple_wallet& simple_wallet)
-        : m_simple_wallet(simple_wallet)
-        , m_blockchain_height(0)
-        , m_blockchain_height_update_time()
-        , m_print_time()
-      {
-      }
+void reset(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &walletInfo);
 
-      void update(uint64_t height, bool force = false)
-      {
-        auto current_time = std::chrono::system_clock::now();
-        if (std::chrono::seconds(m_simple_wallet.currency().difficultyTarget() / 2) < current_time - m_blockchain_height_update_time ||
-            m_blockchain_height <= height) {
-          update_blockchain_height();
-          m_blockchain_height = (std::max)(m_blockchain_height, height);
-        }
+void changePassword(std::shared_ptr<WalletInfo> &walletInfo, std::vector<std::string> args);
 
-        if (std::chrono::milliseconds(1) < current_time - m_print_time || force) {
-          std::cout << "Height " << height << " of " << m_blockchain_height << '\r';
-          m_print_time = current_time;
-        }
-      }
+void printOutgoingTransfer(CryptoNote::WalletTransaction t, CryptoNote::INode &node);
 
-    private:
-      void update_blockchain_height()
-      {
-        uint64_t blockchain_height = m_simple_wallet.m_node->getLastLocalBlockHeight();
-        m_blockchain_height = blockchain_height;
-        m_blockchain_height_update_time = std::chrono::system_clock::now();
-      }
+void printIncomingTransfer(CryptoNote::WalletTransaction t, CryptoNote::INode &node);
 
-    private:
-      CryptoNote::simple_wallet& m_simple_wallet;
-      uint64_t m_blockchain_height;
-      std::chrono::system_clock::time_point m_blockchain_height_update_time;
-      std::chrono::system_clock::time_point m_print_time;
-    };
+void checkForNewTransactions(std::shared_ptr<WalletInfo> &walletInfo);
 
-  private:
-    std::string m_wallet_file_arg;
-    std::string m_generate_new;
-    std::string m_import_new;
-    std::string m_import_path;
+void confirmPassword(std::string);
 
-    std::string m_daemon_address;
-    std::string m_daemon_host;
-    uint16_t m_daemon_port;
+void connectingMsg();
 
-    std::string m_wallet_file;
+void viewWalletMsg();
 
-    std::unique_ptr<std::promise<std::error_code>> m_initResultPromise;
+bool isValidMnemonic(std::string &mnemonic_phrase, Crypto::SecretKey &private_spend_key);
 
-    Common::ConsoleHandler m_consoleHandler;
-    const CryptoNote::Currency& m_currency;
-    Logging::LoggerManager& logManager;
-    System::Dispatcher& m_dispatcher;
-    Logging::LoggerRef logger;
+bool shutdown(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &alreadyShuttingDown);
 
-    std::unique_ptr<CryptoNote::NodeRpcProxy> m_node;
-    std::unique_ptr<CryptoNote::IWalletLegacy> m_wallet;
-    refresh_progress_reporter_t m_refresh_progress_reporter;
+std::string getInputAndDoWorkWhileIdle(std::shared_ptr<WalletInfo> &walletInfo);
 
-    bool m_walletSynchronized;
-    std::mutex m_walletSynchronizedMutex;
-    std::condition_variable m_walletSynchronizedCV;
-  };
-}
+std::string getNewWalletFileName();
+
+std::string getExistingWalletFileName(Config &config);
+
+std::string getWalletPassword(bool verifyPwd);
+
+std::string getBlockTime(CryptoNote::BlockDetails b);
+
+std::shared_ptr<WalletInfo> importFromKeys(CryptoNote::WalletGreen &wallet, Crypto::SecretKey privateSpendKey, Crypto::SecretKey privateViewKey);
+
+Maybe<std::shared_ptr<WalletInfo>> openWallet(CryptoNote::WalletGreen &wallet, Config &config);
+
+std::shared_ptr<WalletInfo> importWallet(CryptoNote::WalletGreen &wallet);
+
+std::shared_ptr<WalletInfo> mnemonicImportWallet(CryptoNote::WalletGreen &wallet);
+
+std::shared_ptr<WalletInfo> generateWallet(CryptoNote::WalletGreen &wallet);
+
+Maybe<std::shared_ptr<WalletInfo>> handleAction(CryptoNote::WalletGreen &wallet, Action action, Config &config);
+
+Crypto::SecretKey getPrivateKey(std::string outputMsg);
+
+ColouredMsg getPrompt(std::shared_ptr<WalletInfo> &walletInfo);
+
+CryptoNote::BlockDetails getBlock(uint32_t blockHeight, CryptoNote::INode &node);
+
+std::string getFeeAddress(System::Dispatcher& dispatcher, std::string daemon_host, uint16_t daemon_port);

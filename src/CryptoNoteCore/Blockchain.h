@@ -324,6 +324,134 @@ namespace CryptoNote {
 
   template<class visitor_t> bool Blockchain::scanOutputKeysForIndexes(const KeyInput& tx_in_to_key, visitor_t& vis, uint32_t* pmax_related_block_height) {
     std::lock_guard<std::recursive_mutex> lk(m_blockchain_lock);
+
+  /* upstream updates, jojapoppa to merge this in at next Soft Fork */
+
+  /*
+
+  // verify that the input has key offsets (that it exists properly, really)
+  if(!tx_in_to_key.key_offsets.size()) {
+    logger(Logging::ERROR, Logging::BRIGHT_RED) << "Output does not have proper key offsets";
+    return false;
+  }
+
+  // cryptonote_format_utils uses relative offsets for indexing to the global
+  // outputs list.  that is to say that absolute offset #2 is absolute offset
+  // #1 plus relative offset #2.
+  // TODO: Investigate if this is necessary / why this is done.
+  std::vector<uint64_t> absolute_offsets = relative_output_offsets_to_absolute(tx_in_to_key.key_offsets);
+  std::vector<output_data_t> outputs;
+
+  bool found = false;
+  auto it = m_scan_table.find(tx_prefix_hash);
+  if (it != m_scan_table.end())
+  {
+    auto its = it->second.find(tx_in_to_key.k_image);
+    if (its != it->second.end())
+    {
+      outputs = its->second;
+      found = true;
+    }
+  }
+
+  if (!found)
+  {
+    try
+    {
+      m_db->get_output_key(epee::span<const uint64_t>(&tx_in_to_key.amount, 1), absolute_offsets, outputs, true);
+      if (absolute_offsets.size() != outputs.size())
+      {
+        logger(Logging::ERROR, Logging::BRIGHT_RED) << "Output does not exist! offset sizes don't match. amount = " << tx_in_to_key.amount;
+        return false;
+      }
+    }
+    catch (...)
+    {
+      logger(Logging::ERROR, Logging::BRIGHT_RED) << "Exception in offset sizes.  Output does not exist! amount = " << tx_in_to_key.amount;
+      return false;
+    }
+  }
+  else
+  {
+    // check for partial results and add the rest if needed;
+    if (outputs.size() < absolute_offsets.size() && outputs.size() > 0)
+    {
+      logger(Logging::DEBUG) << "Additional outputs needed: " << absolute_offsets.size() - outputs.size();
+      std::vector < uint64_t > add_offsets;
+      std::vector<output_data_t> add_outputs;
+      add_outputs.reserve(absolute_offsets.size() - outputs.size());
+      for (size_t i = outputs.size(); i < absolute_offsets.size(); i++)
+        add_offsets.push_back(absolute_offsets[i]);
+      try
+      {
+        m_db->get_output_key(epee::span<const uint64_t>(&tx_in_to_key.amount, 1), add_offsets, add_outputs, true);
+        if (add_offsets.size() != add_outputs.size())
+        {
+          logger(Logging::ERROR, Logging::BRIGHT_RED) << "Partial results. Output does not exist! amount = " << tx_in_to_key.amount;
+          return false;
+        }
+      }
+      catch (...)
+      {
+        logger(Logging::ERROR, Logging::BRIGHT_RED) << "Partial results exception. Output does not exist! amount = " << tx_in_to_key.amount;
+        return false;
+      }
+      outputs.insert(outputs.end(), add_outputs.begin(), add_outputs.end());
+    }
+
+size_t count = 0;
+  for (const uint64_t& i : absolute_offsets)
+  {
+    try
+    {
+      output_data_t output_index;
+      try
+      {
+        // get tx hash and output index for output
+        if (count < outputs.size())
+          output_index = outputs.at(count);
+        else
+          output_index = m_db->get_output_key(tx_in_to_key.amount, i);
+
+        // call to the passed boost visitor to grab the public key for the output
+        if (!vis.handle_output(output_index.unlock_time, output_index.pubkey, output_index.commitment))
+        {
+          logger(Logging::ERROR, Logging::BRIGHT_RED) << "Failed to handle_output for output no = " << count << ", with absolute offset " << i;
+          return false;
+        }
+      }
+      catch (...)
+      {
+        logger(Logging::ERROR, Logging::BRIGHT_RED) << "Exception in with handle_output. Output does not exist! amount = " << tx_in_to_key.amount << ", absolute_offset = " << i;
+        return false;
+      }
+
+      // if on last output and pmax_related_block_height not null pointer
+      if(++count == absolute_offsets.size() && pmax_related_block_height)
+      {
+        // set *pmax_related_block_height to tx block height for this output
+        auto h = output_index.height;
+        if(*pmax_related_block_height < h)
+        {
+          *pmax_related_block_height = h;
+        }
+      }
+
+    }
+    catch (...)
+    {
+      logger(Logging::ERROR, Logging::BRIGHT_RED) << "Exception, Transaction does not exist: ";
+      return false;
+    }
+
+  }
+
+  return true;
+
+  */
+
+    /* Older method below... jojapoppa, swap out at next Soft Fork */
+
     auto it = m_outputs.find(tx_in_to_key.amount);
     if (it == m_outputs.end() || !tx_in_to_key.outputIndexes.size())
       return false;
@@ -332,9 +460,13 @@ namespace CryptoNote {
     std::vector<std::pair<TransactionIndex, uint16_t>>& amount_outs_vec = it->second;
     size_t count = 0;
     for (uint64_t i : absolute_offsets) {
+
       if(i >= amount_outs_vec.size() ) {
         logger(Logging::INFO) << "Wrong index in transaction inputs: " << i << ", expected maximum " << amount_outs_vec.size() - 1;
-        return false;
+
+        // Newer algo above does not even check this... it just uses a hashmap to find them so index doesn't matter
+        //return false;
+        continue;
       }
 
       //auto tx_it = m_transactionMap.find(amount_outs_vec[i].first);

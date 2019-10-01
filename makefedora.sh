@@ -1,9 +1,5 @@
 #!/bin/sh
 
-cp CMakeListsLinuxWindowsMac.txt CMakeLists.txt
-
-# may need brew install cmake on mac...
-
 #make clean
 
 # for Alpine Linux
@@ -29,6 +25,7 @@ cp CMakeListsLinuxWindowsMac.txt CMakeLists.txt
 export CC=gcc-8
 export CXX=g++-8
 
+# may need brew install cmake on mac...
 #export MACOSX_DEPLOYMENT_TARGET=10.11
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 

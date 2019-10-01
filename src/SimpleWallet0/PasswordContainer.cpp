@@ -1,19 +1,6 @@
-// Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2011-2016 The Cryptonote developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "PasswordContainer.h"
 
@@ -22,9 +9,6 @@
 #include <stdio.h>
 
 #if defined(_WIN32)
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 #include <io.h>
 #include <windows.h>
 #else
@@ -72,42 +56,16 @@ namespace Tools
   }
 
   bool PasswordContainer::read_password() {
-    return read_password(false);
+    return read_password(false, "Enter password: ");
   }
 
-  bool PasswordContainer::read_password(const std::string &message) {
-    return read_password(false, message);
-  }
-
-  bool PasswordContainer::read_and_validate() {
-    return read_and_validate("Give your new wallet a password: ");
-  }
-
-  bool PasswordContainer::read_and_validate(const std::string &message) {
-    std::string tmpPassword = m_password;
-
-    if (!read_password(message)) {
-      std::cout << "Failed to read password!";
-      return false;
-    }
-
-    bool validPass = m_password == tmpPassword;
-
-    m_password = tmpPassword;
-
-    return validPass;
-  }
-
-  bool PasswordContainer::read_password(bool verify) {
-    return read_password(verify, verify ? "Give your new wallet a password: " : "Enter password: ");
-  }
-
-  bool PasswordContainer::read_password(bool verify, const std::string &message) {
+  bool PasswordContainer::read_password(bool verify, std::string msg) {
     clear();
 
     bool r;
     if (is_cin_tty()) {
-      std::cout << message;
+      std::cout << msg;
+
       if (verify) {
         std::string password1;
         std::string password2;
@@ -119,16 +77,16 @@ namespace Tools
             if (password1 == password2) {
               m_password = std::move(password2);
               m_empty = false;
-              return true;
+                    return true;
             } else {
               std::cout << "Passwords do not match, try again." << std::endl;
               clear();
-              return read_password(true);
+                    return read_password(true, msg);
             }
           }
-        }
+              }
       } else {
-        r = read_from_tty(m_password);
+              r = read_from_tty(m_password);
       }
     } else {
       r = read_from_file();
@@ -252,6 +210,42 @@ namespace Tools
     }
   }
 
+  bool PasswordContainer::read_from_tty()
+  {
+    const char BACKSPACE = 127;
+
+    m_password.reserve(max_password_size);
+    while (m_password.size() < max_password_size)
+    {
+      int ch = getch();
+      if (EOF == ch)
+      {
+        return false;
+      }
+      else if (ch == '\n' || ch == '\r')
+      {
+        std::cout << std::endl;
+        break;
+      }
+      else if (ch == BACKSPACE)
+      {
+        if (!m_password.empty())
+        {
+          m_password.back() = '\0';
+          m_password.resize(m_password.size() - 1);
+          std::cout << "\b \b";
+        }
+      }
+      else
+      {
+        m_password.push_back(ch);
+        std::cout << '*';
+      }
+    }
+
+    return true;
+  }
+
   bool PasswordContainer::read_from_tty(std::string& password)
   {
     const char BACKSPACE = 127;
@@ -287,6 +281,28 @@ namespace Tools
 
     return true;
   }
+
+  bool PasswordContainer::read_and_validate(std::string msg) {
+    std::string tmpPassword = m_password;
+
+    if (msg == "") {
+        if (!read_password()) {
+            std::cout << "Failed to read password!";
+            return false;
+        }
+    } else {
+        if (!read_password(false, msg)) {
+            std::cout << "Failed to read password!";
+            return false;
+        }
+    }
+
+    bool validPass = m_password == tmpPassword;
+
+    m_password = tmpPassword;
+
+    return validPass;
+  } 
 
 #endif
 }

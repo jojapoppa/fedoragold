@@ -1768,7 +1768,11 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
       // This is not a valid error, as a resync would hit this... just ignore it.
       //   just allow consensus to drive the resync...
 
-      // jojapoppa, after soft fork we should likely begin checking this again but only
+      // when algo changed the proof of work calculation changed, and therefore the past history
+      // of POW hashes could not be verified.  so, this failed and held up syncs... not critical
+      // for now... just turn it back on at the height of the next soft fork 
+
+      // jojapoppa, after soft fork we should begin checking this again but only
       //   at that block height forward...
 
       //logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << ", has too weak proof of work: " << proof_of_work << ", expected difficulty: " << currentDifficulty;

@@ -2,7 +2,6 @@
 Copyright (C) 2018, The TurtleCoin developers
 Copyright (C) 2018, The PinkstarcoinV2 developers
 Copyright (C) 2018, The Bittorium developers
-Copyright (C) 2019, The B2Bcoin developers
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
