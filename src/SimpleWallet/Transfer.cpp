@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <SimpleWallet2/Transfer.h>
+#include <SimpleWallet/Transfer.h>
 
 // Forward declaration
 extern std::string remote_fee_address;
@@ -209,7 +209,7 @@ void splitTx(CryptoNote::WalletGreen &wallet,
 
     CryptoNote::TransactionParameters restoreInitialTx = p;
 
-    uint64_t maxSize = CryptoNote::parameters::CRYPTONOTE_MAX_SAFE_TX_SIZE;
+    uint64_t maxSize = CryptoNote::parameters::CRYPTONOTE_MAX_TX_SIZE;
     size_t txSize = wallet.getTxSize(p);
     uint64_t minFee = CryptoNote::parameters::MINIMUM_FEE;
 
@@ -307,11 +307,9 @@ size_t makeFusionTransaction(CryptoNote::WalletGreen &wallet,
        it and assume we can't fusion anymore */
     try
     {
-        return wallet.createFusionTransaction(bestThreshold, 
-                                              CryptoNote::parameters
-                                                        ::DEFAULT_MIXIN);
+        return wallet.createFusionTransaction(bestThreshold, 0); // CryptoNote::parameters::DEFAULT_MIXIN is zero
     }
-    catch (const std::runtime_error)
+    catch (...)
     {
         return CryptoNote::WALLET_INVALID_TRANSACTION_ID;
     }
@@ -871,14 +869,14 @@ Maybe<uint16_t> getMixin()
                   << "Mixin is how many times your transaction is mixed "
                   << "with others for privacy." << std::endl
                   << "Hit enter for the default mixin of "
-                  << std::to_string(CryptoNote::parameters::DEFAULT_MIXIN)
+                  << std::to_string(0)
                   << ": ";
 
         std::getline(std::cin, stringMixin);
 
         if (stringMixin == "")
         {
-            return Just<uint16_t>(CryptoNote::parameters::DEFAULT_MIXIN);
+            return Just<uint16_t>(0); //CryptoNote::parameters::DEFAULT_MIXIN);
         }
         else if (stringMixin == "cancel")
         {
@@ -1020,7 +1018,7 @@ bool parseMixin(std::string mixinString)
            to parse as it's a uint16_t? */
         uint16_t mixin = std::stoi(mixinString);
 
-        uint16_t minMixin = CryptoNote::parameters::MINIMUM_MIXIN;
+        uint16_t minMixin = 0;  //CryptoNote::parameters::MINIMUM_MIXIN;
 
         if (mixin < minMixin)
         {
@@ -1034,7 +1032,7 @@ bool parseMixin(std::string mixinString)
 
         return true;
     }
-    catch (const std::invalid_argument)
+    catch (...)
     {
         std::cout << WarningMsg("Failed to parse mixin! Ensure you entered the "
                                 "value correctly.") << std::endl;

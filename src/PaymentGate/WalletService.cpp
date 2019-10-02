@@ -24,17 +24,22 @@
 #include "CryptoNoteCore/CryptoNoteFormatUtils.h"
 #include "CryptoNoteCore/CryptoNoteBasicImpl.h"
 #include "CryptoNoteCore/TransactionExtra.h"
+#include "CryptoNoteCore/Account.h"
 
 #include <System/EventLock.h>
+#include <System/RemoteContext.h>
 
 #include "PaymentServiceJsonRpcMessages.h"
 #include "WalletFactory.h"
 #include "NodeFactory.h"
 
+#include "Wallet/WalletGreen.h"
 #include "Wallet/LegacyKeysImporter.h"
 #include "Wallet/WalletErrors.h"
 #include "Wallet/WalletUtils.h"
 #include "WalletServiceErrorCategory.h"
+
+#include <Mnemonics/electrum-words.h>
 
 namespace PaymentService {
 
@@ -372,21 +377,12 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
   CryptoNote::INode* nodeStub = NodeFactory::createNodeStub();
   std::unique_ptr<CryptoNote::INode> nodeGuard(nodeStub);
 
-  /* old method prior to using Mnemonic keys method of Electrum... */
-  /*
-  CryptoNote::IWallet* wallet = WalletFactory::createWallet(currency, *nodeStub, dispatcher);
-  std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
-
   log(Logging::INFO) << "Generating new wallet";
 
   std::fstream walletFile;
   createWalletFile(walletFile, conf.walletFile);
 
-  wallet->initialize(conf.walletPassword);
-  auto address = wallet->createAddress();
-  */
-
-  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub, logger);
+  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub);
   std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
 
   std::string address;
@@ -399,10 +395,10 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
     Crypto::generate_keys(spendKey.publicKey, spendKey.secretKey);
     CryptoNote::AccountBase::generateViewFromSpend(spendKey.secretKey, private_view_key);
 
-    wallet->initializeWithViewKey(conf.walletFile, conf.walletPassword, private_view_key);
+    wallet->initializeWithViewKey(private_view_key, conf.walletPassword);
     address = wallet->createAddress(spendKey.secretKey);
 
-          log(Logging::INFO, Logging::BRIGHT_WHITE) << "New wallet is generated. Address: " << address;
+    log(Logging::INFO, Logging::BRIGHT_WHITE) << "New wallet is generated. Address: " << address;
   }
   else if (!conf.mnemonicSeed.empty()) {
     log(Logging::INFO, Logging::BRIGHT_WHITE) << "Attempting to import wallet from mnemonic seed";
@@ -410,13 +406,13 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
     Crypto::SecretKey private_spend_key;
     Crypto::SecretKey private_view_key;
 
-    if (!crypto::ElectrumWords::is_valid_mnemonic(conf.mnemonicSeed, private_spend_key))
+    if (!crypto::ElectrumWords::is_valid_mnemonic((std::string)conf.mnemonicSeed, private_spend_key))
     {
       return;
     }
 
     CryptoNote::AccountBase::generateViewFromSpend(private_spend_key, private_view_key);
-    wallet->initializeWithViewKey(conf.walletFile, conf.walletPassword, private_view_key);
+    wallet->initializeWithViewKey(private_view_key, conf.walletPassword);
     address = wallet->createAddress(private_spend_key);
     log(Logging::INFO, Logging::BRIGHT_WHITE) << "Imported wallet successfully.";
   }
@@ -444,7 +440,7 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
                   Crypto::SecretKey private_spend_key = *(struct Crypto::SecretKey *) &private_spend_key_hash;
                   Crypto::SecretKey private_view_key = *(struct Crypto::SecretKey *) &private_view_key_hash;
 
-                  wallet->initializeWithViewKey(conf.walletFile, conf.walletPassword, private_view_key);
+                  wallet->initializeWithViewKey(private_view_key, conf.walletPassword);
                   address = wallet->createAddress(private_spend_key);
                   log(Logging::INFO, Logging::BRIGHT_WHITE) << "Imported wallet successfully.";
           }
@@ -502,7 +498,6 @@ void generateNewWalletWithKeysOption(const CryptoNote::Currency& currency, const
   createWalletFile(walletFile, conf.walletFile);
 
   saveWallet(*wallet, walletFile, false, false);
-  //wallet->save(CryptoNote::WalletSaveLevel::SAVE_KEYS_ONLY);
   log(Logging::INFO, Logging::BRIGHT_WHITE) << "Wallet is saved with keys";
 }
 

@@ -165,6 +165,17 @@ void NodeTest::dumpBlockchainInfo(INode& node) {
   storeBlockchainInfo("blocks.js", bc);
 }
 
+void saveWallet(std::string walletFileName, CryptoNote::WalletGreen &wallet) {
+  std::ofstream of(walletFileName, std::ios::binary | std::ios::trunc);
+  if (of.is_open())
+  {
+    wallet.save(of, true, true);
+    of.flush();
+    of.close();
+  }
+  else {
+  }
+}
 
 TEST_F(NodeTest, generateBlockchain) {
   
@@ -196,8 +207,7 @@ TEST_F(NodeTest, generateBlockchain) {
 
     daemon.stopMining();
 
-    std::ofstream walletFile("wallet.bin", std::ios::binary | std::ios::trunc);
-    wallet.save(walletFile);
+    saveWallet("wallet.bin", wallet);
     wallet.shutdown();
 
     dumpBlockchainInfo(*mainNode);
@@ -247,8 +257,7 @@ TEST_F(NodeTest, addMoreBlocks) {
 
     daemon.stopMining();
 
-    std::ofstream walletFile("wallet.bin", std::ios::binary | std::ios::trunc);
-    wallet.save(walletFile);
+    saveWallet("wallet.bin", wallet);
     wallet.shutdown();
 
     dumpBlockchainInfo(*mainNode);

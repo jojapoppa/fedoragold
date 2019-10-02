@@ -1820,15 +1820,17 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
     blob_size = toBinaryArray(block.transactions.back().tx).size();
     fee = getInputAmount(block.transactions.back().tx) - getOutputAmount(block.transactions.back().tx);
-    if (!checkTransactionInputs(block.transactions.back().tx)) {
-      logger(INFO, BRIGHT_WHITE) <<
-        "Block " << blockHash << " has at least one transaction with wrong inputs: " << tx_id;
-      bvc.m_verifivation_failed = true;
 
-      block.transactions.pop_back();
-      popTransactions(block, minerTransactionHash);
-      return false;
-    }
+// jojapoppa, add back after Soft Fork
+//    if (!checkTransactionInputs(block.transactions.back().tx)) {
+//      logger(INFO, BRIGHT_WHITE) <<
+//        "Block " << blockHash << " has at least one transaction with wrong inputs: " << tx_id;
+//      bvc.m_verifivation_failed = true;
+//
+//      block.transactions.pop_back();
+//      popTransactions(block, minerTransactionHash);
+//      return false;
+//    }
 
     ++transactionIndex.transaction;
     pushTransaction(block, tx_id, transactionIndex);

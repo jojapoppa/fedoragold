@@ -115,6 +115,7 @@ public:
 
   virtual void initialize(const std::string& password) = 0;
   virtual void initializeWithViewKey(const Crypto::SecretKey& viewSecretKey, const std::string& password) = 0;
+
   virtual void load(std::istream& source, const std::string& password) = 0;
   virtual void shutdown() = 0;
 

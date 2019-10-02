@@ -102,7 +102,7 @@ void viewWalletMsg();
 
 bool isValidMnemonic(std::string &mnemonic_phrase, Crypto::SecretKey &private_spend_key);
 
-bool shutdown(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &alreadyShuttingDown);
+bool shutdown(std::string walletFileName, CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &alreadyShuttingDown);
 
 std::string getInputAndDoWorkWhileIdle(std::shared_ptr<WalletInfo> &walletInfo);
 
@@ -130,6 +130,6 @@ Crypto::SecretKey getPrivateKey(std::string outputMsg);
 
 ColouredMsg getPrompt(std::shared_ptr<WalletInfo> &walletInfo);
 
-CryptoNote::BlockDetails getBlock(uint32_t blockHeight, CryptoNote::INode &node);
+//CryptoNote::BlockDetails getBlock(uint32_t blockHeight, CryptoNote::INode &node);
 
 std::string getFeeAddress(System::Dispatcher& dispatcher, std::string daemon_host, uint16_t daemon_port);

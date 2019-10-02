@@ -4,6 +4,7 @@ Copyright (C) 2018, The PinkstarcoinV2 developers
 Copyright (C) 2018, The Bittorium developers
 Copyright (c) 2018, The Karbo developers
 Copyright (c) 2019, The B2Bcoin developers
+Copyright (c) 2019, The FedoraGold developers
 
 
 This program is free software: you can redistribute it and/or modify
@@ -25,6 +26,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #include "Common/JsonValue.h"
 #include "Rpc/HttpClient.h"
+
+#include "WalletLegacy/WalletHelper.h"
+#include <boost/filesystem.hpp>
 
 // Fee address is declared here so we can access it from other source files
 std::string remote_fee_address;
@@ -104,12 +108,27 @@ int main(int argc, char **argv) {
     run(wallet, *node, config);
 }
 
+void saveWallet(std::string walletFileName, CryptoNote::WalletGreen &wallet) {
+  std::cout << InformationMsg("Saving...") << std::endl;
+  std::ofstream of(walletFileName, std::ios::binary | std::ios::trunc);
+  if (of.is_open())
+  {
+    wallet.save(of, true, true);
+    of.flush();
+    of.close();
+    std::cout << InformationMsg("Saved.") << std::endl;
+  }
+  else {
+    std::cout << InformationMsg("Error.  Not Saved.") << std::endl;
+  }
+}
+
 void run(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, Config &config) {
     auto maybeWalletInfo = Nothing<std::shared_ptr<WalletInfo>>();
     Action action;
 
     do {
-        std::cout << InformationMsg("B2Bcoin daemon v" + std::string(PROJECT_VERSION) + " B2BcoinWallet") << std::endl;
+        std::cout << InformationMsg("FED daemon v" + std::string(PROJECT_VERSION) + " FEDcoinWallet") << std::endl;
 
         /* Open/import/generate the wallet */
         action = getAction(config);
@@ -126,15 +145,15 @@ void run(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, Config &confi
        & means capture all variables by reference */
     Tools::SignalHandler::install([&] {
         /* If we're already shutting down let control flow continue as normal */
-        if (shutdown(walletInfo->wallet, node, alreadyShuttingDown)) {
+        if (shutdown(walletInfo->walletFileName, walletInfo->wallet, node, alreadyShuttingDown)) {
             exit(0);
         }
     });
 
     while (node.getLastKnownBlockHeight() == 0) {
-        std::cout << WarningMsg("It looks like the B2B daemon isn't open!") << std::endl
+        std::cout << WarningMsg("It looks like the FED daemon isn't open!") << std::endl
                   << std::endl
-                  << WarningMsg("Ensure the B2B daemon is open and has finished initializing.") << std::endl
+                  << WarningMsg("Ensure the FED daemon is open and has finished initializing.") << std::endl
                   << WarningMsg("If it's still not working, try restarting b2bcoind. The daemon sometimes gets stuck.") << std::endl
                   << WarningMsg("Alternatively, perhaps the daemon can't communicate with any peers.") << std::endl
                   << std::endl
@@ -157,7 +176,7 @@ void run(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, Config &confi
             if (c == 't' || c == '\0') {
                 break;
             } else if (c == 'e' || c == std::ifstream::traits_type::eof()) {
-                shutdown(walletInfo->wallet, node, alreadyShuttingDown);
+                shutdown(walletInfo->walletFileName, walletInfo->wallet, node, alreadyShuttingDown);
                 return;
             } else if (c == 'c') {
                 proceed = true;
@@ -193,7 +212,7 @@ void run(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, Config &confi
 
     inputLoop(walletInfo, node);
 
-    shutdown(walletInfo->wallet, node, alreadyShuttingDown);
+    shutdown(walletInfo->walletFileName, walletInfo->wallet, node, alreadyShuttingDown);
 }
 
 Maybe<std::shared_ptr<WalletInfo>> handleAction(CryptoNote::WalletGreen &wallet, Action action, Config &config) {
@@ -239,7 +258,7 @@ std::shared_ptr<WalletInfo> importFromKeys(CryptoNote::WalletGreen &wallet, Cryp
 
     connectingMsg();
 
-    wallet.initializeWithViewKey(walletFileName, walletPass, privateViewKey);
+    wallet.initializeWithViewKey(privateViewKey, walletPass);
 
     std::string walletAddress = wallet.createAddress(privateSpendKey);
 
@@ -253,7 +272,6 @@ std::shared_ptr<WalletInfo> importFromKeys(CryptoNote::WalletGreen &wallet, Cryp
 std::shared_ptr<WalletInfo> generateWallet(CryptoNote::WalletGreen &wallet) {
     std::string walletFileName = getNewWalletFileName();
     std::string walletPass = getWalletPassword(true);
-
     
     CryptoNote::KeyPair spendKey;
     Crypto::SecretKey privateViewKey;
@@ -261,7 +279,7 @@ std::shared_ptr<WalletInfo> generateWallet(CryptoNote::WalletGreen &wallet) {
     Crypto::generate_keys(spendKey.publicKey, spendKey.secretKey);
     CryptoNote::AccountBase::generateViewFromSpend(spendKey.secretKey, privateViewKey);
 
-    wallet.initializeWithViewKey(walletFileName, walletPass, privateViewKey);
+    wallet.initializeWithViewKey(privateViewKey, walletPass);
 
     std::string walletAddress = wallet.createAddress(spendKey.secretKey);
 
@@ -294,7 +312,13 @@ Maybe<std::shared_ptr<WalletInfo>> openWallet(CryptoNote::WalletGreen &wallet, C
         connectingMsg();
 
         try {
-            wallet.load(walletFileName, walletPass);
+            std::ifstream walletFile;
+            walletFile.open(walletFileName, std::ios_base::binary | std::ios_base::in);
+            if (walletFile.fail()) {
+              throw std::runtime_error("error opening wallet file '" + walletFileName + "'");
+            }
+
+            wallet.load(walletFile, walletPass);
 
             std::string walletAddress = wallet.getAddress(0);
             
@@ -499,8 +523,6 @@ Action getAction(Config &config) {
             return Import;
         } else if (c == 's') {
             return SeedImport;
-        } else if (c == 'v') {
-            return ViewWallet;
         } else {
             std::cout << "Unknown command: " << WarningMsg(answer) << std::endl;
         }
@@ -637,7 +659,7 @@ void inputLoop(std::shared_ptr<WalletInfo> &walletInfo, CryptoNote::INode &node)
         std::string command = getInputAndDoWorkWhileIdle(walletInfo);
 
         /* Split into args to support legacy transfer command, for example
-           transfer 3 6Txyzbf... 100, sends 100 B2B to 6Txyzbf... with a mixin
+           transfer 3 6Txyzbf... 100, sends 100 FED to 6Txyzbf... with a mixin
            of 3 */
         std::vector<std::string> words;
         words = boost::split(words, command, ::isspace);
@@ -657,9 +679,7 @@ void inputLoop(std::shared_ptr<WalletInfo> &walletInfo, CryptoNote::INode &node)
         } else if (command == "exit") {
             return;
         } else if (command == "save") {
-            std::cout << InformationMsg("Saving...") << std::endl;
-            walletInfo->wallet.save();
-            std::cout << InformationMsg("Saved.") << std::endl;
+            saveWallet(walletInfo->walletFileName, walletInfo->wallet);
         } else if (command == "bc_height" || command == "height") {
             blockchainHeight(node, walletInfo->wallet);
         } else if (command == "reset") {
@@ -695,7 +715,7 @@ void inputLoop(std::shared_ptr<WalletInfo> &walletInfo, CryptoNote::INode &node)
 
 void help(bool viewWallet) {
     if (viewWallet) {
-        std::cout << InformationMsg("Please note that you are using a view only wallet and cannot transfer B2B.") << std::endl 
+        std::cout << InformationMsg("Please note that you are using a view only wallet and cannot transfer FED.") << std::endl 
                   << std::endl;
     }
     std::cout << "Available commands:" << std::endl
@@ -704,12 +724,12 @@ void help(bool viewWallet) {
               << SuccessMsg("address", 25)
               << "Displays your payment address" << std::endl
               << SuccessMsg("balance", 25)
-              << "Display how much B2B you have" << std::endl
+              << "Display how much FED you have" << std::endl
               << SuccessMsg("keys", 25)
               << "Show your wallets private keys" << std::endl;
     if (!viewWallet) {
         std::cout << SuccessMsg("transfer", 25)
-                  << "Send B2B to someone" << std::endl
+                  << "Send FED to someone" << std::endl
                   << SuccessMsg("quick_optimize", 25) 
                   << "Quickly optimize your wallet to send large amounts" << std::endl
                   << SuccessMsg("full_optimize", 25) 
@@ -792,7 +812,7 @@ void blockchainHeight(CryptoNote::INode &node, CryptoNote::WalletGreen &wallet) 
               << SuccessMsg(std::to_string(remoteHeight + 1)) << std::endl;
 
     if (localHeight == 0 && remoteHeight == 0) {
-        std::cout << WarningMsg("Uh oh, it looks like you don't have the B2B daemon open!") << std::endl;
+        std::cout << WarningMsg("Uh oh, it looks like you don't have the FED daemon open!") << std::endl;
     } else if (walletHeight + 1000 < remoteHeight && localHeight == remoteHeight) {
         std::cout << InformationMsg("You are synced with the network, but the blockchain is still being scanned for your transactions.") << std::endl
                   << "Balances might be incorrect whilst this is ongoing." << std::endl;
@@ -803,7 +823,7 @@ void blockchainHeight(CryptoNote::INode &node, CryptoNote::WalletGreen &wallet) 
     }
 }
 
-bool shutdown(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &alreadyShuttingDown) {
+bool shutdown(std::string walletFileName, CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &alreadyShuttingDown) {
     if (alreadyShuttingDown) {
         std::cout << "Patience... we're already shutting down!" << std::endl;
         return false;
@@ -832,7 +852,7 @@ bool shutdown(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &al
         }
     });
 
-    wallet.save();
+    saveWallet(walletFileName, wallet);
     wallet.shutdown();
     node.shutdown();
 
@@ -846,10 +866,11 @@ bool shutdown(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, bool &al
     return true;
 }
 
+/*
 CryptoNote::BlockDetails getBlock(uint32_t blockHeight, CryptoNote::INode &node) {
     CryptoNote::BlockDetails block;
 
-    /* No connection to daemon */
+    // No connection to daemon 
     if (node.getLastKnownBlockHeight() == 0) {
         return block;
     }
@@ -865,12 +886,13 @@ CryptoNote::BlockDetails getBlock(uint32_t blockHeight, CryptoNote::INode &node)
     node.getBlock(blockHeight, block, callback);
 
     if (e.get()) {
-        /* Prevent the compiler optimizing it out... */
+        // Prevent the compiler optimizing it out... 
         std::cout << "";
     }
 
     return block;
 }
+*/
 
 std::string getBlockTime(CryptoNote::BlockDetails b) {
     if (b.timestamp == 0) {
@@ -992,10 +1014,17 @@ void reset(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &walletInfo) {
 
     /* Wallet is now unitialized. You must reinit with load, initWithKeys,
        or whatever. This function wipes the cache, then saves the wallet. */
-    walletInfo->wallet.clearCacheAndShutdown();
+    walletInfo->wallet.clearCaches();
+    walletInfo->wallet.shutdown();
 
     /* Now, we reopen the wallet. It now has no cached tx's, and balance */
-    walletInfo->wallet.load(walletInfo->walletFileName, walletInfo->walletPass);
+    std::ifstream walletFile;
+    walletFile.open(walletInfo->walletFileName, std::ios_base::binary | std::ios_base::in);
+    if (walletFile.fail()) {
+      throw std::runtime_error("error opening wallet file '" + walletInfo->walletFileName + "'");
+    }
+
+    walletInfo->wallet.load(walletFile, walletInfo->walletPass);
 
     /* Now we rescan the chain to re-discover our balance and transactions */
     findNewTransactions(node, walletInfo);
@@ -1036,7 +1065,7 @@ void changePassword(std::shared_ptr<WalletInfo> &walletInfo, std::vector<std::st
     }
     try {
         walletInfo->wallet.changePassword(oldPassword, newPassword);
-        walletInfo->wallet.save();
+        saveWallet(walletInfo->walletFileName, walletInfo->wallet);
         walletInfo->walletPass = newPassword;
         std::cout << SuccessMsg("Password successfully changed.") << std::endl;
    } catch (std::exception&) {
@@ -1054,7 +1083,7 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
     int stuckCounter = 0;
 
     if (localHeight != remoteHeight) {
-        std::cout << "Your B2B daemon isn't fully synced yet!" << std::endl
+        std::cout << "Your FED daemon isn't fully synced yet!" << std::endl
                   << "Until you are fully synced, you won't be able to send transactions," << std::endl
                   << "and your balance may be missing or incorrect!" << std::endl 
                   << std::endl;
@@ -1067,7 +1096,7 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
         std::cout << "Upgrading your wallet from an older version of the software..." << std::endl
                   << "Unfortunately, we have to rescan the chain to find your transactions." << std::endl;
         transactionCount = 0;
-        walletInfo->wallet.clearCaches(true, false);
+        walletInfo->wallet.clearCaches();
     }
 
     if (walletHeight == 1) {
@@ -1100,7 +1129,7 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
         /* Save periodically so if someone closes before completion they don't
            lose all their progress */
         if (counter % 60 == 0) {
-            walletInfo->wallet.save();
+            saveWallet(walletInfo->walletFileName, walletInfo->wallet);
         }
 
         if (tmpWalletHeight == walletHeight) {
@@ -1109,7 +1138,7 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
 
             if (stuckCounter > 20) {
                 std::string warning =
-                    "Syncing may be stuck. Try restarting the B2B daemon.\n"
+                    "Syncing may be stuck. Try restarting the FED daemon.\n"
                     "If this persists, visit "
                     "https://t.me/joinchat/Fxlb2Qw8ivAta7iYgM0Wiw"
                     " for support.";
@@ -1122,7 +1151,7 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
                    So we'll try this before warning the user.
                 */
                 std::cout << InformationMsg("Saving wallet...") << std::endl;
-                walletInfo->wallet.save();
+                saveWallet(walletInfo->walletFileName, walletInfo->wallet);
                 waitSeconds = 5;
             }
         } else {
@@ -1164,7 +1193,7 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
 
     /* In case the user force closes, we don't want them to have to rescan
        the whole chain. */
-    walletInfo->wallet.save();
+    saveWallet(walletInfo->walletFileName, walletInfo->wallet);
 
     walletInfo->knownTransactionCount = transactionCount;
 }
@@ -1184,19 +1213,19 @@ ColouredMsg getPrompt(std::shared_ptr<WalletInfo> &walletInfo) {
 
     std::string shortName = walletName.substr(0, promptLength);
 
-    return InformationMsg("[B2B " + shortName + "]: ");
+    return InformationMsg("[FED " + shortName + "]: ");
 }
 
 void connectingMsg() {
     std::cout << std::endl 
-              << "Making initial contact with the B2B daemon." << std::endl
+              << "Making initial contact with the FED daemon." << std::endl
               << "Please wait, this sometimes can take a long time..." << std::endl
               << std::endl;
 }
 
 void viewWalletMsg() {
     std::cout << InformationMsg("Please remember that when using a view wallet you can only view incoming transactions!") << std::endl 
-              << "This means if you received 100 B2B and then sent 50 B2B, your balance would appear to still be 100 B2B." << std::endl
+              << "This means if you received 100 FED and then sent 50 FED, your balance would appear to still be 100 FED." << std::endl
               << "To effectively use a view wallet, you should only deposit to this wallet." << std::endl
               << "If you have since needed to withdraw, send your remaining balance to a new wallet, and import this as a new view wallet so your balance can be correctly observed." << std::endl
               << std::endl;

@@ -28,6 +28,7 @@
 #include "CryptoNoteCore/CryptoNoteFormatUtils.h"
 #include "CryptoNoteCore/CryptoNoteTools.h"
 #include "CryptoNoteCore/TransactionApi.h"
+#include "CryptoNoteCore/CryptoNoteBasicImpl.h"
 #include "crypto/crypto.h"
 #include "Transfers/TransfersContainer.h"
 #include "WalletSerialization.h"
@@ -210,7 +211,7 @@ uint64_t pushDonationTransferIfPossible(const DonationSettings& donation, uint64
   return donationAmount;
 }
 
-CryptoNote::AccountPublicAddress parseAccountAddressString(const std::string& addressString, const CryptoNote::Currency& currency) {
+CryptoNote::AccountPublicAddress parseAccountAddressStr(const std::string& addressString, const CryptoNote::Currency& currency) {
   CryptoNote::AccountPublicAddress address;
 
   if (!currency.parseAccountAddressString(addressString, address)) {
@@ -249,6 +250,18 @@ WalletGreen::~WalletGreen() {
   }
 
   m_dispatcher.yield(); //let remote spawns finish
+}
+
+void WalletGreen::createViewWallet(const std::string &password, const std::string address, const Crypto::SecretKey &viewSecretKey) {
+    CryptoNote::AccountPublicAddress publicKeys;
+    uint64_t prefix;
+
+    if (!CryptoNote::parseAccountAddressString(prefix, publicKeys, address)) {
+        throw std::runtime_error("Failed to parse address!");
+    }
+
+    initializeWithViewKey(viewSecretKey, password);
+    createAddress(publicKeys.spendPublicKey);
 }
 
 void WalletGreen::initialize(const std::string& password) {
@@ -2386,7 +2399,7 @@ void WalletGreen::getViewKeyKnownBlocks(const Crypto::PublicKey& viewPublicKey) 
 ///pre: source address belongs to current container
 CryptoNote::AccountPublicAddress WalletGreen::getChangeDestination(const std::string& changeDestinationAddress, const std::vector<std::string>& sourceAddresses) const {
   if (!changeDestinationAddress.empty()) {
-    return parseAccountAddressString(changeDestinationAddress, m_currency);
+    return parseAccountAddressStr(changeDestinationAddress, m_currency);
   }
 
   if (m_walletsContainer.size() == 1) {
@@ -2394,11 +2407,11 @@ CryptoNote::AccountPublicAddress WalletGreen::getChangeDestination(const std::st
   }
 
   assert(sourceAddresses.size() == 1 && isMyAddress(sourceAddresses[0]));
-  return parseAccountAddressString(sourceAddresses[0], m_currency);
+  return parseAccountAddressStr(sourceAddresses[0], m_currency);
 }
 
 bool WalletGreen::isMyAddress(const std::string& addressString) const {
-  CryptoNote::AccountPublicAddress address = parseAccountAddressString(addressString, m_currency);
+  CryptoNote::AccountPublicAddress address = parseAccountAddressStr(addressString, m_currency);
   return m_viewPublicKey == address.viewPublicKey && m_walletsContainer.get<KeysIndex>().count(address.spendPublicKey) != 0;
 }
 

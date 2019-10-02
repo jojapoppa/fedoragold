@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <SimpleWallet2/Tools.h>
+#include <SimpleWallet/Tools.h>
 
 void confirmPassword(std::string walletPass) {
     /* Password container requires an rvalue, we don't want to wipe our current

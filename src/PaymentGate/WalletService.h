@@ -27,7 +27,7 @@ struct WalletConfiguration {
   std::string walletPassword;
   std::string secretViewKey;
   std::string secretSpendKey;
-  //std::string mnemonicSeed;
+  std::string mnemonicSeed;
 };
 
 void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfiguration &conf, Logging::ILogger &logger, System::Dispatcher& dispatcher);

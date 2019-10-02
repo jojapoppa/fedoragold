@@ -30,11 +30,12 @@ public:
 
   virtual void initialize(const std::string& password) override;
   virtual void initializeWithViewKey(const Crypto::SecretKey& viewSecretKey, const std::string& password) override;
+
   virtual void load(std::istream& source, const std::string& password) override;
   virtual void shutdown() override;
 
   virtual void changePassword(const std::string& oldPassword, const std::string& newPassword) override;
-  virtual void save(std::ostream& destination, bool saveDetails = true, bool saveCache = true) override;
+  virtual void save(std::ostream& destination, bool saveDetails, bool saveCache) override; 
 
   virtual size_t getAddressCount() const override;
   virtual std::string getAddress(size_t index) const override;
@@ -78,17 +79,21 @@ public:
   virtual bool isFusionTransaction(size_t transactionId) const override;
   virtual IFusionManager::EstimateResult estimate(uint64_t threshold) const override;
 
+  void createViewWallet(const std::string &password, const std::string address, const Crypto::SecretKey &viewSecretKey);
+
   void updateInternalCache();
   size_t getTxSize(const TransactionParameters &sendingTransaction);
   bool txIsTooLarge(const TransactionParameters& sendingTransaction);
 
+  void clearCaches();
 protected:
   void throwIfNotInitialized() const;
   void throwIfStopped() const;
   void throwIfTrackingMode() const;
   void doShutdown();
-  void clearCaches();
+
   void initWithKeys(const Crypto::PublicKey& viewPublicKey, const Crypto::SecretKey& viewSecretKey, const std::string& password);
+
   std::string doCreateAddress(const Crypto::PublicKey& spendPublicKey, const Crypto::SecretKey& spendSecretKey, uint64_t creationTimestamp);
 
   struct InputInfo {

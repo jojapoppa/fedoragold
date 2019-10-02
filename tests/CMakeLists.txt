@@ -12,16 +12,18 @@ file(GLOB_RECURSE PerformanceTests PerformanceTests/*)
 file(GLOB_RECURSE SystemTests System/*)
 file(GLOB_RECURSE TestGenerator TestGenerator/*)
 file(GLOB_RECURSE TransfersTests TransfersTests/*)
+file(GLOB_RECURSE Mnemonics Mnemonics/*)
 file(GLOB_RECURSE UnitTests UnitTests/*)
 
 file(GLOB_RECURSE CryptoNoteProtocol ../src/CryptoNoteProtocol/*)
 file(GLOB_RECURSE P2p ../src/P2p/*)
 
-source_group("" FILES ${CoreTests} ${CryptoTests} ${FunctionalTests} ${IntegrationTestLibrary} ${IntegrationTests} ${NodeRpcProxyTests} ${PerformanceTests} ${SystemTests} ${TestGenerator} ${TransfersTests} ${UnitTests})
+source_group("" FILES ${CoreTests} ${CryptoTests} ${FunctionalTests} ${IntegrationTestLibrary} ${IntegrationTests} ${NodeRpcProxyTests} ${PerformanceTests} ${SystemTests} ${TestGenerator} ${TransfersTests} ${UnitTests} ${Mnemonics})
 source_group("" FILES ${CryptoNoteProtocol} ${P2p})
 
 add_library(IntegrationTestLibrary ${IntegrationTestLibrary})
 add_library(TestGenerator ${TestGenerator})
+add_library(Mnemonics ${Mnemonics})
 
 add_executable(CoreTests ${CoreTests})
 add_executable(CryptoTests ${CryptoTests})
@@ -48,7 +50,7 @@ if (MSVC)
 endif ()
 
 target_link_libraries(TransfersTests IntegrationTestLibrary Wallet gtest_main InProcessNode NodeRpcProxy P2P Rpc Http BlockchainExplorer CryptoNoteCore Serialization System Logging Transfers Common Crypto upnpc-static ${Boost_LIBRARIES})
-target_link_libraries(UnitTests gtest_main PaymentGate Wallet TestGenerator InProcessNode NodeRpcProxy Rpc Http Transfers Serialization System Logging BlockchainExplorer Common CryptoNoteCore Crypto ${Boost_LIBRARIES})
+target_link_libraries(UnitTests gtest_main PaymentGate Wallet TestGenerator InProcessNode NodeRpcProxy Rpc Http Transfers Serialization System Logging BlockchainExplorer Common CryptoNoteCore Crypto Mnemonics ${Boost_LIBRARIES})
 
 target_link_libraries(TestGenerator Common BlockchainExplorer Logging ${Boost_LIBRARIES})
 
