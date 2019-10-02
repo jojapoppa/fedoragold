@@ -10,6 +10,9 @@
 #include <System/Dispatcher.h>
 #include <System/Timer.h>
 
+#include <Logging/ConsoleLogger.h>
+#include <Logging/LoggerManager.h>
+
 #include <Serialization/JsonOutputStreamSerializer.h>
 #include <Serialization/JsonInputStreamSerializer.h>
 #include <Serialization/SerializationOverloads.h>
@@ -186,12 +189,14 @@ TEST_F(NodeTest, generateBlockchain) {
 
   auto& daemon = network.getNode(0);
 
+  Logging::ConsoleLogger logger;
+
   {
     std::unique_ptr<INode> mainNode;
     ASSERT_TRUE(daemon.makeINode(mainNode));
 
     std::string password = "pass";
-    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode);
+    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode, logger);
 
     wallet.initialize(password);
 
@@ -231,6 +236,8 @@ TEST_F(NodeTest, addMoreBlocks) {
 
   auto& daemon = network.getNode(0);
 
+  Logging::ConsoleLogger logger;
+
   {
     std::unique_ptr<INode> mainNode;
     ASSERT_TRUE(daemon.makeINode(mainNode));
@@ -238,7 +245,7 @@ TEST_F(NodeTest, addMoreBlocks) {
     auto startHeight = daemon.getLocalHeight();
 
     std::string password = "pass";
-    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode);
+    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode, logger);
 
     {
       std::ifstream walletFile("wallet.bin", std::ios::binary);

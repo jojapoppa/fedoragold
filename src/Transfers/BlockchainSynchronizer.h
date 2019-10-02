@@ -15,6 +15,8 @@
 #include <atomic>
 #include <future>
 
+#include "Logging/LoggerRef.h"
+
 namespace CryptoNote {
 
 class BlockchainSynchronizer :
@@ -22,7 +24,7 @@ class BlockchainSynchronizer :
   public INodeObserver {
 public:
 
-  BlockchainSynchronizer(INode& node, const Crypto::Hash& genesisBlockHash);
+  BlockchainSynchronizer(INode& node, Logging::ILogger &logger, const Crypto::Hash& genesisBlockHash);
   ~BlockchainSynchronizer();
 
   // IBlockchainSynchronizer
@@ -118,6 +120,8 @@ private:
   const Crypto::Hash m_genesisBlockHash;
 
   Crypto::Hash lastBlockId;
+
+  mutable Logging::LoggerRef m_logger;
 
   State m_currentState;
   State m_futureState;

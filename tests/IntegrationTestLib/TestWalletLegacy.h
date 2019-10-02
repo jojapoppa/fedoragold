@@ -16,7 +16,7 @@ namespace Common {
 
 class TestWalletLegacy : private CryptoNote::IWalletLegacyObserver {
 public:
-  TestWalletLegacy(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, CryptoNote::INode& node);
+  TestWalletLegacy(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, CryptoNote::INode& node, Logging::ILogger& logger);
   ~TestWalletLegacy();
 
   std::error_code init();
@@ -33,6 +33,8 @@ private:
   System::Dispatcher& m_dispatcher;
   System::Event m_synchronizationCompleted;
   System::Event m_someTransactionUpdated;
+
+  mutable Logging::LoggerRef m_logger;
 
   CryptoNote::INode& m_node;
   const CryptoNote::Currency& m_currency;

@@ -20,6 +20,7 @@
 using namespace Crypto;
 using namespace CryptoNote;
 
+Logging::ConsoleLogger logr;
 
 namespace {
 Transaction createTx(ITransactionReader& tx) {
@@ -175,10 +176,10 @@ private:
 class BcSTest : public ::testing::Test, public IBlockchainSynchronizerObserver {
 public:
   BcSTest() :
-    m_currency(CurrencyBuilder(m_logger).currency()),
+    m_currency(CurrencyBuilder(logr).currency()),
     generator(m_currency),
     m_node(generator),
-    m_sync(m_node, m_currency.genesisBlockHash()) {
+    m_sync(m_node, logr, m_currency.genesisBlockHash()) {
     m_node.setGetNewBlocksLimit(5); // sync max 5 blocks per request
   }
 
@@ -227,7 +228,6 @@ public:
   }
 
 protected:
-  Logging::ConsoleLogger m_logger;
   Currency m_currency;
   TestBlockchainGenerator generator;
 
@@ -475,7 +475,7 @@ TEST_F(BcSTest, serializationCheck) {
 
   std::string first = memstream.str();
 
-  BlockchainSynchronizer sync2(m_node, m_currency.genesisBlockHash());
+  BlockchainSynchronizer sync2(m_node, logr, m_currency.genesisBlockHash());
 
   ASSERT_NO_THROW(sync2.load(memstream));
   std::stringstream memstream2;

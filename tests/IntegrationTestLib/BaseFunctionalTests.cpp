@@ -23,6 +23,8 @@
 #include "CryptoNoteCore/CryptoNoteTools.h"
 #include "WalletLegacy/WalletLegacy.h"
 
+#include <Logging/ConsoleLogger.h>
+#include <Logging/LoggerManager.h>
 #include "Logger.h"
 
 #include "InProcTestNode.h"
@@ -358,7 +360,10 @@ bool BaseFunctionalTests::stopMining() {
 
 bool BaseFunctionalTests::makeWallet(std::unique_ptr<CryptoNote::IWalletLegacy> & wallet, std::unique_ptr<CryptoNote::INode>& node, const std::string& password) {
   if (!node) return false;
-  wallet = std::unique_ptr<CryptoNote::IWalletLegacy>(new CryptoNote::WalletLegacy(m_currency, *node));
+
+  Logging::ConsoleLogger logger;
+
+  wallet = std::unique_ptr<CryptoNote::IWalletLegacy>(new CryptoNote::WalletLegacy(m_currency, *node, logger));
   wallet->initAndGenerate(password);
   return true;
 }

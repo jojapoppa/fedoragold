@@ -13,6 +13,7 @@
 #include "CryptoNoteCore/CryptoNoteFormatUtils.h"
 
 using namespace Crypto;
+using namespace Logging;
 
 namespace {
 
@@ -27,7 +28,8 @@ inline std::vector<uint8_t> stringToVector(const std::string& s) {
 
 namespace CryptoNote {
 
-BlockchainSynchronizer::BlockchainSynchronizer(INode& node, const Hash& genesisBlockHash) :
+BlockchainSynchronizer::BlockchainSynchronizer(INode& node, Logging::ILogger &logger, const Hash& genesisBlockHash) :
+  m_logger(logger, "BlockchainSynchronizer"),
   m_node(node),
   m_genesisBlockHash(genesisBlockHash),
   m_currentState(State::stopped),
@@ -53,10 +55,19 @@ bool BlockchainSynchronizer::removeConsumer(IBlockchainConsumer* consumer) {
   assert(consumer != nullptr);
 
   if (!(checkIfStopped() && checkIfShouldStop())) {
-    throw std::runtime_error("Can't remove consumer, because BlockchainSynchronizer isn't stopped");
+    auto message = "Failed to remove consumer: not stopped";
+    m_logger(ERROR, BRIGHT_RED) << message << ", consumer " << consumer;
+    throw std::runtime_error(message);
   }
 
-  return m_consumers.erase(consumer) > 0;
+  bool result = m_consumers.erase(consumer) > 0;
+  if (result) {
+    m_logger(INFO, BRIGHT_WHITE) << "Consumer removed, consumer " << consumer << ", count " << m_consumers.size();
+  } else {
+    m_logger(ERROR, BRIGHT_RED) << "Failed to remove consumer: not found, consumer " << consumer;
+  }
+
+  return result;
 }
 
 IStreamSerializable* BlockchainSynchronizer::getConsumerState(IBlockchainConsumer* consumer) const {

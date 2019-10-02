@@ -156,7 +156,7 @@ Config parseArguments(int argc, char **argv)
 }
 
 void versionMessage() {
-    std::cout << "B2Bcoin v" << PROJECT_VERSION << " Simplewallet"
+    std::cout << "FedoraGold v" << PROJECT_VERSION << " Simplewallet"
               << std::endl;
 }
 

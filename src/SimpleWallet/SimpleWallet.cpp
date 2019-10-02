@@ -30,8 +30,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "WalletLegacy/WalletHelper.h"
 #include <boost/filesystem.hpp>
 
+#include <Logging/ConsoleLogger.h>
+#include <Logging/LoggerManager.h>
+
 // Fee address is declared here so we can access it from other source files
 std::string remote_fee_address;
+
+using namespace Logging;
 
 int main(int argc, char **argv) {
     /* On ctrl+c the program seems to throw "simplewallet.exe has stopped
@@ -42,6 +47,7 @@ int main(int argc, char **argv) {
     #endif
 
     Config config = parseArguments(argc, argv);
+    Logging::ConsoleLogger logger;
 
     /* User requested --help or --version, or invalid arguments */
     if (config.exit) {
@@ -56,10 +62,8 @@ int main(int argc, char **argv) {
     logManager.setMaxLevel(Logging::DEBUGGING);
 
     Logging::FileLogger fileLogger;
-    fileLogger.init("simplewallet2.log");
+    fileLogger.init("simplewallet.log");
     logManager.addLogger(fileLogger);
-
-    Logging::LoggerRef logger(logManager, "simplewallet2");
 
     /* Currency contains our coin parameters, such as decimal places, supply */
     CryptoNote::Currency currency = CryptoNote::CurrencyBuilder(logManager).currency();
@@ -102,7 +106,7 @@ int main(int argc, char **argv) {
     }
 
     /* Create the wallet instance */
-    CryptoNote::WalletGreen wallet(*dispatcher, currency, *node);
+    CryptoNote::WalletGreen wallet(*dispatcher, currency, *node, logger);
 
     /* Run the interactive wallet interface */
     run(wallet, *node, config);

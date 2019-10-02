@@ -382,7 +382,7 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
   std::fstream walletFile;
   createWalletFile(walletFile, conf.walletFile);
 
-  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub);
+  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub, logger);
   std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
 
   std::string address;
@@ -469,7 +469,7 @@ void generateNewWalletWithKeysOption(const CryptoNote::Currency& currency, const
   CryptoNote::INode* nodeStub = NodeFactory::createNodeStub();
   std::unique_ptr<CryptoNote::INode> nodeGuard(nodeStub);
 
-  CryptoNote::IWallet* wallet = WalletFactory::createWallet(currency, *nodeStub, dispatcher);
+  CryptoNote::IWallet* wallet = WalletFactory::createWallet(currency, *nodeStub, dispatcher, logger);
   std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
       
   log(Logging::INFO, Logging::BRIGHT_WHITE) << "Attemping to import wallet from keys";

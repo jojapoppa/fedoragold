@@ -27,6 +27,8 @@
 #include "Transfers/BlockchainSynchronizer.h"
 #include "Transfers/TransfersSynchronizer.h"
 
+#include "Logging/LoggerRef.h"
+
 namespace CryptoNote {
 
 class SyncStarter;
@@ -37,7 +39,7 @@ class WalletLegacy :
   ITransfersObserver {
 
 public:
-  WalletLegacy(const CryptoNote::Currency& currency, INode& node);
+  WalletLegacy(const CryptoNote::Currency& currency, INode& node, Logging::ILogger &logger);
   virtual ~WalletLegacy();
 
   virtual void addObserver(IWalletLegacyObserver* observer) override;
@@ -73,6 +75,8 @@ public:
   virtual void getAccountKeys(AccountKeys& keys) override;
 
 private:
+
+  mutable Logging::LoggerRef m_logger;
 
   // IBlockchainSynchronizerObserver
   virtual void synchronizationProgressUpdated(uint32_t current, uint32_t total) override;

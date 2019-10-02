@@ -32,17 +32,17 @@ void confirmPassword(std::string walletPass) {
 }
 
 std::string formatAmount(uint64_t amount) {
-    uint64_t dollars = amount / 1000000000000;
-    uint64_t cents = amount % 1000000000000;
+    uint64_t dollars = amount / 100000000;
+    uint64_t cents = amount % 100000000;
 
-    return formatDollars(dollars) + "." + formatCents(cents) + " B2B";
+    return formatDollars(dollars) + "." + formatCents(cents) + " FED";
 }
 
 std::string formatDollars(uint64_t amount) {
     /* We want to format our number with comma separators so it's easier to
        use. Now, we could use the nice print_money() function to do this.
        However, whilst this initially looks pretty handy, if we have a locale
-       such as ja_JP.utf8, 1 B2B will actually be formatted as 100 B2B, which
+       such as ja_JP.utf8, 1 FED will actually be formatted as 100 FED, which
        is terrible, and could really screw over users.
 
        So, easy solution right? Just use en_US.utf8! Sure, it's not very

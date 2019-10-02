@@ -231,8 +231,8 @@ void splitTx(CryptoNote::WalletGreen &wallet,
                  (std::ceil(double(txSize) / double(maxSize))));
 
         /* Split the requested fee over each transaction, i.e. if a fee of 20
-           B2B was requested and we split it into 4 transactions each one will
-           have a fee of 5 B2B. If the fee per transaction is less than the
+           FED was requested and we split it into 4 transactions each one will
+           have a fee of 5 FED. If the fee per transaction is less than the
            min fee, use the min fee. */
         uint64_t feePerTx = std::max (p.fee / numTransactions, minFee);
 
@@ -672,7 +672,7 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t f
     uint64_t balance = walletInfo->wallet.getActualBalance();
     uint64_t remote_node_fee = 0;
     if (!remote_fee_address.empty()) {
-        // Remote node fee is between 0.01 and 1.00 B2B depending on transfer amount
+        // Remote node fee is between 0.01 and 1.00 FED depending on transfer amount
         remote_node_fee = std::min(UINT64_C(1), std::max(static_cast<uint64_t>(amount * 0.000025), UINT64_C(100)));
     }
 
@@ -777,7 +777,7 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t f
 
             } else if (errMsg == "Network error") {
                 std::cout << WarningMsg("Couldn't connect to the network to send the transaction!") << std::endl
-                          << "Ensure the B2B daemon or the remote node you are using is open and functioning." << std::endl;
+                          << "Ensure the FED daemon or the remote node you are using is open and functioning." << std::endl;
             } else if (retried) {
                 std::cout << WarningMsg("Failed to send transaction with zero mixin! Try lowering the amount you are sending.") << std::endl;
             } else {
@@ -836,7 +836,7 @@ Maybe<uint64_t> getFee() {
         std::string stringAmount;
         std::cout << std::endl 
                   << InformationMsg("What fee do you want to use?") << std::endl
-                  << "Hit enter for the default fee of 0.000001 B2B: ";
+                  << "Hit enter for the default fee of 0.000001 FED: ";
 
         std::getline(std::cin, stringAmount);
 
@@ -896,7 +896,7 @@ Maybe<uint64_t> getTransferAmount()
         std::string stringAmount;
 
         std::cout << std::endl
-                  << InformationMsg("How much B2B do you want to send?: ");
+                  << InformationMsg("How much FED do you want to send?: ");
 
         std::getline(std::cin, stringAmount);
 
@@ -955,7 +955,7 @@ bool parseFee(std::string feeString)
     }
     else if (fee < CryptoNote::parameters::MINIMUM_FEE)
     {
-        std::cout << WarningMsg("Fee must be at least 0.000001 B2B!") << std::endl;
+        std::cout << WarningMsg("Fee must be at least 0.000001 FED!") << std::endl;
         return false;
     }
 
@@ -1049,9 +1049,9 @@ bool parseAmount(std::string amountString)
         std::cout << WarningMsg("Failed to parse amount! Ensure you entered "
                                 "the value correctly.")
                   << std::endl
-                  << "Please note, the minimum you can send is 0.000000000001 B2B,"
+                  << "Please note, the minimum you can send is 0.00000001 FED,"
                   << std::endl
-                  << "and you can only use 12 decimal places."
+                  << "and you can only use 8 decimal places."
                   << std::endl;
 
         return false;

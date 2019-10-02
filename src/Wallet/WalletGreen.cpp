@@ -225,13 +225,14 @@ CryptoNote::AccountPublicAddress parseAccountAddressStr(const std::string& addre
 
 namespace CryptoNote {
 
-WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, uint32_t transactionSoftLockTime) :
+WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger &logger, uint32_t transactionSoftLockTime) :
+  m_logger(logger, "WalletGreen"),
   m_dispatcher(dispatcher),
   m_currency(currency),
   m_node(node),
   m_stopped(false),
   m_blockchainSynchronizerStarted(false),
-  m_blockchainSynchronizer(node, currency.genesisBlockHash()),
+  m_blockchainSynchronizer(node, logger, currency.genesisBlockHash()),
   m_synchronizer(currency, m_blockchainSynchronizer, node),
   m_eventOccurred(m_dispatcher),
   m_readyEvent(m_dispatcher),
