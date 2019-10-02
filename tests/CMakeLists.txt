@@ -23,7 +23,7 @@ source_group("" FILES ${CryptoNoteProtocol} ${P2p})
 
 add_library(IntegrationTestLibrary ${IntegrationTestLibrary})
 add_library(TestGenerator ${TestGenerator})
-add_library(Mnemonics ${Mnemonics})
+#add_library(Mnemonics ${Mnemonics})
 
 add_executable(CoreTests ${CoreTests})
 add_executable(CryptoTests ${CryptoTests})
