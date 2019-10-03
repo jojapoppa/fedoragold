@@ -308,7 +308,10 @@ void WalletGreen::doShutdown() {
 void WalletGreen::clearCaches() {
   std::vector<AccountPublicAddress> subscriptions;
   m_synchronizer.getSubscriptions(subscriptions);
-  std::for_each(subscriptions.begin(), subscriptions.end(), [this] (const AccountPublicAddress& address) { m_synchronizer.removeSubscription(address); });
+
+  std::for_each(subscriptions.begin(), subscriptions.end(), [this] (const AccountPublicAddress& address) { 
+    m_synchronizer.removeSubscription(address); 
+  });
 
   m_walletsContainer.clear();
   m_unlockTransactionsJob.clear();

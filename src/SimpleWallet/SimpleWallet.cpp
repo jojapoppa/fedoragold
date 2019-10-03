@@ -1096,12 +1096,13 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
     /* If we open a legacy wallet then it will load the transactions but not
        have the walletHeight == transaction height. Lets just throw away the
        transactions and rescan. */
-    if (walletHeight == 1 && transactionCount != 0) {
-        std::cout << "Upgrading your wallet from an older version of the software..." << std::endl
-                  << "Unfortunately, we have to rescan the chain to find your transactions." << std::endl;
-        transactionCount = 0;
-        walletInfo->wallet.clearCaches();
-    }
+//jojapoppa, this does not appear to be necessary...
+//    if (walletHeight == 1 && transactionCount != 0) {
+//        std::cout << "Upgrading your wallet from an older version of the software..." << std::endl
+//                  << "Unfortunately, we have to rescan the chain to find your transactions." << std::endl;
+//        transactionCount = 0;
+//        walletInfo->wallet.clearCaches();
+//    }
 
     if (walletHeight == 1) {
         std::cout << "Scanning through the blockchain to find transactions that belong to you." << std::endl

@@ -53,6 +53,8 @@ bool TransfersSyncronizer::removeSubscription(const AccountPublicAddress& acc) {
   auto it = m_consumers.find(acc.viewPublicKey);
   if (it == m_consumers.end())
     return false;
+  if (it->second == nullptr) 
+    return false;
 
   if (it->second->removeSubscription(acc)) {
     m_sync.removeConsumer(it->second.get());

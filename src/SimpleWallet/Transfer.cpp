@@ -955,7 +955,7 @@ bool parseFee(std::string feeString)
     }
     else if (fee < CryptoNote::parameters::MINIMUM_FEE)
     {
-        std::cout << WarningMsg("Fee must be at least 0.000001 FED!") << std::endl;
+        std::cout << WarningMsg("Fee must be at least 0.1 FED!") << std::endl;
         return false;
     }
 
