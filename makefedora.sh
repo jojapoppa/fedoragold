@@ -52,8 +52,8 @@ cp CMakeListsLinuxWindowsMac.txt CMakeLists.txt
 
 #built with gcc 8 (https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/)
 
-//make build-debug
-//make test-debug
-//make test-release
+#make build-debug
+#make test-debug
+#make test-release
 make build-release
 
