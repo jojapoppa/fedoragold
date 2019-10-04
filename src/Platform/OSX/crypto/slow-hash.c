@@ -182,6 +182,10 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
 #define AESNI
 #include "slow-hash.inl"
 
+uint32_t extrahashPos(void *ctxdata) {
+  return (((struct cn_ctx *)(ctxdata))->state.hs.b[0] & 7);
+}
+
 INITIALIZER(detect_aes) {
   int ecx;
 #if defined(_MSC_VER)
