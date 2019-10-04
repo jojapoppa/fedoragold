@@ -15,11 +15,11 @@
 #include <cpuid.h>
 #endif
 
-// #include "aesb.h"
-#include "initializer.h"
+#include "crypto/aesb.h"
+#include "crypto/initializer.h"
 #include "Common/int-util.h"
-#include "hash-ops.h"
-#include "oaes_lib.h"
+#include "crypto/hash-ops.h"
+#include "crypto/oaes_lib.h"
 
 void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *);
 
@@ -178,9 +178,9 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   //  };
   //}
 
-#include "slow-hash.inl"
+#include "crypto/slow-hash.inl"
 #define AESNI
-#include "slow-hash.inl"
+#include "crypto/slow-hash.inl"
 
 INITIALIZER(detect_aes) {
   int ecx;
