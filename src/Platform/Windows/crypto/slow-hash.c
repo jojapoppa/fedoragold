@@ -15,7 +15,7 @@
 #include <cpuid.h>
 #endif
 
-#include "aesb.h"
+// #include "aesb.h"
 #include "initializer.h"
 #include "Common/int-util.h"
 #include "hash-ops.h"
@@ -157,22 +157,26 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   keys[14] = tmp1;
 }
 
-// jojapoppa, soft fork here...
-//if (majorVersion >= ....) {
-//}
+  // jojapoppa, soft fork here...
+  //size_t majorVersion = 1; // DON'T HARD CODE (IT'S PASSED IN)
+  //static void (*const extra_hashes[8])(const void *, size_t, char *);
+  //if (majorVersion <= 1) {
+  static void (*const extra_hashes[8])(const void *, size_t, char *) =
+    {
+        //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+        //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
 
-static void (*const extra_hashes[8])(const void *, size_t, char *) =
-{
-    //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
-    //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
-
-    // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
-    // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
-    // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
-
-    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
-    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein 
-};
+        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein,
+        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl
+    };
+  //{
+  //else {
+  //  extra_hashes =
+  //  {
+  //      hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein,
+  //      hash_extra_fugue, hash_extra_argon2, hash_extra_argon2, hash_extra_gost
+  //  };
+  //}
 
 #include "slow-hash.inl"
 #define AESNI

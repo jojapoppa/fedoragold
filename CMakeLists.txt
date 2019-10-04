@@ -10,29 +10,24 @@ set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 
-enable_language(C CXX)
+enable_language(C CXX ASM)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-
-find_package(Threads) # REQUIRED)
+find_package(Threads)
 
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 
-#if(APPLE)
-#increase default OSX stack size to 256 MB
-#set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
-#else()
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
-
+if(APPLE)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000") # increase stack to 256MB
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 set(CMAKE_EXE_LINKER_FLAGS "-lpthread -static-libstdc++")
+else() # Windows 10+
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a")
+endif()
 
-# -Wl,--dynamic-linker=/lib64/ld-linux-x86-64.so.2") 
-#endif()
-
-set(BOOST_DEBUG ON) #joja
 set(BOOST_HAS_THREADS ON)
 set(BOOST_HAS_PTHREADS ON) 
 set(BUILD_SHARED_LIBS OFF)
@@ -56,11 +51,8 @@ project(CryptoNote)
 
 include_directories(include src external "${CMAKE_BINARY_DIR}/version")
 
-enable_language(ASM)
-
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
-#  enable_language(ASM)
 endif()
 
 if(MSVC)
@@ -111,13 +103,7 @@ else()
   endif()
   set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
   set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
-  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes") 
-  if(NOT APPLE)
-  #jojapoppa
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -lpthread")
-  endif()
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
@@ -134,18 +120,10 @@ else()
     endif()
     set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
   endif()
-  #if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
-  #  set(RELEASE_FLAGS "${RELEASE_FLAGS} -fno-fat-lto-objects")
-  #endif()
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${RELEASE_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-
-  #joja - earlier
-  #if(STATIC AND NOT APPLE)
-  #  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++11") #joja 11
-  #endif()
 
 endif()
 
@@ -153,7 +131,7 @@ if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost 1.55 REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
+find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 if(MINGW)
   set(Boost_LIBRARIES "${Boost_LIBRARIES};ws2_32;mswsock")

@@ -85,6 +85,9 @@ export EMSCRIPTEN_PATH=/home/jojapoppa/emsdk/upstream/emscripten
 #non emscripten does this...
 ./b2 toolset=gcc address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
+#debian does this...
+#./b2 toolset=gcc address-model=64 variant=release boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+
 # emscripten does this...
 USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora_emscripten --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
