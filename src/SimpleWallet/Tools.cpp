@@ -85,7 +85,7 @@ std::string formatDollars(uint64_t amount) {
 /* Pad to two spaces, e.g. 5 becomes 000000000005, 500000000000 remains 500000000000 */
 std::string formatCents(uint64_t amount) {
     std::stringstream stream;
-    stream << std::setfill('0') << std::setw(12) << amount;
+    stream << std::setfill('0') << std::setw(8) << amount;
     return stream.str();
 }
 
