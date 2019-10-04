@@ -577,10 +577,11 @@ namespace CryptoNote
       return false;
     }
 
-    if (rsp.node_data.version < CryptoNote::P2P_MINIMUM_VERSION) {
-      logger(Logging::DEBUGGING) << context << "COMMAND_HANDSHAKE Failed, peer is wrong version! (" << std::to_string(rsp.node_data.version) << "), closing connection.";
-      return false;
-    }
+    //jojapoppa, add in at 1st soft fork
+    //if (rsp.node_data.version < CryptoNote::P2P_MINIMUM_VERSION) {
+    //  logger(Logging::DEBUGGING) << context << "COMMAND_HANDSHAKE Failed, peer is wrong version! (" << std::to_string(rsp.node_data.version) << "), closing connection.";
+    //  return false;
+    //}
 
     if (!handle_remote_peerlist(rsp.local_peerlist, rsp.node_data.local_time, context)) {
       logger((Logging::Level)ERROR) << context << "COMMAND_HANDSHAKE: failed to handle_remote_peerlist(...), closing connection.";
@@ -738,10 +739,10 @@ namespace CryptoNote
         });
 
         if (!handshakeContext.get()) {
-          if (is_priority_node(na) {
+          if (is_priority_node(na)) {
             // 2nd chance...
             if (!handshakeContext.get()) {
-              logger(WARNING << "Failed to HANDSHAKE with priority node " << na;
+              logger(WARNING) << "Failed to HANDSHAKE with priority node " << na;
               return false;
             }
           }
