@@ -21,9 +21,18 @@ using namespace Common;
 namespace {
 
 std::string appendPath(const std::string& path, const std::string& fileName) {
-  std::string result = path;
+  std::string location = path;
+#ifdef WIN32
+  std::replace(location.begin(), location.end(), '/', '\\');
+#endif
+
+  std::string result = location;
   if (!result.empty()) {
+#ifdef WIN32
+    result += '\\';
+#else
     result += '/';
+#endif
   }
 
   result += fileName;
@@ -410,6 +419,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   std::string blockFilePath = appendPath(config_folder, m_currency.blocksFileName());
   std::string indexesPath = appendPath(config_folder, m_currency.blockIndexesFileName());
   if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
+    logger(ERROR, BRIGHT_RED) << "Failed to open the block file " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
     return false;
   }
 
