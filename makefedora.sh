@@ -33,8 +33,7 @@ export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
 export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
 
 # on Windows
-# need to manually alter flag for #define SPH_AMD64_MSVC 1 (and turn off the GCC one...)
-# ... at src/crypto/sph_types.h
+# can deal with this next bit using a typedef check later...
 # also in src/Common/Base58.cpp ... need to comment out [[fallthrough]]; on MSVC because
 # C++11 throws an error if that is present (it's C++17 syntax)... there is a compiler fix
 # for this however, as c++ is supposed to ignore undefined directives like that... so I may

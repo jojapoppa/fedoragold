@@ -3,3 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "IP2pNodeInternal.h"
+
+namespace {
+char suppressMSVCWarningLNK4221;
+}
