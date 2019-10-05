@@ -23,13 +23,13 @@ namespace {
 std::string appendPath(const std::string& path, const std::string& fileName) {
   std::string location = path;
 #ifdef WIN32
-  std::replace(location.begin(), location.end(), '/', '\\');
+  std::replace(location.begin(), location.end(), '\\', '/');
 #endif
 
   std::string result = location;
   if (!result.empty()) {
 #ifdef WIN32
-    result += '\\';
+    result += '/';
 #else
     result += '/';
 #endif
