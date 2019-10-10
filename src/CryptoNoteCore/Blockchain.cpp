@@ -512,7 +512,7 @@ bool Blockchain::rebuildCache() {
 
   try {
 
-  for (uint64_t b = 0; b < m_blocks.size(); ++b) {
+  for (uint32_t b = 0; b < m_blocks.size(); ++b) {
     if (b % 1000 == 0) {
       logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size();
     }

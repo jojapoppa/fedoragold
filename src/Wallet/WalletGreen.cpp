@@ -2513,8 +2513,8 @@ void WalletGreen::deleteFromUncommitedTransactions(const std::vector<size_t>& de
    stops. After some investigation, it appears that we need to run this
    archaic line of code to run other code on the dispatcher? */
 void WalletGreen::updateInternalCache() {
-    System::RemoteContext<void> updateInternalBC(m_dispatcher, [this] () {});
-    updateInternalBC.get();
+    //System::RemoteContext<void> updateInternalBC(m_dispatcher, [this] () {});
+    //updateInternalBC.get();
 }
 
 size_t WalletGreen::getTxSize(const TransactionParameters &sendingTransaction)
