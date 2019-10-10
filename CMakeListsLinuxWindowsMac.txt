@@ -3,12 +3,12 @@ cmake_minimum_required(VERSION 2.8.6)
 set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
-set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
-set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
-set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
+set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS "-Wl,-Bdynamic")
+set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS "-Wl,-Bdynamic")
+set(CMAKE_SHARED_LIBRARY_C_FLAGS, "-std=c11 -fPIC")
+set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "-std=c++11 -fPIC")
+set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
+set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "-rdynamic")
 
 enable_language(C CXX ASM)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)

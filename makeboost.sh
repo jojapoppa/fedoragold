@@ -24,7 +24,6 @@
 # also, edit C:\Users\JP\Desktop\FEDG_BUILD\fedoragold-release\boostfedora_win\include\boost\config\compiler>vim visualc.hpp and remove the compiler warning "Unknown compiler version - please run the configure tests and report the results"  ... it's annoying
 
 # on Windows, these files compile to >50mb and so can't be checked in
-# perhaps i can optimize the build a little and get throught that?
 # libboost_test_exec_monitor-vc141-mt-sgd-1_65.lib
 # libboost_log_setup-vc141-mt-gd-1_65.lib
 # libboost_log_setup-vc141-mt-sgd-1_65.lib
@@ -33,7 +32,7 @@
 # libboost_log-vc141-mt-sgd-1_65.lib
 # libboost_wave-vc141-mt-sgd-1_65.lib
 # libboost_wave-vc141-mt-gd-1_65.lib
-# so... just remove them for now... perhaps they are not getting used at all anyways
+# so... just remove them ... as they are not getting used at all anyways
 
 cd ../boost_1_65_0
 export BOOST_HAS_THREADS ON
