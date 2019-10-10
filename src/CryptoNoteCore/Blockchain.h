@@ -260,7 +260,9 @@ namespace CryptoNote {
 
     Logging::LoggerRef logger;
 
-    void rebuildCache();
+    bool rebuildCache();
+    bool loadIndexes(std::string config_folder, bool load_existing);
+
     bool storeCache();
     bool add_block_as_invalid(const BlockEntry& bei, const Crypto::Hash& h);
     bool add_block_as_invalid(const Block& bl, const Crypto::Hash& h);

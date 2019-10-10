@@ -407,6 +407,32 @@ uint64_t Blockchain::getCurrentBlockchainHeight() {
   return (uint64_t)(m_blocks.size());
 }
 
+bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
+  if (load_existing && !m_blocks.empty()) {
+    logger(INFO, BRIGHT_WHITE) << "Loading blockchain...";
+    BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
+    loader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
+
+    bool rebuilt = true;
+    if (!loader.loaded()) {
+      logger(WARNING, BRIGHT_YELLOW) << "No actual blockchain cache found, rebuilding internal structures...";
+      rebuilt = rebuildCache();
+      if (! rebuilt) {
+        m_blocks.clear();
+	return false;
+      }
+    }
+
+    if (rebuilt) {
+      loadBlockchainIndices();
+    }
+  } else {
+      m_blocks.clear();
+  }
+
+  return true;
+}
+
 bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
   if (!config_folder.empty() && !Tools::create_directories_if_necessary(config_folder)) {
@@ -423,20 +449,19 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     return false;
   }
 
-  if (load_existing && !m_blocks.empty()) {
-    logger(INFO, BRIGHT_WHITE) << "Loading blockchain...";
-    BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
-    loader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
-
-    if (!loader.loaded()) {
-      logger(WARNING, BRIGHT_YELLOW) << "No actual blockchain cache found, rebuilding internal structures...";
-      rebuildCache();
+  if (! loadIndexes(config_folder, load_existing)) {
+    // resync now
+    remove(blockFilePath.c_str());
+    remove(indexesPath.c_str());
+    if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
+      logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
+      return false;
     }
 
-    loadBlockchainIndices();
-  } else {
-    m_blocks.clear();
+    loadIndexes(config_folder, false);
   }
+
+  logger(WARNING, BRIGHT_YELLOW) << "Checking blocks...";
 
   if (m_blocks.empty()) {
     logger(INFO, BRIGHT_WHITE)
@@ -450,7 +475,9 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     }
     logger(INFO, BRIGHT_WHITE) << "block verification context created...";
   } else {
+    logger(WARNING, BRIGHT_YELLOW) << "get 1st block hash";
     Crypto::Hash firstBlockHash = get_block_hash(m_blocks[0].bl);
+    logger(WARNING, BRIGHT_YELLOW) << "checking genesis block";
     if (!(firstBlockHash == m_currency.genesisBlockHash())) {
       logger(ERROR, BRIGHT_RED) << "Failed to init: genesis block mismatch. "
         "Probably you set --testnet flag with data "
@@ -475,7 +502,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   return true;
 }
 
-void Blockchain::rebuildCache() {
+bool Blockchain::rebuildCache() {
   std::chrono::steady_clock::time_point timePoint = std::chrono::steady_clock::now();
   m_blockIndex.clear();
   m_transactionMap.clear();
@@ -483,8 +510,9 @@ void Blockchain::rebuildCache() {
   m_outputs.clear();
   m_multisignatureOutputs.clear();
 
-  //jojapoppa, need to investigate if b should be uint64 here
-  for (uint32_t b = 0; b < m_blocks.size(); ++b) {
+  try {
+
+  for (uint64_t b = 0; b < m_blocks.size(); ++b) {
     if (b % 1000 == 0) {
       logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size();
     }
@@ -520,8 +548,15 @@ void Blockchain::rebuildCache() {
     }
   }
 
+  }
+  catch (...) {
+    logger(INFO, BRIGHT_WHITE) << "invalid block history, ready for resync";
+    return false;
+  }
+
   std::chrono::duration<double> duration = std::chrono::steady_clock::now() - timePoint;
   logger(INFO, BRIGHT_WHITE) << "Rebuilding internal structures took: " << duration.count();
+  return true;
 }
 
 bool Blockchain::storeCache() {
