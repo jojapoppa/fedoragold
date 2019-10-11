@@ -347,7 +347,7 @@ template<class T> void SwappedVector<T>::push_back(const T& item) {
 
   {
     if (!m_itemsFile) {
-      throw std::runtime_error("SwappedVector::push_back");
+      throw std::runtime_error("SwappedVector::push_back: invalid block file");
     }
 
     m_itemsFile.seekp(m_itemsFileSize);
@@ -361,21 +361,21 @@ template<class T> void SwappedVector<T>::push_back(const T& item) {
 
   {
     if (!m_indexesFile) {
-      throw std::runtime_error("SwappedVector::push_back");
+      throw std::runtime_error("SwappedVector::push_back: invalid block indexes file");
     }
 
     m_indexesFile.seekp(sizeof(uint64_t) + sizeof(uint32_t) * m_offsets.size());
     uint32_t itemSize = static_cast<uint32_t>(itemsFileSize - m_itemsFileSize);
     m_indexesFile.write(reinterpret_cast<char*>(&itemSize), sizeof itemSize);
     if (!m_indexesFile) {
-      throw std::runtime_error("SwappedVector::push_back");
+      throw std::runtime_error("SwappedVector::push_back: could not write to indexes file");
     }
 
     m_indexesFile.seekp(0);
     uint64_t count = m_offsets.size() + 1;
     m_indexesFile.write(reinterpret_cast<char*>(&count), sizeof count);
     if (!m_indexesFile) {
-      throw std::runtime_error("SwappedVector::push_back");
+      throw std::runtime_error("SwappedVector::push_back: could not write count to indexes file. file error");
     }
   }
 
