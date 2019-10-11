@@ -446,7 +446,15 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   std::string indexesPath = appendPath(config_folder, m_currency.blockIndexesFileName());
   if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
     logger(ERROR, BRIGHT_RED) << "Failed to open the block file " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
-    return false;
+
+    remove(blockFilePath.c_str());
+    remove(indexesPath.c_str());
+    if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
+      logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
+      return false;
+    }
+
+    load_existing = false;
   }
 
   if (! loadIndexes(config_folder, load_existing)) {

@@ -186,7 +186,7 @@ template<class T> SwappedVector<T>::~SwappedVector() {
 
 template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, const std::string& indexFileName, size_t poolSize) {
   if (poolSize == 0) {
-    fprintf(stderr, "The file pool size is zero.");
+    fprintf(stderr, "\nFedoragold: The file pool size is zero.\n");
     return false;
   }
 
@@ -196,7 +196,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
     uint64_t count;
     m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
     if (!m_indexesFile) {
-      fprintf(stderr, "Could not open indexes file or block file.");
+      fprintf(stderr, "\nFedoragold could not open indexes file or block file.\n");
       return false;
     }
 
@@ -206,7 +206,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
       uint32_t itemSize;
       m_indexesFile.read(reinterpret_cast<char*>(&itemSize), sizeof itemSize);
       if (!m_indexesFile) {
-        fprintf(stderr, "Could not read from indexes file.");
+        fprintf(stderr, "\nFedoragold could not read from indexes file.\n");
         return false;
       }
 
@@ -224,7 +224,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
     uint64_t count = 0;
     m_indexesFile.write(reinterpret_cast<char*>(&count), sizeof count);
     if (!m_indexesFile) {
-      fprintf(stderr, "Could not create indexes file.");
+      fprintf(stderr, "\nFedoragold could not create indexes file.\n");
       return false;
     }
 
