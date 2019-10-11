@@ -219,6 +219,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
   } else {
     m_itemsFile.open(itemFileName, std::ios::out | std::ios::binary);
     m_itemsFile.close();
+    m_indexesFile.close();
     m_itemsFile.open(itemFileName, std::ios::in | std::ios::out | std::ios::binary);
     m_indexesFile.open(indexFileName, std::ios::out | std::ios::binary);
     uint64_t count = 0;
