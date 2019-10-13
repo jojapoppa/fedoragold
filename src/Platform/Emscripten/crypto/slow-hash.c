@@ -29,6 +29,8 @@ void slow_hash_free_state(void)
     return;
 }
 
+#define MEMORY         (1 << 21) /* 2 MiB */
+
   #if defined(__GNUC__)
     #define RDATA_ALIGN16 __attribute__ ((aligned(16)))
     #define STATIC static
@@ -40,6 +42,26 @@ void slow_hash_free_state(void)
   #endif /* defined(__GNUC__) */
 
   #define U64(x) ((uint64_t *) (x))
+
+#if defined(_MSC_VER)
+#define ALIGNED_DATA(x) __declspec(align(x))
+#define ALIGNED_DECL(t, x) ALIGNED_DATA(x) t
+#elif defined(__GNUC__)
+#define ALIGNED_DATA(x) __attribute__((aligned(x)))
+#define ALIGNED_DECL(t, x) t ALIGNED_DATA(x)
+#endif
+
+struct cn_ctx {
+  ALIGNED_DECL(uint8_t long_state[MEMORY], 16);
+  ALIGNED_DECL(union cn_slow_hash_state state, 16);
+  ALIGNED_DECL(uint8_t text[INIT_SIZE_BYTE], 16);
+  ALIGNED_DECL(uint64_t a[AES_BLOCK_SIZE >> 3], 16);
+  ALIGNED_DECL(uint64_t b[AES_BLOCK_SIZE >> 3], 16);
+  ALIGNED_DECL(uint8_t c[AES_BLOCK_SIZE], 16);
+  oaes_ctx* aes_ctx;
+};
+
+static_assert(sizeof(struct cn_ctx) == SLOW_HASH_CONTEXT_SIZE, "Invalid structure size");
 
 //static void (*const extra_hashes[8])(const void *, size_t, char *) = {};
 
@@ -169,12 +191,8 @@ void cn_slow_hash(size_t majorVersion, const void *data, size_t length, char *ha
         //original: hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
         //the checksum byte and'ed (&) with 7 (0 to 7) gives index into this array to determine the hash algo used...
 
-        // 1/8 hash overlap algo (requires hard fork - diff algo above given height would be required
-        // hash_extra_blake, hash_extra_jh, hash_extra_skein, hash_extra_groestl,
-        // hash_extra_groestl, hash_extra_skein, hash_extra_blake, hash_extra_jh
-
-        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
-        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein,
+        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl
     };
   //{
   //else {
@@ -281,6 +299,10 @@ void cn_slow_hash(size_t majorVersion, const void *data, size_t length, char *ha
     #ifdef FORCE_USE_HEAP
     free(long_state);
     #endif /* FORCE_USE_HEAP */
+}
+
+uint32_t extrahashPos(void *ctxdata) {
+  return (((struct cn_ctx *)(ctxdata))->state.hs.b[0] & 7);
 }
 
 /* Standard for Cryptonight v1 */
