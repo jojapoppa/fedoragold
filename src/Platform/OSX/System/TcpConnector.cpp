@@ -133,15 +133,25 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
                 int retval = -1;
                 socklen_t retValLen = sizeof(retval);
                 int s = getsockopt(connection, SOL_SOCKET, SO_ERROR, &retval, &retValLen);
-                if (s == -1) {
-                  message = "getsockopt failed, " + lastErrorMessage();
-                } else {
-                  if (retval != 0) {
-                    message = "getsockopt failed, " + lastErrorMessage();
-                  } else {
+                if (s == 0) {
+                  struct sockaddr sa;
+                  socklen_t saLen = sizeof(sa);
+                  int gpnErr = getpeername(connection, &sa, &saLen);
+                  if (gpnErr == 0) {
                     return TcpConnection(*dispatcher, connection);
                   }
                 }
+
+                message = "";
+                if (retval != 0) {
+                  if (errno == EBADF || errno == ENOTSOCK)
+                    message = "bad sockfd : ";
+                  else if (errno == EFAULT)
+                    message = "connection not part of valid address space : ";
+                  else if (errno == EINVAL)
+                    message = "invalid value passed to connection : ";
+                }
+                message = message + "getsockopt failed, reval: " + retval + " : " + lastErrorMessage();
               }
             }
           }
