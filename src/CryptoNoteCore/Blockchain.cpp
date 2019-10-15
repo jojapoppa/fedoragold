@@ -495,9 +495,6 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     }
   }
 
-  logger(INFO, BRIGHT_GREEN) << "roll back just 1 block before resuming...";
-  popBlock(get_block_hash(m_blocks.back().bl));
-
   update_next_comulative_size_limit();
   logger(INFO, BRIGHT_GREEN) << "size limit updated...";
 
