@@ -32,7 +32,7 @@ bool parseAmount(std::string strAmount, uint64_t &amount)
 
     size_t pointIndex = strAmount.find_first_of('.');
     size_t fractionSize;
-    size_t numDecimalPlaces = 12;
+    size_t numDecimalPlaces = 8;
 
     if (std::string::npos != pointIndex)
     {
@@ -1046,8 +1046,7 @@ bool parseAmount(std::string amountString)
 
     if (!parseAmount(amountString, amount))
     {
-        std::cout << WarningMsg("Failed to parse amount! Ensure you entered "
-                                "the value correctly.")
+        std::cout << WarningMsg("Failed to parse amount! Ensure you entered the value correctly.")
                   << std::endl
                   << "Please note, the minimum you can send is 0.00000001 FED,"
                   << std::endl
