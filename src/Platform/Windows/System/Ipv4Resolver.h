@@ -1,29 +1,39 @@
-// Copyright (c) 2011-2016 The Cryptonote developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
 #include <string>
 
-namespace System {
+namespace System
+{
+    class Dispatcher;
 
-class Dispatcher;
-class IpAddress;
+    class IpAddress;
 
-class Ipv4Resolver {
-public:
-  Ipv4Resolver();
-  explicit Ipv4Resolver(Dispatcher& dispatcher);
-  Ipv4Resolver(const Ipv4Resolver&) = delete;
-  Ipv4Resolver(Ipv4Resolver&& other);
-  ~Ipv4Resolver();
-  Ipv4Resolver& operator=(const Ipv4Resolver&) = delete;
-  Ipv4Resolver& operator=(Ipv4Resolver&& other);
-      IpAddress resolve(const std::string& host);
+    class Ipv4Resolver
+    {
+      public:
+        Ipv4Resolver();
 
-private:
-  Dispatcher* dispatcher;
-};
+        explicit Ipv4Resolver(Dispatcher &dispatcher);
 
-}
+        Ipv4Resolver(const Ipv4Resolver &) = delete;
+
+        Ipv4Resolver(Ipv4Resolver &&other);
+
+        ~Ipv4Resolver();
+
+        Ipv4Resolver &operator=(const Ipv4Resolver &) = delete;
+
+        Ipv4Resolver &operator=(Ipv4Resolver &&other);
+
+        IpAddress resolve(const std::string &host);
+
+      private:
+        Dispatcher *dispatcher;
+    };
+
+} // namespace System

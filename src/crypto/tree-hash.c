@@ -2,10 +2,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <alloca.h>
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
+
+#if defined(_MSC_VER)
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 
 #include "hash-ops.h"
 

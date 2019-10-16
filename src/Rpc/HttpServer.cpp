@@ -8,7 +8,7 @@
 #include <HTTP/HttpParser.h>
 #include <System/InterruptedException.h>
 #include <System/TcpStream.h>
-#include <System/IpAddress.h>
+#include "System/IpAddress.h"
 
 using namespace Logging;
 

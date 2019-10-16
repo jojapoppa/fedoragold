@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include <sys/param.h>
 
 #if defined(_MSC_VER)
 #include <stdlib.h>
@@ -38,6 +37,8 @@ static inline uint64_t rol64(uint64_t x, int r) {
 }
 
 #else
+
+#include <sys/param.h>
 
 static inline uint32_t rol32(uint32_t x, int r) {
   return (x << (r & 31)) | (x >> (-r & 31));

@@ -2,7 +2,6 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <alloca.h>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -10,6 +9,12 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
+
+#if defined(_MSC_VER)
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 
 #include "Common/Varint.h"
 #include "crypto.h"

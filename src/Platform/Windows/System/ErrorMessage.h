@@ -1,14 +1,16 @@
-// Copyright (c) 2011-2016 The Cryptonote developers
-// Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2018-2019, The TurtleCoin Developers
+//
+// Please see the included LICENSE file for more information.
 
 #pragma once
 
 #include <string>
 
-namespace System {
+namespace System
+{
+    std::string lastErrorMessage();
 
-std::string lastErrorMessage();
-std::string errorMessage(int);
+    std::string errorMessage(int);
 
-}
+} // namespace System

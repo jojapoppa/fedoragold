@@ -6,15 +6,22 @@ Public domain.
 
 #include <memory.h>
 #include <stdio.h>
-#include <sys/param.h>
-
-#include "chacha8.h"
 
 #if defined(__EMSCRIPTEN__)
 #  include "c99_endian.h"
 #else
-#  include "Common/int-util.h"
+
+#include "Common/int-util.h"
+
+#if defined(_MSC_VER)
+#include <stdlib.h>
+#else
+#include <sys/param.h>
 #endif
+
+#endif
+
+#include "chacha8.h"
 
 /*
  * The following macros are used to obtain exact-width results.

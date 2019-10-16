@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "TcpStream.h"
-#include <System/TcpConnection.h>
+#include "System/TcpConnection.h"
 
 namespace System {
 

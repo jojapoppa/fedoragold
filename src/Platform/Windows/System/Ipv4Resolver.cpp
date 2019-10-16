@@ -12,7 +12,7 @@
 #include <System/Dispatcher.h>
 #include <System/ErrorMessage.h>
 #include <System/InterruptedException.h>
-#include <System/IpAddress.h>
+#include "System/IpAddress.h"
 
 namespace System {
 

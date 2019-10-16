@@ -10,8 +10,8 @@
 #include <System/ContextGroup.h>
 #include <System/Dispatcher.h>
 #include <System/Event.h>
-#include <System/TcpConnection.h>
-#include <System/Timer.h>
+#include "System/TcpConnection.h"
+#include "System/Timer.h"
 
 #include "CryptoNoteConfig.h"
 #include "LevinProtocol.h"
