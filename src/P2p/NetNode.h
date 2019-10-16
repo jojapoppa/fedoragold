@@ -14,8 +14,8 @@
 #include <System/Dispatcher.h>
 #include <System/Event.h>
 #include <System/Timer.h>
-#include <System/TcpConnection.h>
-#include <System/TcpListener.h>
+#include "System/TcpConnection.h"
+#include "System/TcpListener.h"
 
 #include "CryptoNoteCore/OnceInInterval.h"
 #include "CryptoNoteProtocol/CryptoNoteProtocolHandler.h"

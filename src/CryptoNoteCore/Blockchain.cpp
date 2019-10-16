@@ -505,8 +505,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
 
   logger(INFO, BRIGHT_GREEN)
     << "Blockchain initialized. last block: " << m_blocks.size() - 1 << ", "
-    << Common::timeIntervalToString(timestamp_diff)
-    << " time ago, current difficulty: " << getDifficultyForNextBlock();
+    << " current difficulty: " << getDifficultyForNextBlock();
   return true;
 }
 

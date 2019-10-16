@@ -11,6 +11,7 @@
 
 #include "Common/SignalHandler.h"
 #include "Common/PathTools.h"
+#include "Common/CommandLine.h"
 #include "crypto/hash.h"
 #include "CryptoNoteCore/Core.h"
 #include "CryptoNoteCore/CoreConfig.h"
@@ -24,11 +25,15 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
+//#include "Logging/ILogger.h"
+#include "Logging/LoggerManager.h"
 #include "Logging/ConsoleLogger.h"
-#include <Logging/LoggerManager.h>
 
 #if defined(WIN32)
 #include <crtdbg.h>
+#include <io.h>
+#else
+#include <unistd.h>
 #endif
 
 using Common::JsonValue;
@@ -155,14 +160,15 @@ int main(int argc, char* argv[])
 
     if (!r)
       return 1;
- 
-    Level cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + command_line::get_arg(vm, arg_log_level));
+
+    int lev = (command_line::get_arg)(vm, arg_log_level); 
+    Level cfgLogLevel = static_cast<Level>(1 + lev);  // Logging::ERROR is level 1
 
     auto modulePath = Common::NativePathToGeneric(argv[0]);
     auto cfgLogFile = Common::NativePathToGeneric(command_line::get_arg(vm, arg_log_file));
 
     // don't create a log file unless log level > 0
-    if (cfgLogLevel > static_cast<int>(Logging::ERROR)) {
+    if (cfgLogLevel > 1) { // Logging::ERROR is level 1
       if (cfgLogFile.empty()) {
         cfgLogFile = Common::ReplaceExtenstion(modulePath, ".log");
       } else {
@@ -244,7 +250,7 @@ int main(int argc, char* argv[])
     // initialize objects
     logger(INFO) << "Initializing p2p server...";
     if (!p2psrv.init(netNodeConfig)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize p2p server.";
+      logger(static_cast<Level>(1), BRIGHT_RED) << "Failed to initialize p2p server.";  // ERROR is 1
       return 1;
     }
     logger(INFO) << "P2p server initialized OK";
@@ -259,7 +265,7 @@ int main(int argc, char* argv[])
     // initialize core here
     logger(INFO) << "Initializing core...";
     if (!ccore.init(coreConfig, minerConfig, true)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to initialize core";
+      logger(INFO) << "Failed to initialize core"; 
       return 1;
     }
     logger(INFO) << "Core initialized OK";
@@ -298,7 +304,7 @@ int main(int argc, char* argv[])
     cprotocol.set_p2p_endpoint(NULL);
 
   } catch (const std::exception& e) {
-    logger(ERROR, BRIGHT_RED) << "Exception: " << e.what();
+    logger(INFO) << "Exception: " << e.what();  
     return 1;
   }
 

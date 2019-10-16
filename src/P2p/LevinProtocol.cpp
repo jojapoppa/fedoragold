@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "LevinProtocol.h"
-#include <System/TcpConnection.h>
+#include "System/TcpConnection.h"
 
 using namespace CryptoNote;
 

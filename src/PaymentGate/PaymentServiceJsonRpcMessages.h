@@ -153,7 +153,7 @@ struct GetTransactionHashes {
   struct Request {
     std::vector<std::string> addresses;
     std::string blockHash;
-    uint32_t firstBlockIndex = std::numeric_limits<uint32_t>::max();
+    uint32_t firstBlockIndex = (std::numeric_limits<uint32_t>::max)();
     uint32_t blockCount;
     std::string paymentId;
 
@@ -216,7 +216,7 @@ struct GetTransactions {
   struct Request {
     std::vector<std::string> addresses;
     std::string blockHash;
-    uint32_t firstBlockIndex = std::numeric_limits<uint32_t>::max();
+    uint32_t firstBlockIndex = (std::numeric_limits<uint32_t>::max)();
     uint32_t blockCount;
     std::string paymentId;
 
