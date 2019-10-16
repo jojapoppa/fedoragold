@@ -25,7 +25,6 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
-//#include "Logging/ILogger.h"
 #include "Logging/LoggerManager.h"
 #include "Logging/ConsoleLogger.h"
 

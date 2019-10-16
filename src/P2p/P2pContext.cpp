@@ -11,6 +11,8 @@
 
 #include "LevinProtocol.h"
 
+#include "Logging/LoggerRef.h"
+
 using namespace System;
 
 namespace CryptoNote {
@@ -84,13 +86,13 @@ void P2pContext::setPeerInfo(uint8_t protocolVersion, PeerIdType id, uint16_t po
   }
 }
 
-bool P2pContext::readCommand(LevinProtocol::Command& cmd) {
+bool P2pContext::readCommand(LevinProtocol::Command& cmd, Logging::LoggerRef &logger) {
   if (stopped) {
     throw InterruptedException();
   }
 
   EventLock lk(readEvent);
-  bool result = LevinProtocol(connection).readCommand(cmd);
+  bool result = LevinProtocol(connection).readCommand(cmd, logger);
   lastReadTime = Clock::now();
   return result;
 }

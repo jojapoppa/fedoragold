@@ -94,7 +94,7 @@ namespace CryptoNote
 
     bool pushMessage(P2pMessage&& msg);
     std::vector<P2pMessage> popBuffer();
-    void interrupt();
+    void interruptP2p();
 
     uint64_t writeDuration(TimePoint now) const;
 

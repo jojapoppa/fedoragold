@@ -50,7 +50,7 @@ public:
   bool isIncoming() const;
 
   void setPeerInfo(uint8_t protocolVersion, PeerIdType id, uint16_t port);
-  bool readCommand(LevinProtocol::Command& cmd);
+  bool readCommand(LevinProtocol::Command& cmd, Logging::LoggerRef &logger);
   void writeMessage(const Message& msg);
  
   void start();

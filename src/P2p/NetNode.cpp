@@ -132,7 +132,7 @@ namespace CryptoNote
 
     if (writeQueueSize > P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE) {
       logger(DEBUGGING) << *this << "Write queue overflows. Interrupt connection";
-      interrupt();
+      interruptP2p();
       return false;
     }
 
@@ -160,8 +160,8 @@ namespace CryptoNote
     return writeOperationStartTime == TimePoint() ? 0 : std::chrono::duration_cast<std::chrono::milliseconds>(now - writeOperationStartTime).count();
   }
 
-  void P2pConnectionContext::interrupt() {
-    logger(DEBUGGING) << *this << "Interrupt connection";
+  void P2pConnectionContext::interruptP2p() {
+    logger(DEBUGGING) << *this << "Interrupt p2p connection";
     assert(context != nullptr);
     stopped = true;
     queueEvent.set();
@@ -565,7 +565,7 @@ namespace CryptoNote
     get_local_node_data(arg.node_data);
     m_payload_handler.get_payload_sync_data(arg.payload_data);
 
-    if (!proto.invoke(COMMAND_HANDSHAKE::ID, arg, rsp)) {
+    if (!proto.invoke(COMMAND_HANDSHAKE::ID, arg, rsp, logger)) {
       logger((Logging::Level)ERROR) << context << "Failed to invoke COMMAND_HANDSHAKE, closing connection.";
       return false;
     }
@@ -1099,7 +1099,7 @@ namespace CryptoNote
       System::Context<> pingContext(m_dispatcher, [&] {
         System::TcpConnector connector(m_dispatcher);
         auto connection = connector.connect(System::IpAddress(ip), static_cast<uint16_t>(port));
-        LevinProtocol(connection).invoke(COMMAND_PING::ID, req, rsp);
+        LevinProtocol(connection).invoke(COMMAND_PING::ID, req, rsp, logger);
       });
 
       System::Context<> timeoutContext(m_dispatcher, [&] {
@@ -1342,7 +1342,7 @@ namespace CryptoNote
           auto& ctx = kv.second;
           if (ctx.writeDuration(now) > P2P_DEFAULT_INVOKE_TIMEOUT) {
             logger(WARNING) << ctx << "write operation timed out, stopping connection";
-            ctx.interrupt();
+            ctx.interruptP2p();
           }
         }
       }
@@ -1373,7 +1373,6 @@ namespace CryptoNote
     System::Context<> context(m_dispatcher, [this, &connectionId, &ctx] {
       System::Context<> writeContext(m_dispatcher, std::bind(&NodeServer::writeHandler, this, std::ref(ctx)));
 
-int pos=0;
       try {
         on_connection_new(ctx);
 
@@ -1389,7 +1388,7 @@ int pos=0;
             m_payload_handler.requestMissingPoolTransactions(ctx);
           }
 
-          if (!proto.readCommand(cmd)) {
+          if (!proto.readCommand(cmd, logger)) {
             break;
           }
 
@@ -1414,10 +1413,10 @@ int pos=0;
       } catch (System::InterruptedException&) {
         logger(DEBUGGING) << ctx << "connectionHandler() inner context is interrupted";
       } catch (std::exception& e) {
-        logger(WARNING) << ctx << "Exception in connectionHandler: at pos " << pos << "  " << e.what();
+        logger(WARNING) << ctx << "Exception in connectionHandler:" << e.what();
       }
 
-      ctx.interrupt();
+      ctx.interruptP2p();
       writeContext.interrupt();
       writeContext.get();
 
@@ -1468,7 +1467,7 @@ int pos=0;
       logger(DEBUGGING) << ctx << "writeHandler() is interrupted";
     } catch (std::exception& e) {
       logger(WARNING) << ctx << "error during write: " << e.what();
-      ctx.interrupt(); // stop connection on write error
+      ctx.interruptP2p(); // stop connection on write error
     }
 
     logger(DEBUGGING) << ctx << "writeHandler finished";

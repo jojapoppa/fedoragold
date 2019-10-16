@@ -26,8 +26,15 @@
 #include "Serialization/SerializationTools.h"
 #include "version.h"
 
+#include "Logging/LoggerManager.h"
+#include "Logging/ConsoleLogger.h"
+
 namespace po = boost::program_options;
 using namespace CryptoNote;
+using namespace Logging;
+
+LoggerManager lManager;
+LoggerRef llogger(lManager, "ConnectivityTool");
 
 #ifndef ENDL
 #define ENDL std::endl
@@ -244,7 +251,7 @@ bool handle_request_stat(po::variables_map& vm, PeerIdType peer_id) {
       COMMAND_REQUEST_PEER_ID::request req;
       COMMAND_REQUEST_PEER_ID::response rsp;
       withTimeout(dispatcher, timeout, [&] {
-        levin.invoke(COMMAND_REQUEST_PEER_ID::ID, req, rsp);
+        levin.invoke(COMMAND_REQUEST_PEER_ID::ID, req, rsp, llogger);
       });
       peer_id = rsp.my_id;
     }
@@ -265,7 +272,7 @@ bool handle_request_stat(po::variables_map& vm, PeerIdType peer_id) {
 
       try {
         withTimeout(dispatcher, timeout, [&] {
-          levin.invoke(COMMAND_REQUEST_STAT_INFO::ID, req, res);
+          levin.invoke(COMMAND_REQUEST_STAT_INFO::ID, req, res, llogger);
         });
         rs.si_rsp = std::move(res);
         rs.COMMAND_REQUEST_STAT_INFO_status = "OK";
@@ -287,7 +294,7 @@ bool handle_request_stat(po::variables_map& vm, PeerIdType peer_id) {
 
       try {
         withTimeout(dispatcher, timeout, [&] {
-          levin.invoke(COMMAND_REQUEST_NETWORK_STATE::ID, req, res);
+          levin.invoke(COMMAND_REQUEST_NETWORK_STATE::ID, req, res, llogger);
         });
         rs.ns_rsp = std::move(res);
         rs.COMMAND_REQUEST_NETWORK_STATE_status = "OK";

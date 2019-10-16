@@ -22,6 +22,8 @@
 #include "P2pProtocolDefinitions.h"
 #include "PeerListManager.h"
 
+#include "Logging/LoggerRef.h"
+
 namespace CryptoNote {
 
 class P2pContext;
@@ -90,12 +92,12 @@ private:
   void connectorLoop();
 
   // connection related
-  void connectPeers();
-  void connectPeerList(const std::vector<NetworkAddress>& peers);
+  void connectPeers(Logging::LoggerRef&);
+  void connectPeerList(const std::vector<NetworkAddress>& peers, Logging::LoggerRef&);
   bool isPeerConnected(const NetworkAddress& address);
   bool isPeerUsed(const PeerlistEntry& peer);
   ContextPtr tryToConnectPeer(const NetworkAddress& address);
-  bool fetchPeerList(ContextPtr connection);
+  bool fetchPeerList(ContextPtr connection, Logging::LoggerRef &logger);
 
   // making and processing connections
   size_t getOutgoingConnectionsCount() const;

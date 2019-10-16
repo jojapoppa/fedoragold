@@ -206,7 +206,7 @@ void P2pNode::acceptLoop() {
 void P2pNode::connectorLoop() {
   while (!m_stopRequested) {
     try {
-      connectPeers();
+      connectPeers(logger);
       m_connectorTimer.sleep(m_cfg.getConnectInterval());
     } catch (InterruptedException&) {
       break;
@@ -216,9 +216,9 @@ void P2pNode::connectorLoop() {
   }
 }
 
-void P2pNode::connectPeers() {
+void P2pNode::connectPeers(Logging::LoggerRef &logger) {
   if (!m_cfg.getExclusiveNodes().empty()) {
-    connectPeerList(m_cfg.getExclusiveNodes());
+    connectPeerList(m_cfg.getExclusiveNodes(), logger);
     return;
   }
 
@@ -228,13 +228,13 @@ void P2pNode::connectPeers() {
     std::random_shuffle(seedNodes.begin(), seedNodes.end());
     for (const auto& seed : seedNodes) {
       auto conn = tryToConnectPeer(seed);
-      if (conn != nullptr && fetchPeerList(std::move(conn))) {
+      if (conn != nullptr && fetchPeerList(std::move(conn), logger)) {
         break;
       }
     }
   }
 
-  connectPeerList(m_cfg.getPriorityNodes());
+  connectPeerList(m_cfg.getPriorityNodes(), logger);
 
   const size_t totalExpectedConnectionsCount = m_cfg.getExpectedOutgoingConnectionsCount();
   const size_t expectedWhiteConnections = (totalExpectedConnectionsCount * m_cfg.getWhiteListConnectionsPercent()) / 100;
@@ -303,7 +303,7 @@ void P2pNode::preprocessIncomingConnection(ContextPtr ctx) {
 
     // create proxy and process handshake
     auto proxy = createProxy(std::move(ctx));
-    if (proxy->processIncomingHandshake()) {
+    if (proxy->processIncomingHandshake(logger)) {
       enqueueConnection(std::move(proxy));
     }
   } catch (std::exception& e) {
@@ -311,7 +311,7 @@ void P2pNode::preprocessIncomingConnection(ContextPtr ctx) {
   }
 }
 
-void P2pNode::connectPeerList(const std::vector<NetworkAddress>& peers) {
+void P2pNode::connectPeerList(const std::vector<NetworkAddress>& peers, Logging::LoggerRef &logger) {
   for (const auto& address : peers) {
     if (!isPeerConnected(address)) {
       auto conn = tryToConnectPeer(address);
@@ -367,7 +367,7 @@ P2pNode::ContextPtr P2pNode::tryToConnectPeer(const NetworkAddress& address) {
   return ContextPtr();
 }
 
-bool P2pNode::fetchPeerList(ContextPtr connection) {
+bool P2pNode::fetchPeerList(ContextPtr connection, Logging::LoggerRef &logger) {
   try {
     COMMAND_HANDSHAKE::request request{ getNodeData(), getGenesisPayload() };
     COMMAND_HANDSHAKE::response response;
@@ -377,7 +377,7 @@ bool P2pNode::fetchPeerList(ContextPtr connection) {
     connection->writeMessage(makeRequest(COMMAND_HANDSHAKE::ID, LevinProtocol::encode(request)));
 
     LevinProtocol::Command cmd;
-    if (!connection->readCommand(cmd)) {
+    if (!connection->readCommand(cmd, logger)) {
       throw std::runtime_error("Connection closed unexpectedly");
     }
 
@@ -502,7 +502,7 @@ void P2pNode::tryPing(P2pContext& ctx) {
       LevinProtocol proto(connection);
       COMMAND_PING::request request;
       COMMAND_PING::response response;
-      proto.invoke(COMMAND_PING::ID, request, response);
+      proto.invoke(COMMAND_PING::ID, request, response, logger);
 
       if (response.status == PING_OK_RESPONSE_STATUS_TEXT && response.peer_id == ctx.getPeerId()) {
         PeerlistEntry entry;

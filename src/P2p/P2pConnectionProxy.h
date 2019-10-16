@@ -11,6 +11,8 @@
 #include "P2pContextOwner.h"
 #include "P2pInterfaces.h"
 
+#include "Logging/LoggerRef.h"
+
 namespace CryptoNote {
 
 class P2pContext;
@@ -22,10 +24,10 @@ public:
   P2pConnectionProxy(P2pContextOwner&& ctx, IP2pNodeInternal& node);
   ~P2pConnectionProxy();
 
-  bool processIncomingHandshake();
+  bool processIncomingHandshake(Logging::LoggerRef &logger);
 
   // IP2pConnection
-  virtual void read(P2pMessage& message) override;
+  virtual void read(P2pMessage& message, Logging::LoggerRef &logger) override;
   virtual void write(const P2pMessage &message) override;
   virtual void ban() override;
   virtual void stop() override;

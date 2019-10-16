@@ -10,6 +10,8 @@
 #include "Serialization/KVBinaryInputStreamSerializer.h"
 #include "Serialization/KVBinaryOutputStreamSerializer.h"
 
+#include "Logging/LoggerRef.h"
+
 namespace System {
 class TcpConnection;
 }
@@ -29,18 +31,20 @@ enum class LevinError: int32_t {
 
 const int32_t LEVIN_PROTOCOL_RETCODE_SUCCESS = 1;
 
+using namespace Logging;
+
 class LevinProtocol {
 public:
 
   LevinProtocol(System::TcpConnection& connection);
 
   template <typename Request, typename Response>
-  bool invoke(uint32_t command, const Request& request, Response& response) {
+  bool invoke(uint32_t command, const Request& request, Response& response, Logging::LoggerRef& logger) {
     sendMessage(command, encode(request), true);
 
     Command cmd;
 
-    if (!readCommand(cmd)) {
+    if (!readCommand(cmd, logger)) {
       return false;
     }
 
@@ -65,7 +69,7 @@ public:
     bool needReply() const;
   };
 
-  bool readCommand(Command& cmd);
+  bool readCommand(Command& cmd, Logging::LoggerRef& logger);
 
   void sendMessage(uint32_t command, const BinaryArray& out, bool needResponse);
   void sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode);

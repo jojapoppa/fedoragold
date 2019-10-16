@@ -10,7 +10,10 @@
 
 #include <System/InterruptedException.h>
 
+#include "Logging/LoggerRef.h"
+
 using namespace System;
+using namespace Logging;
 
 namespace CryptoNote {
 
@@ -21,9 +24,10 @@ P2pConnectionProxy::~P2pConnectionProxy() {
   m_context.stop();
 }
 
-bool P2pConnectionProxy::processIncomingHandshake() {
+bool P2pConnectionProxy::processIncomingHandshake(Logging::LoggerRef &logger) {
   LevinProtocol::Command cmd;
-  if (!m_context.readCommand(cmd)) {
+  if (!m_context.readCommand(cmd, logger)) {
+    logger(DEBUGGING) << "Connection unexpected close";
     throw std::runtime_error("Connection unexpectedly closed");
   }
 
@@ -41,7 +45,7 @@ bool P2pConnectionProxy::processIncomingHandshake() {
   throw std::runtime_error("Unexpected command: " + std::to_string(cmd.command));
 }
 
-void P2pConnectionProxy::read(P2pMessage& message) {
+void P2pConnectionProxy::read(P2pMessage& message, Logging::LoggerRef &logger) {
   if (!m_readQueue.empty()) {
     message = std::move(m_readQueue.front());
     m_readQueue.pop();
@@ -50,7 +54,8 @@ void P2pConnectionProxy::read(P2pMessage& message) {
 
   for (;;) {
     LevinProtocol::Command cmd;
-    if (!m_context.readCommand(cmd)) {
+    if (!m_context.readCommand(cmd, logger)) {
+      logger(DEBUGGING) << "readCommand interrupted in P2pConnectionProxy::read";
       throw InterruptedException();
     }
 

@@ -9,6 +9,8 @@
 
 #include <CryptoNote.h>
 
+#include "Logging/LoggerRef.h"
+
 namespace CryptoNote {
 
 struct P2pMessage {
@@ -19,7 +21,7 @@ struct P2pMessage {
 class IP2pConnection {
 public:
   virtual ~IP2pConnection();
-  virtual void read(P2pMessage &message) = 0;
+  virtual void read(P2pMessage &message, Logging::LoggerRef &) = 0;
   virtual void write(const P2pMessage &message) = 0;
   virtual void ban() = 0;
   virtual void stop() = 0;
