@@ -99,7 +99,7 @@ public:
 
 private:
 
-  bool readStrict(uint8_t* ptr, size_t size);
+  bool readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger);
   void writeStrict(const uint8_t* ptr, size_t size);
   System::TcpConnection& m_conn;
 };
