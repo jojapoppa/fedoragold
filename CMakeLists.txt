@@ -56,8 +56,6 @@ endif()
 
 if(MSVC)
 include_directories(src/Platform/Windows)
-include_directories(src/Platform/Windows/System)
-include_directories(src/Platform/Windows/crypto)
 elseif(APPLE)
 include_directories(src/Platform/OSX)
 else()

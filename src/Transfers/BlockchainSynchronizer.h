@@ -24,7 +24,7 @@ class BlockchainSynchronizer :
   public INodeObserver {
 public:
 
-  BlockchainSynchronizer(INode& node, Logging::LoggerRef &logger, const Crypto::Hash& genesisBlockHash);
+  BlockchainSynchronizer(INode& node, Logging::LoggerRef logger, const Crypto::Hash& genesisBlockHash);
   ~BlockchainSynchronizer();
 
   // IBlockchainSynchronizer

@@ -225,7 +225,7 @@ CryptoNote::AccountPublicAddress parseAccountAddressStr(const std::string& addre
 
 namespace CryptoNote {
 
-WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::LoggerRef &logger, uint32_t transactionSoftLockTime) :
+WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, const Logging::LoggerRef logger, uint32_t transactionSoftLockTime) :
   m_logger(logger),
   m_dispatcher(dispatcher),
   m_currency(currency),
@@ -245,7 +245,7 @@ WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currenc
   m_readyEvent.set();
 }
 
-WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger &logger, uint32_t transactionSoftLockTime) : WalletGreen::WalletGreen(dispatcher, currency, node, Logging::LoggerRef(logger, "WalletGreen"), transactionSoftLockTime) {
+WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger &ilog, uint32_t transactionSoftLockTime) : WalletGreen::WalletGreen(dispatcher, currency, node, (Logging::LoggerRef(ilog, "WalletGreen")), transactionSoftLockTime) {
 }
 
 WalletGreen::~WalletGreen() {

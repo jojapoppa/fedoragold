@@ -14,7 +14,7 @@ namespace CryptoNote {
 HttpClient::HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::LoggerRef &logger) : m_dispatcher(dispatcher), m_address(address), m_port(port), m_logger(logger) {
 }
 
-HttpClient::HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::ILogger &ilog) : HttpClient::HttpClient(dispatcher, address, port, Logging::LoggerRef(ilog, "httpclient log")) {
+HttpClient::HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::ILogger &ilog) : m_dispatcher(dispatcher), m_address(address), m_port(port), m_logger(Logging::LoggerRef(ilog, "httpclient log")) {
 }
 
 HttpClient::~HttpClient() {
