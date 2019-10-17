@@ -17,7 +17,10 @@
 #include "WalletLegacy/WalletLegacy.h"
 #include "Logging/ConsoleLogger.h"
 
-Logging::ConsoleLogger logga;
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager loggaManager;
+static LoggerRef loggalogger(loggaManager, "unit testing code");
 
 #include <boost/scoped_array.hpp>
 
@@ -114,10 +117,10 @@ class DetachTest : public ::testing::Test, public IBlockchainSynchronizerObserve
 public:
 
   DetachTest() :
-    m_currency(CryptoNote::CurrencyBuilder(m_logga).currency()),
+    m_currency(CryptoNote::CurrencyBuilder(loggalogger.getLogger()).currency()),
     generator(m_currency),
     m_node(generator),
-    m_sync(m_node, m_logga, m_currency.genesisBlockHash()),
+    m_sync(m_node, loggalogger, m_currency.genesisBlockHash()),
     m_transfersSync(m_currency, m_sync, m_node) {
   }
 
@@ -183,7 +186,6 @@ protected:
   std::vector<AccountKeys> m_accounts;
   std::vector<ITransfersSubscription*> m_subscriptions;
 
-  Logging::ConsoleLogger m_logga;
   CryptoNote::Currency m_currency;
   TestBlockchainGenerator generator;
   INodeStubWithPoolTx m_node;
@@ -356,8 +358,8 @@ TEST_F(DetachTest, testDetachWithWallet) {
   auto fee = m_currency.minimumFee();
 
   generator.generateEmptyBlocks(5);
-  WalletLegacy Alice(m_currency, m_node, logga);
-  WalletLegacy Bob(m_currency, m_node, logga);
+  WalletLegacy Alice(m_currency, m_node, loggalogger);
+  WalletLegacy Bob(m_currency, m_node, loggalogger);
 
   CompletionWalletObserver AliceCompleted, BobCompleted;
   AliceCompleted.syncCompleted = std::promise<std::error_code>();

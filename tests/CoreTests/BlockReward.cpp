@@ -6,6 +6,11 @@
 #include "CryptoNoteCore/CryptoNoteTools.h"
 #include <Common/Math.h>
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager bManager;
+static LoggerRef blogger(bManager, "block tests");
+
 using namespace CryptoNote;
 
 namespace
@@ -37,8 +42,8 @@ namespace
 }
 
 gen_block_reward::gen_block_reward()
-  : m_invalid_block_index(0) {
-  CryptoNote::CurrencyBuilder currencyBuilder(m_logger);
+  : test_chain_unit_base(blogger), m_invalid_block_index(0) {
+  CryptoNote::CurrencyBuilder currencyBuilder(m_logger.getLogger());
   currencyBuilder.maxBlockSizeInitial(std::numeric_limits<size_t>::max() / 2);
   m_currency = currencyBuilder.currency();
 

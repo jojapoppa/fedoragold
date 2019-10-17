@@ -16,6 +16,11 @@
 
 #include <thread>
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager tcppManager;
+static LoggerRef tcpplogger(tcppManager, "tcpip tests");
+
 using namespace System;
 
 TEST(ContextGroupTests, testHangingUp) {
@@ -161,7 +166,7 @@ TEST(ContextGroupTests, ConnectionReadIsContextIntrerruptible) {
         auto conn = TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
         connected.set();
         uint8_t a[10];
-        conn.read(a, 10);
+        conn.read(a, 10, tcpplogger);
         conn.write(nullptr, 0);
       } catch (InterruptedException&) {
         interrupted = true;
@@ -250,7 +255,7 @@ TEST(ContextGroupTests, ConnectionReadIsThrowingWhenCurrentContextIsInterrupted)
         connected.set();
         dispatcher.yield();
         uint8_t a[10];
-        conn.read(a, 10);
+        conn.read(a, 10, tcpplogger);
         conn.write(nullptr, 0);
       } catch (InterruptedException&) {
         interrupted = true;

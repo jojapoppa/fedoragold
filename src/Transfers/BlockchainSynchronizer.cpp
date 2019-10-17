@@ -28,8 +28,8 @@ inline std::vector<uint8_t> stringToVector(const std::string& s) {
 
 namespace CryptoNote {
 
-BlockchainSynchronizer::BlockchainSynchronizer(INode& node, Logging::ILogger &logger, const Hash& genesisBlockHash) :
-  m_logger(logger, "BlockchainSynchronizer"),
+BlockchainSynchronizer::BlockchainSynchronizer(INode& node, Logging::LoggerRef &logger, const Hash& genesisBlockHash) :
+  m_logger(logger),
   m_node(node),
   m_genesisBlockHash(genesisBlockHash),
   m_currentState(State::stopped),

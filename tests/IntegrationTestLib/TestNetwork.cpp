@@ -11,6 +11,11 @@
 #include "InProcTestNode.h"
 #include "RPCTestNode.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;  
+static LoggerManager lManager;
+static LoggerRef llogger(lManager, "TestNetwork");
+
 #ifdef _WIN32
 const std::string daemonExec = std::string(CryptoNote::CRYPTONOTE_NAME) + "d.exe";
 #else
@@ -245,7 +250,7 @@ std::unique_ptr<TestNode> TestNetwork::startDaemon(const TestNodeConfiguration& 
 
   process.startChild(cfg.daemonPath, daemonArgs);
 
-  std::unique_ptr<TestNode> node(new RPCTestNode(cfg.rpcPort, m_dispatcher));
+  std::unique_ptr<TestNode> node(new RPCTestNode(cfg.rpcPort, m_dispatcher, llogger));
   m_daemons.push_back(process);
 
   return node;

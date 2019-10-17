@@ -11,6 +11,8 @@
 #include <System/TcpConnection.h>
 #include <System/TcpStream.h>
 
+#include "Logging/LoggerRef.h"
+
 #include "Serialization/SerializationTools.h"
 
 namespace CryptoNote {
@@ -23,7 +25,8 @@ public:
 class HttpClient {
 public:
 
-  HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port);
+  HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::LoggerRef&);
+  HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::ILogger&);
   ~HttpClient();
   void request(const HttpRequest& req, HttpResponse& res);
   
@@ -35,6 +38,8 @@ private:
 
   const std::string m_address;
   const uint16_t m_port;
+
+  Logging::LoggerRef m_logger;
 
   bool m_connected = false;
   System::Dispatcher& m_dispatcher;

@@ -42,6 +42,11 @@ const std::string DAEMON_FILENAME = std::string(CRYPTONOTE_NAME) + "d.exe";
 const std::string DAEMON_FILENAME = std::string(CRYPTONOTE_NAME) + "d";
 #endif
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager lManager;
+static LoggerRef llogger(lManager, "IntegrationTest");
+
 using namespace Tests::Common;
 using namespace Tests;
 
@@ -218,7 +223,7 @@ void BaseFunctionalTests::startNode(size_t index) {
 #endif
 
   assert(nodeDaemons.size() > index);
-  nodeDaemons[index] = std::unique_ptr<TestNode>(new RPCTestNode(rpcPort, m_dispatcher));
+  nodeDaemons[index] = std::unique_ptr<TestNode>(new RPCTestNode(rpcPort, m_dispatcher, llogger));
 }
 
 void BaseFunctionalTests::stopNode(size_t index) {
@@ -361,9 +366,7 @@ bool BaseFunctionalTests::stopMining() {
 bool BaseFunctionalTests::makeWallet(std::unique_ptr<CryptoNote::IWalletLegacy> & wallet, std::unique_ptr<CryptoNote::INode>& node, const std::string& password) {
   if (!node) return false;
 
-  Logging::ConsoleLogger logger;
-
-  wallet = std::unique_ptr<CryptoNote::IWalletLegacy>(new CryptoNote::WalletLegacy(m_currency, *node, logger));
+  wallet = std::unique_ptr<CryptoNote::IWalletLegacy>(new CryptoNote::WalletLegacy(m_currency, *node, llogger));
   wallet->initAndGenerate(password);
   return true;
 }

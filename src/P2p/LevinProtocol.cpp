@@ -61,6 +61,8 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool n
 bool LevinProtocol::readCommand(Command& cmd, Logging::LoggerRef& logger) {
   bucket_head2 head = { 0 };
 
+  logger(DEBUGGING) << "Trying to read header of size: " << sizeof(head);
+
   if (!readStrict(reinterpret_cast<uint8_t*>(&head), sizeof(head), logger)) {
     logger(DEBUGGING) << "Levin readCommand failed because of no header";
     return false;
@@ -81,7 +83,7 @@ bool LevinProtocol::readCommand(Command& cmd, Logging::LoggerRef& logger) {
   if (head.m_cb != 0) {
     buf.resize(head.m_cb);
     if (!readStrict(&buf[0], head.m_cb, logger)) {
-      logger(DEBUGGING) << "Levin failed to read in buffer";
+      logger(DEBUGGING) << "Levin failed to read in buffer!";
       return false;
     }
   }
@@ -123,15 +125,12 @@ void LevinProtocol::writeStrict(const uint8_t* ptr, size_t size) {
 
 bool LevinProtocol::readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger) {
   size_t offset = 0;
+  logger(DEBUGGING) << "readStrict is looking for these many bytes: " << size;
+  
   while (offset < size) {
-    size_t read = 0;
-    try { 
-      read = m_conn.read(ptr + offset, size - offset);
-    }
-    catch (std::exception& e) {
-      logger(DEBUGGING) << "exception thrown in connection read: " << e.what();
-      return false;
-    }
+    size_t read = m_conn.read(ptr + offset, size - offset, logger);
+
+    logger(DEBUGGING) << "readStrict just got some bytes: " << read;
 
     if (read == 0) {
       logger(DEBUGGING) << "the connection read found no input bytes";

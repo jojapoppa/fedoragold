@@ -1381,14 +1381,18 @@ namespace CryptoNote
 
         for (;;) {
           if (ctx.m_state == CryptoNoteConnectionContext::state_sync_required) {
+            logger(DEBUGGING) << "a state sync is required...";
             ctx.m_state = CryptoNoteConnectionContext::state_synchronizing;
             m_payload_handler.start_sync(ctx);
           } else if (ctx.m_state == CryptoNoteConnectionContext::state_pool_sync_required) {
+            logger(DEBUGGING) << "a pool sync is required...";
             ctx.m_state = CryptoNoteConnectionContext::state_normal;
             m_payload_handler.requestMissingPoolTransactions(ctx);
           }
 
+          logger(DEBUGGING) << "read next command...";
           if (!proto.readCommand(cmd, logger)) {
+            logger(DEBUGGING) << "no more commands ... break!";
             break;
           }
 
@@ -1407,6 +1411,7 @@ namespace CryptoNote
           }
 
           if (ctx.m_state == CryptoNoteConnectionContext::state_shutdown) {
+            logger(DEBUGGING) << "shutdown detected...";
             break;
           }
         }

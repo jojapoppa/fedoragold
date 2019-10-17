@@ -27,6 +27,11 @@
 
 #include "BaseTests.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager llManager;
+static LoggerRef lloogger(llManager, "IntegrationTests");
+
 using namespace Tests;
 using namespace CryptoNote;
 
@@ -189,14 +194,12 @@ TEST_F(NodeTest, generateBlockchain) {
 
   auto& daemon = network.getNode(0);
 
-  Logging::ConsoleLogger logger;
-
   {
     std::unique_ptr<INode> mainNode;
     ASSERT_TRUE(daemon.makeINode(mainNode));
 
     std::string password = "pass";
-    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode, logger);
+    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode, lloogger);
 
     wallet.initialize(password);
 
@@ -236,8 +239,6 @@ TEST_F(NodeTest, addMoreBlocks) {
 
   auto& daemon = network.getNode(0);
 
-  Logging::ConsoleLogger logger;
-
   {
     std::unique_ptr<INode> mainNode;
     ASSERT_TRUE(daemon.makeINode(mainNode));
@@ -245,7 +246,7 @@ TEST_F(NodeTest, addMoreBlocks) {
     auto startHeight = daemon.getLocalHeight();
 
     std::string password = "pass";
-    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode, logger);
+    CryptoNote::WalletGreen wallet(dispatcher, currency, *mainNode, lloogger);
 
     {
       std::ifstream walletFile("wallet.bin", std::ios::binary);

@@ -10,13 +10,14 @@
 #include "System/Dispatcher.h"
 #include "System/Event.h"
 #include "WalletLegacy/WalletLegacy.h"
+#include "Logging/LoggerRef.h"
 
 namespace Tests {
 namespace Common {
 
 class TestWalletLegacy : private CryptoNote::IWalletLegacyObserver {
 public:
-  TestWalletLegacy(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, CryptoNote::INode& node, Logging::ILogger& logger);
+  TestWalletLegacy(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, CryptoNote::INode& node, Logging::LoggerRef& logger);
   ~TestWalletLegacy();
 
   std::error_code init();

@@ -26,22 +26,26 @@ P2pConnectionProxy::~P2pConnectionProxy() {
 
 bool P2pConnectionProxy::processIncomingHandshake(Logging::LoggerRef &logger) {
   LevinProtocol::Command cmd;
+
   if (!m_context.readCommand(cmd, logger)) {
     logger(DEBUGGING) << "Connection unexpected close";
     throw std::runtime_error("Connection unexpectedly closed");
   }
 
   if (cmd.command == COMMAND_HANDSHAKE::ID) {
+    logger(DEBUGGING) << "got a handshake ID command..." << std::to_string(cmd.command);
     handleHandshakeRequest(cmd);
     return true;
   } 
   
   if (cmd.command == COMMAND_PING::ID) {
+    logger(DEBUGGING) << "got a handshake Ping...";
     COMMAND_PING::response resp{ PING_OK_RESPONSE_STATUS_TEXT, m_node.getPeerId() };
     m_context.writeMessage(makeReply(COMMAND_PING::ID, LevinProtocol::encode(resp), LEVIN_PROTOCOL_RETCODE_SUCCESS));
     return false;
   } 
 
+  logger(DEBUGGING) << "unexpected command: " <<  std::to_string(cmd.command);
   throw std::runtime_error("Unexpected command: " + std::to_string(cmd.command));
 }
 
@@ -62,11 +66,14 @@ void P2pConnectionProxy::read(P2pMessage& message, Logging::LoggerRef &logger) {
     message.type = cmd.command;
 
     if (cmd.command == COMMAND_HANDSHAKE::ID) {
+      logger(DEBUGGING) << "Cmd command ID...";
       handleHandshakeResponse(cmd, message);
       break;
     } else if (cmd.command == COMMAND_TIMED_SYNC::ID) {
+      logger(DEBUGGING) << "Sync ID...";
       handleTimedSync(cmd);
     } else {
+      logger(DEBUGGING) << "break...";
       message.data = std::move(cmd.buf);
       break;
     }

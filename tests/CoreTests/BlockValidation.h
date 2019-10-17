@@ -4,14 +4,22 @@
 
 #pragma once 
 
+#ifndef blockvalidationtest_h
+#define blockvalidationtest_h
+
 #include "Chaingen.h"
+
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager cManager;
+static LoggerRef clogger(cManager, "Chaingen test");
 
 class CheckBlockPurged : public test_chain_unit_base {
 public:
-  CheckBlockPurged(size_t invalidBlockIdx) :
+  CheckBlockPurged(size_t invalidBlockIdx) : test_chain_unit_base(clogger),
     m_invalidBlockIdx(invalidBlockIdx) {
 
-    CryptoNote::CurrencyBuilder currencyBuilder(m_logger);
+    CryptoNote::CurrencyBuilder currencyBuilder(clogger.getLogger());
     m_currency = currencyBuilder.currency();
 
     REGISTER_CALLBACK("check_block_purged", CheckBlockPurged::check_block_purged);
@@ -47,10 +55,10 @@ protected:
 
 
 struct CheckBlockAccepted : public test_chain_unit_base {
-  CheckBlockAccepted(size_t expectedBlockchainHeight) :
+  CheckBlockAccepted(size_t expectedBlockchainHeight) : test_chain_unit_base(clogger),
     m_expectedBlockchainHeight(expectedBlockchainHeight) {
 
-    CryptoNote::CurrencyBuilder currencyBuilder(m_logger);
+    CryptoNote::CurrencyBuilder currencyBuilder(clogger.getLogger());
     m_currency = currencyBuilder.currency();
 
     REGISTER_CALLBACK("check_block_accepted", CheckBlockAccepted::check_block_accepted);
@@ -273,7 +281,7 @@ struct gen_block_is_too_big : public CheckBlockPurged
 {
   gen_block_is_too_big()
       : CheckBlockPurged(1) {
-    CryptoNote::CurrencyBuilder currencyBuilder(m_logger);
+    CryptoNote::CurrencyBuilder currencyBuilder(clogger.getLogger());
     currencyBuilder.maxBlockSizeInitial(std::numeric_limits<size_t>::max() / 2);
     m_currency = currencyBuilder.currency();
   }
@@ -301,3 +309,5 @@ struct gen_block_invalid_binary_format : public test_chain_unit_base
 private:
   size_t m_corrupt_blocks_begin_idx;
 };
+
+#endif

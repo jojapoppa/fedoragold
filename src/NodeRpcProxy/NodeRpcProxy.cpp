@@ -48,13 +48,14 @@ std::error_code interpretResponseStatus(const std::string& status) {
 
 }
 
-NodeRpcProxy::NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort) :
+NodeRpcProxy::NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort, Logging::ILogger &logger) :
     m_rpcTimeout(10000),
     m_pullInterval(5000),
     m_nodeHost(nodeHost),
     m_nodePort(nodePort),
     m_lastLocalBlockTimestamp(0),
-    m_connected(true) {
+    m_connected(true),
+    m_logger(logger, "NodeRpcProxy") {
   resetInternalState();
 }
 
@@ -124,7 +125,7 @@ void NodeRpcProxy::workerThread(const INode::Callback& initialized_callback) {
     m_dispatcher = &dispatcher;
     ContextGroup contextGroup(dispatcher);
     m_context_group = &contextGroup;
-    HttpClient httpClient(dispatcher, m_nodeHost, m_nodePort);
+    HttpClient httpClient(dispatcher, m_nodeHost, m_nodePort, m_logger);
     m_httpClient = &httpClient;
     Event httpEvent(dispatcher);
     m_httpEvent = &httpEvent;

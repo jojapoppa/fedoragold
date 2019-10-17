@@ -11,8 +11,10 @@
 #include "../IntegrationTestLib/BaseFunctionalTests.h"
 #include "../IntegrationTestLib/TestWalletLegacy.h"
 
-#include <Logging/ConsoleLogger.h>
-Logging::ConsoleLogger loge;
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager logeManager;
+static LoggerRef loge(logeManager, "transfers testing");
 
 using namespace CryptoNote;
 using namespace Crypto;

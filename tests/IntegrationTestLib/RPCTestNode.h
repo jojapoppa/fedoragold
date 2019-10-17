@@ -12,12 +12,14 @@
 
 #include "TestNode.h"
 
+#include "Logging/LoggerRef.h"
+
 using namespace CryptoNote;
 
 namespace Tests {
   class RPCTestNode : public TestNode {
   public:
-    RPCTestNode(uint16_t port, System::Dispatcher& d);
+    RPCTestNode(uint16_t port, System::Dispatcher& d, Logging::LoggerRef &logger);
 
     virtual bool startMining(size_t threadsCount, const std::string& address) override;
     virtual bool stopMining() override;
@@ -31,6 +33,8 @@ namespace Tests {
     virtual ~RPCTestNode() { }
 
   private:
+
+    Logging::LoggerRef &m_logger;
 
     uint16_t m_rpcPort;
     System::Dispatcher& m_dispatcher;

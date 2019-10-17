@@ -4,6 +4,11 @@
 
 #include "IntegerOverflow.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+LoggerManager overManager;
+LoggerRef overlogger(overManager, "overflow tests");
+
 using namespace CryptoNote;
 
 namespace
@@ -43,7 +48,8 @@ namespace
 //======================================================================================================================
 
 gen_uint_overflow_base::gen_uint_overflow_base()
-  : m_last_valid_block_event_idx(static_cast<size_t>(-1))
+  : test_chain_unit_base(overlogger),
+    m_last_valid_block_event_idx(static_cast<size_t>(-1))
 {
   REGISTER_CALLBACK_METHOD(gen_uint_overflow_1, mark_last_valid_block);
 }
@@ -144,7 +150,7 @@ bool gen_uint_overflow_2::generate(std::vector<test_event_entry>& events) const
   destinations.push_back(TransactionDestinationEntry(sources.front().amount - m_currency.moneySupply() - m_currency.moneySupply() + 1 - m_currency.minimumFee(), bob_addr));
 
   CryptoNote::Transaction tx_1;
-  if (!constructTransaction(miner_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx_1, 0, m_logger))
+  if (!constructTransaction(miner_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx_1, 0, m_logger.getLogger()))
     return false;
   events.push_back(tx_1);
 
@@ -170,7 +176,7 @@ bool gen_uint_overflow_2::generate(std::vector<test_event_entry>& events) const
   destinations.push_back(de);
 
   CryptoNote::Transaction tx_2;
-  if (!constructTransaction(bob_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx_2, 0, m_logger))
+  if (!constructTransaction(bob_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx_2, 0, m_logger.getLogger()))
     return false;
   events.push_back(tx_2);
 

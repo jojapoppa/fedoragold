@@ -90,8 +90,8 @@ public:
   BlockchainSynchronizer& m_sync;
 };
 
-WalletLegacy::WalletLegacy(const CryptoNote::Currency& currency, INode& node, Logging::ILogger& logger) :
-  m_logger(logger, "WalletLegacy/WalletGreen/empty"),
+WalletLegacy::WalletLegacy(const CryptoNote::Currency& currency, INode& node, Logging::LoggerRef& logger) :
+  m_logger(logger),
   m_state(NOT_INITIALIZED),
   m_currency(currency),
   m_node(node),

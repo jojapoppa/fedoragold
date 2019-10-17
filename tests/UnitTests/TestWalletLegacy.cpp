@@ -18,7 +18,11 @@
 
 #include "INodeStubs.h"
 #include "TestBlockchainGenerator.h"
-#include <Logging/ConsoleLogger.h>
+
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager nManager;
+static LoggerRef nlogger(nManager, "unit tests");
 
 class TrivialWalletObserver : public CryptoNote::IWalletLegacyObserver
 {
@@ -142,7 +146,7 @@ void WaitWalletLoad(TrivialWalletObserver* observer) {
 class WalletLegacyApi : public ::testing::Test
 {
 public:
-  WalletLegacyApi() : m_currency(CryptoNote::CurrencyBuilder(m_logger).currency()), generator(m_currency) {
+  WalletLegacyApi() : m_currency(CryptoNote::CurrencyBuilder(nlogger.getLogger()).currency()), generator(m_currency) {
   }
 
   void SetUp() override;
@@ -161,7 +165,6 @@ protected:
   void performTransferWithErrorTx(const std::array<int64_t, 5>& amounts, uint64_t fee);
 
 
-  Logging::ConsoleLogger m_logger;
   CryptoNote::Currency m_currency;
 
   TestBlockchainGenerator generator;
@@ -187,7 +190,7 @@ void WalletLegacyApi::SetUp() {
 void WalletLegacyApi::prepareAliceWallet() {
   decltype(aliceNode) newNode(new INodeTrivialRefreshStub(generator));
 
-  alice.reset(new CryptoNote::WalletLegacy(m_currency, *newNode, m_logger));
+  alice.reset(new CryptoNote::WalletLegacy(m_currency, *newNode, nlogger));
   aliceNode = newNode;
 
   aliceWalletObserver.reset(new TrivialWalletObserver());
@@ -198,7 +201,7 @@ void WalletLegacyApi::prepareBobWallet() {
   bobNode.reset(new INodeTrivialRefreshStub(generator));
   bobWalletObserver.reset(new TrivialWalletObserver());
 
-  bob.reset(new CryptoNote::WalletLegacy(m_currency, *bobNode, m_logger));
+  bob.reset(new CryptoNote::WalletLegacy(m_currency, *bobNode, nlogger));
   bob->addObserver(bobWalletObserver.get());
 }
 
@@ -206,7 +209,7 @@ void WalletLegacyApi::prepareCarolWallet() {
   carolNode.reset(new INodeTrivialRefreshStub(generator));
   carolWalletObserver.reset(new TrivialWalletObserver());
 
-  carol.reset(new CryptoNote::WalletLegacy(m_currency, *carolNode, m_logger));
+  carol.reset(new CryptoNote::WalletLegacy(m_currency, *carolNode, nlogger));
   carol->addObserver(carolWalletObserver.get());
 }
 
@@ -1368,7 +1371,7 @@ TEST_F(WalletLegacyApi, outcommingExternalTransactionTotalAmount) {
   bob->shutdown();
   alice->shutdown();
 
-  CryptoNote::WalletLegacy wallet(m_currency, *aliceNode, m_logger);
+  CryptoNote::WalletLegacy wallet(m_currency, *aliceNode, nlogger);
 
   ExternalTxChecker externalTransactionObserver(wallet);
   TrivialWalletObserver walletObserver;
@@ -1730,10 +1733,10 @@ void generateWallet(CryptoNote::IWalletLegacy& wallet, TrivialWalletObserver& ob
 
 TEST_F(WalletLegacyApi, outdatedUnconfirmedTransactionDeletedOnNewBlock) {
   const uint64_t TRANSACTION_MEMPOOL_TIME = 1;
-  CryptoNote::Currency currency(CryptoNote::CurrencyBuilder(m_logger).mempoolTxLiveTime(TRANSACTION_MEMPOOL_TIME).currency());
+  CryptoNote::Currency currency(CryptoNote::CurrencyBuilder(nlogger.getLogger()).mempoolTxLiveTime(TRANSACTION_MEMPOOL_TIME).currency());
   TestBlockchainGenerator blockchainGenerator(currency);
   INodeTrivialRefreshStub node(blockchainGenerator);
-  CryptoNote::WalletLegacy wallet(currency, node, m_logger);
+  CryptoNote::WalletLegacy wallet(currency, node, nlogger);
   TrivialWalletObserver walletObserver;
   wallet.addObserver(&walletObserver);
 
@@ -1766,10 +1769,10 @@ TEST_F(WalletLegacyApi, outdatedUnconfirmedTransactionDeletedOnNewBlock) {
 
 TEST_F(WalletLegacyApi, outdatedUnconfirmedTransactionDeletedOnLoad) {
   const uint64_t TRANSACTION_MEMPOOL_TIME = 1;
-  CryptoNote::Currency currency(CryptoNote::CurrencyBuilder(m_logger).mempoolTxLiveTime(TRANSACTION_MEMPOOL_TIME).currency());
+  CryptoNote::Currency currency(CryptoNote::CurrencyBuilder(nlogger.getLogger()).mempoolTxLiveTime(TRANSACTION_MEMPOOL_TIME).currency());
   TestBlockchainGenerator blockchainGenerator(currency);
   INodeTrivialRefreshStub node(blockchainGenerator);
-  CryptoNote::WalletLegacy wallet(currency, node, m_logger);
+  CryptoNote::WalletLegacy wallet(currency, node, nlogger);
   TrivialWalletObserver walletObserver;
   wallet.addObserver(&walletObserver);
 

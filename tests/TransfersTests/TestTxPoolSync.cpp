@@ -17,8 +17,10 @@
 #include "../IntegrationTestLib/BaseFunctionalTests.h"
 #include "../IntegrationTestLib/TestWalletLegacy.h"
 
-#include <Logging/ConsoleLogger.h>
-Logging::ConsoleLogger lgg;
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager lggManager;
+static LoggerRef lgglogger(lggManager, "transfer testing code");
 
 using namespace CryptoNote;
 using namespace Tests::Common;
@@ -33,11 +35,10 @@ namespace {
     NodeTxPoolSyncTest() :
         BaseFunctionalTests(m_currency, globalSystem, config),
         m_dispatcher(globalSystem),
-        m_currency(CurrencyBuilder(m_logManager).testnet(true).currency()) {
+        m_currency(CurrencyBuilder(lgglogger.getLogger()).testnet(true).currency()) {
     }
 
   protected:
-    Logging::LoggerManager m_logManager;
     System::Dispatcher& m_dispatcher;
     CryptoNote::Currency m_currency;
   };
@@ -72,8 +73,8 @@ namespace {
     CryptoNote::AccountBase minerAccount;
     minerAccount.generate();
 
-    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgg);
-    TestWalletLegacy wallet2(m_dispatcher, m_currency, *node2, lgg);
+    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgglogger);
+    TestWalletLegacy wallet2(m_dispatcher, m_currency, *node2, lgglogger);
 
     ASSERT_FALSE(static_cast<bool>(wallet1.init()));
     ASSERT_FALSE(static_cast<bool>(wallet2.init()));
@@ -162,8 +163,8 @@ namespace {
     CryptoNote::AccountBase minerAccount;
     minerAccount.generate();
 
-    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgg);
-    TestWalletLegacy wallet2(m_dispatcher, m_currency, *node2, lgg);
+    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgglogger);
+    TestWalletLegacy wallet2(m_dispatcher, m_currency, *node2, lgglogger);
 
     ASSERT_FALSE(static_cast<bool>(wallet1.init()));
     ASSERT_FALSE(static_cast<bool>(wallet2.init()));
@@ -260,7 +261,7 @@ namespace {
     CryptoNote::AccountBase minerAccount;
     minerAccount.generate();
 
-    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgg);
+    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgglogger);
     ASSERT_FALSE(static_cast<bool>(wallet1.init()));
 
     stopNode(NODE_4);
@@ -341,9 +342,9 @@ namespace {
     nodeDaemons[NODE_2]->makeINode(node2);
     nodeDaemons[NODE_3]->makeINode(node3);
 
-    TestWalletLegacy wallet0(m_dispatcher, m_currency, *node1, lgg);
-    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgg); 
-    TestWalletLegacy wallet2(m_dispatcher, m_currency, *node2, lgg);
+    TestWalletLegacy wallet0(m_dispatcher, m_currency, *node1, lgglogger);
+    TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lgglogger); 
+    TestWalletLegacy wallet2(m_dispatcher, m_currency, *node2, lgglogger);
 
     ASSERT_FALSE(static_cast<bool>(wallet0.init()));
     ASSERT_FALSE(static_cast<bool>(wallet1.init()));

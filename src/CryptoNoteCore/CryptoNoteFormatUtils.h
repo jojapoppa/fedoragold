@@ -12,6 +12,8 @@
 #include "Serialization/BinaryOutputStreamSerializer.h"
 #include "Serialization/BinaryInputStreamSerializer.h"
 
+#include "Logging/LoggerRef.h"
+
 namespace Logging {
 class ILogger;
 }

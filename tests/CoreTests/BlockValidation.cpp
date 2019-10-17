@@ -7,6 +7,11 @@
 #include "CryptoNoteCore/CryptoNoteTools.h"
 #include "Common/StringTools.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager vManager;
+static LoggerRef vlogger(vManager, "Core testing");
+
 using namespace Common;
 using namespace Crypto;
 using namespace CryptoNote;
@@ -371,7 +376,7 @@ bool gen_block_miner_tx_has_2_in::generate(std::vector<test_event_entry>& events
   destinations.push_back(de);
 
   Transaction tmp_tx;
-  if (!constructTransaction(miner_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tmp_tx, 0, m_logger))
+  if (!constructTransaction(miner_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tmp_tx, 0, vlogger.getLogger()))
     return false;
 
   MAKE_MINER_TX_MANUALLY(miner_tx, blk_0);
@@ -414,7 +419,7 @@ bool gen_block_miner_tx_with_txin_to_key::generate(std::vector<test_event_entry>
   destinations.push_back(de);
 
   Transaction tmp_tx;
-  if (!constructTransaction(miner_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tmp_tx, 0, m_logger))
+  if (!constructTransaction(miner_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tmp_tx, 0, vlogger.getLogger()))
     return false;
 
   MAKE_MINER_TX_MANUALLY(miner_tx, blk_1);
@@ -569,8 +574,8 @@ bool TestBlockCumulativeSizeExceedsLimit::generate(std::vector<test_event_entry>
 }
 
 gen_block_invalid_binary_format::gen_block_invalid_binary_format() : 
-    m_corrupt_blocks_begin_idx(0) {
-  CryptoNote::CurrencyBuilder currencyBuilder(m_logger);
+    test_chain_unit_base(vlogger), m_corrupt_blocks_begin_idx(0) {
+  CryptoNote::CurrencyBuilder currencyBuilder(vlogger.getLogger());
   m_currency = currencyBuilder.currency();
 
   REGISTER_CALLBACK("check_all_blocks_purged", gen_block_invalid_binary_format::check_all_blocks_purged);

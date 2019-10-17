@@ -4,11 +4,15 @@
 
 #include "ChainSplit1.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager sManager;
+static LoggerRef slogger(sManager, "Split tests");
+
 using namespace std;
 using namespace CryptoNote;
 
-
-gen_simple_chain_split_1::gen_simple_chain_split_1()
+gen_simple_chain_split_1::gen_simple_chain_split_1() : test_chain_unit_base(slogger)
 {
   REGISTER_CALLBACK("check_split_not_switched", gen_simple_chain_split_1::check_split_not_switched);
   REGISTER_CALLBACK("check_split_not_switched2", gen_simple_chain_split_1::check_split_not_switched2);

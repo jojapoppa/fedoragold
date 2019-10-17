@@ -5,11 +5,16 @@
 #include "DoubleSpend.h"
 #include "TestGenerator.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager dManager;
+static LoggerRef dlogger(dManager, "double spend tests");
+
 using namespace CryptoNote;
 
 //======================================================================================================================
 
-gen_double_spend_in_different_chains::gen_double_spend_in_different_chains()
+gen_double_spend_in_different_chains::gen_double_spend_in_different_chains() : test_chain_unit_base(dlogger)
 {
   expected_blockchain_height = 4 + 2 * m_currency.minedMoneyUnlockWindow();
 
@@ -73,6 +78,7 @@ bool gen_double_spend_in_different_chains::check_double_spend(CryptoNote::core& 
 // DoubleSpendBase
 //======================================================================================================================
 DoubleSpendBase::DoubleSpendBase() :
+  test_chain_unit_base(dlogger),
   m_invalid_tx_index(invalid_index_value),
   m_invalid_block_index(invalid_index_value),
   send_amount(MK_COINS(17)),

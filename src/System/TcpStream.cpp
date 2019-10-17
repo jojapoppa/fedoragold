@@ -7,7 +7,7 @@
 
 namespace System {
 
-TcpStreambuf::TcpStreambuf(TcpConnection& connection) : connection(connection) {
+TcpStreambuf::TcpStreambuf(TcpConnection& connection, Logging::LoggerRef &logger) : connection(connection),m_logger(logger) {
   setg(&readBuf.front(), &readBuf.front(), &readBuf.front());
   setp(reinterpret_cast<char*>(&writeBuf.front()), reinterpret_cast<char *>(&writeBuf.front() + writeBuf.max_size()));
 }
@@ -43,7 +43,7 @@ std::streambuf::int_type TcpStreambuf::underflow() {
 
   size_t bytesRead;
   try {
-    bytesRead = connection.read(reinterpret_cast<uint8_t*>(&readBuf.front()), readBuf.max_size());
+    bytesRead = connection.read(reinterpret_cast<uint8_t*>(&readBuf.front()), readBuf.max_size(), m_logger);
   } catch (std::exception&) {
     return traits_type::eof();
   }

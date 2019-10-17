@@ -11,7 +11,10 @@
 #include <stdlib.h>
 #include <future>
 
-#include <Logging/LoggerRef.h>
+#include <Logging/LoggerManager.h>
+using namespace Logging;
+LoggerManager fManager;
+LoggerRef flogger(fManager, "Wallet Factory tests");
 
 namespace PaymentService {
 
@@ -23,8 +26,8 @@ WalletFactory::WalletFactory() {
 WalletFactory::~WalletFactory() {
 }
 
-CryptoNote::IWallet* WalletFactory::createWallet(const CryptoNote::Currency& currency, CryptoNote::INode& node, System::Dispatcher& dispatcher, Logging::ILogger& logger) {
-  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, node, logger);
+CryptoNote::IWallet* WalletFactory::createWallet(const CryptoNote::Currency& currency, CryptoNote::INode& node, System::Dispatcher& dispatcher, Logging::ILogger &logger) {
+  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, node, flogger);
   return wallet;
 }
 

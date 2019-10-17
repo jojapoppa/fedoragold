@@ -154,8 +154,8 @@ typedef std::unordered_map<Crypto::Hash, const CryptoNote::Transaction*> map_has
 class test_chain_unit_base: boost::noncopyable
 {
 public:
-  test_chain_unit_base() :
-    m_currency(CryptoNote::CurrencyBuilder(m_logger).currency()) {
+  test_chain_unit_base(Logging::LoggerRef &logger) :
+    m_currency(CryptoNote::CurrencyBuilder(logger.getLogger()).currency()), m_logger(logger) {
   }
 
   typedef std::function<bool (CryptoNote::core& c, size_t ev_index, const std::vector<test_event_entry> &events)> verify_callback;
@@ -167,20 +167,16 @@ public:
 
 protected:
 
-  mutable Logging::ConsoleLogger m_logger;
+  Logging::LoggerRef &m_logger;
   CryptoNote::Currency m_currency;
 
 private:
   callbacks_map m_callbacks;
 };
 
+bool construct_tx_to_key(Logging::LoggerRef& logger, const std::vector<test_event_entry>& events, CryptoNote::Transaction& tx, const CryptoNote::Block& blk_head, const CryptoNote::AccountBase& from, const CryptoNote::AccountBase& to, uint64_t amount, uint64_t fee, size_t nmix);
 
-bool construct_tx_to_key(Logging::ILogger& logger, const std::vector<test_event_entry>& events, CryptoNote::Transaction& tx,
-                         const CryptoNote::Block& blk_head, const CryptoNote::AccountBase& from, const CryptoNote::AccountBase& to,
-                         uint64_t amount, uint64_t fee, size_t nmix);
-CryptoNote::Transaction construct_tx_with_fee(Logging::ILogger& logger, std::vector<test_event_entry>& events, const CryptoNote::Block& blk_head,
-                                            const CryptoNote::AccountBase& acc_from, const CryptoNote::AccountBase& acc_to,
-                                            uint64_t amount, uint64_t fee);
+CryptoNote::Transaction construct_tx_with_fee(Logging::LoggerRef& logger, std::vector<test_event_entry>& events, const CryptoNote::Block& blk_head, const CryptoNote::AccountBase& acc_from, const CryptoNote::AccountBase& acc_to, uint64_t amount, uint64_t fee);
 
 void get_confirmed_txs(const std::vector<CryptoNote::Block>& blockchain, const map_hash2tx_t& mtx, map_hash2tx_t& confirmed_txs);
 bool find_block_chain(const std::vector<test_event_entry>& events, std::vector<CryptoNote::Block>& blockchain, map_hash2tx_t& mtx, const Crypto::Hash& head);

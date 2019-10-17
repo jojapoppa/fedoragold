@@ -274,7 +274,7 @@ void fill_tx_sources_and_destinations(const std::vector<test_event_entry>& event
   }
 }
 
-bool construct_tx_to_key(Logging::ILogger& logger, const std::vector<test_event_entry>& events, CryptoNote::Transaction& tx, const Block& blk_head,
+bool construct_tx_to_key(Logging::LoggerRef& logger, const std::vector<test_event_entry>& events, CryptoNote::Transaction& tx, const Block& blk_head,
                          const CryptoNote::AccountBase& from, const CryptoNote::AccountBase& to, uint64_t amount,
                          uint64_t fee, size_t nmix)
 {
@@ -282,10 +282,10 @@ bool construct_tx_to_key(Logging::ILogger& logger, const std::vector<test_event_
   vector<TransactionDestinationEntry> destinations;
   fill_tx_sources_and_destinations(events, blk_head, from, to, amount, fee, nmix, sources, destinations);
 
-  return constructTransaction(from.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx, 0, logger);
+  return constructTransaction(from.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx, 0, logger.getLogger());
 }
 
-Transaction construct_tx_with_fee(Logging::ILogger& logger, std::vector<test_event_entry>& events, const Block& blk_head,
+Transaction construct_tx_with_fee(Logging::LoggerRef& logger, std::vector<test_event_entry>& events, const Block& blk_head,
                                   const AccountBase& acc_from, const AccountBase& acc_to, uint64_t amount, uint64_t fee)
 {
   Transaction tx;

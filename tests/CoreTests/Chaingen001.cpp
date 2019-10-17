@@ -4,13 +4,18 @@
 
 #include "Chaingen001.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager oneManager;
+static LoggerRef onelogger(oneManager, "chain1 tests");
+
 using namespace std;
 using namespace CryptoNote;
 
 ////////
 // class one_block;
 
-one_block::one_block()
+one_block::one_block() : test_chain_unit_base(onelogger)
 {
   REGISTER_CALLBACK("verify_1", one_block::verify_1);
 }
@@ -56,7 +61,7 @@ bool one_block::verify_1(CryptoNote::core& c, size_t ev_index, const std::vector
 ////////
 // class gen_simple_chain_001;
 
-gen_simple_chain_001::gen_simple_chain_001()
+gen_simple_chain_001::gen_simple_chain_001() : test_chain_unit_base(onelogger)
 {
   REGISTER_CALLBACK("verify_callback_1", gen_simple_chain_001::verify_callback_1);
   REGISTER_CALLBACK("verify_callback_2", gen_simple_chain_001::verify_callback_2);

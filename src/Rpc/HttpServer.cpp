@@ -55,7 +55,7 @@ void HttpServer::acceptLoop() {
 
     workingContextGroup.spawn(std::bind(&HttpServer::acceptLoop, this));
 
-    System::TcpStreambuf streambuf(connection);
+    System::TcpStreambuf streambuf(connection, logger);
     std::iostream stream(&streambuf);
     HttpParser parser;
 

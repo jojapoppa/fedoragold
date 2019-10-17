@@ -25,6 +25,7 @@ class WalletGreen : public IWallet,
                     ITransfersSynchronizerObserver,
                     IFusionManager {
 public:
+  WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::LoggerRef& logger, uint32_t transactionSoftLockTime = 1);
   WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger& logger, uint32_t transactionSoftLockTime = 1);
   virtual ~WalletGreen();
 

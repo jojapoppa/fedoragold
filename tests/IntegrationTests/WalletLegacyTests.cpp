@@ -8,8 +8,10 @@
 #include "WalletLegacy/WalletLegacy.h"
 #include "WalletLegacyObserver.h"
 
-#include <Logging/ConsoleLogger.h>
 #include <Logging/LoggerManager.h>
+using namespace Logging;
+LoggerManager laManager;
+LoggerRef lllogger(laManager, "IntegrationTesting");
 
 using namespace Tests;
 using namespace CryptoNote;
@@ -29,11 +31,9 @@ TEST_F(WalletLegacyTests, checkNetworkShutdown) {
 
   auto& daemon = network.getNode(0);
 
-  Logging::ConsoleLogger logger;
-
   {
     auto node = daemon.makeINode();
-    WalletLegacy wallet(currency, *node, logger);
+    WalletLegacy wallet(currency, *node, lllogger);
     wallet.initAndGenerate("pass");
 
     WalletLegacyObserver observer;

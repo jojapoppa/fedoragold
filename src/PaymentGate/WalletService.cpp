@@ -382,7 +382,7 @@ void generateNewWallet(const CryptoNote::Currency &currency, const WalletConfigu
   std::fstream walletFile;
   createWalletFile(walletFile, conf.walletFile);
 
-  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub, logger);
+  CryptoNote::IWallet* wallet = new CryptoNote::WalletGreen(dispatcher, currency, *nodeStub, log);
   std::unique_ptr<CryptoNote::IWallet> walletGuard(wallet);
 
   std::string address;

@@ -13,13 +13,18 @@
 
 #include "../IntegrationTestLib/TestNetwork.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager olManager;
+static LoggerRef ollogger(olManager, "BaseTest");
+
 namespace Tests {
 
 class BaseTest : public testing::Test {
 public:
 
   BaseTest() :
-    currency(CryptoNote::CurrencyBuilder(logger).testnet(true).currency()),
+    currency(CryptoNote::CurrencyBuilder(ollogger.getLogger()).testnet(true).currency()),
     network(dispatcher, currency) {
   }
 
@@ -34,7 +39,6 @@ protected:
   }
 
   System::Dispatcher dispatcher;
-  Logging::ConsoleLogger logger;
   CryptoNote::Currency currency;
   TestNetwork network;
 };

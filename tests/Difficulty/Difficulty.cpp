@@ -12,7 +12,11 @@
 #include "CryptoNoteConfig.h"
 #include "CryptoNoteCore/Difficulty.h"
 #include "CryptoNoteCore/Currency.h"
-#include "Logging/ConsoleLogger.h"
+#include "Logging/LoggerManager.h"
+
+using namespace Logging;
+LoggerManager diffManager;
+LoggerRef difflogger(diffManager, "diff tests");
 
 using namespace std;
 
@@ -21,8 +25,7 @@ int main(int argc, char *argv[]) {
         cerr << "Wrong arguments" << endl;
         return 1;
     }
-    Logging::ConsoleLogger logger;
-    CryptoNote::CurrencyBuilder currencyBuilder(logger);
+    CryptoNote::CurrencyBuilder currencyBuilder(difflogger.getLogger());
     currencyBuilder.difficultyTarget(120);
     currencyBuilder.difficultyWindow(720);
     currencyBuilder.difficultyCut(60);

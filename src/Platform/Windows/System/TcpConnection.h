@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <string>
 
+#include "Logging/LoggerRef.h"
+
 namespace System
 {
     class Dispatcher;
@@ -29,7 +31,7 @@ namespace System
 
         TcpConnection &operator=(TcpConnection &&other);
 
-        size_t read(uint8_t *data, size_t size);
+        size_t read(uint8_t *data, size_t size, Logging::LoggerRef &logger);
 
         size_t write(const uint8_t *data, size_t size);
 

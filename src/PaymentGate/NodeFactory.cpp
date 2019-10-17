@@ -8,6 +8,11 @@
 #include <memory>
 #include <future>
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager payManager;
+static LoggerRef paylogger(payManager, "payment tests");
+
 namespace PaymentService {
 
 class NodeRpcStub: public CryptoNote::INode {
@@ -104,7 +109,7 @@ NodeFactory::~NodeFactory() {
 }
 
 CryptoNote::INode* NodeFactory::createNode(const std::string& daemonAddress, uint16_t daemonPort) {
-  std::unique_ptr<CryptoNote::INode> node(new CryptoNote::NodeRpcProxy(daemonAddress, daemonPort));
+  std::unique_ptr<CryptoNote::INode> node(new CryptoNote::NodeRpcProxy(daemonAddress, daemonPort, paylogger.getLogger()));
 
   NodeInitObserver initObserver;
   node->init(std::bind(&NodeInitObserver::initCompleted, &initObserver, std::placeholders::_1));

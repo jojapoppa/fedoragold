@@ -17,8 +17,10 @@
 #include <future>
 #include <algorithm>
 
-#include <Logging/ConsoleLogger.h>
-Logging::ConsoleLogger logger;
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager evManager;
+static LoggerRef evlogger(evManager, "transfer observer tests");
 
 using namespace CryptoNote;
 
@@ -38,10 +40,10 @@ class TransfersApi : public ::testing::Test, public IBlockchainSynchronizerObser
 public:
 
   TransfersApi() :
-    m_currency(CryptoNote::CurrencyBuilder(m_logger).currency()),
+    m_currency(CryptoNote::CurrencyBuilder(evlogger.getLogger()).currency()),
     generator(m_currency),
     m_node(generator),
-    m_sync(m_node, m_logger, m_currency.genesisBlockHash()),
+    m_sync(m_node, evlogger, m_currency.genesisBlockHash()),
     m_transfersSync(m_currency, m_sync, m_node) {
   }
 
@@ -132,7 +134,6 @@ protected:
   std::vector<AccountKeys> m_accounts;
   std::vector<ITransfersSubscription*> m_subscriptions;
 
-  Logging::ConsoleLogger m_logger;
   CryptoNote::Currency m_currency;
   TestBlockchainGenerator generator;
   INodeTrivialRefreshStub m_node;
@@ -365,7 +366,7 @@ TEST_F(TransfersApi, state) {
   m_transfersSync.save(memstm);
   m_sync.start();
 
-  BlockchainSynchronizer bsync2(m_node, logger, m_currency.genesisBlockHash());
+  BlockchainSynchronizer bsync2(m_node, evlogger, m_currency.genesisBlockHash());
   TransfersSyncronizer sync2(m_currency, bsync2, m_node);
 
   for (size_t i = 0; i < m_accounts.size(); ++i) {

@@ -6,10 +6,16 @@
 
 //======================================================================================================================
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager inManager;
+static LoggerRef inlogger(inManager, "inline double spend tests");
+
 template<class concrete_test>
 gen_double_spend_base<concrete_test>::gen_double_spend_base()
-  : m_invalid_tx_index(invalid_index_value)
-  , m_invalid_block_index(invalid_index_value)
+  : test_chain_unit_base(inlogger),
+    m_invalid_tx_index(invalid_index_value),
+    m_invalid_block_index(invalid_index_value)
 {
   REGISTER_CALLBACK_METHOD(gen_double_spend_base<concrete_test>, mark_last_valid_block);
   REGISTER_CALLBACK_METHOD(gen_double_spend_base<concrete_test>, mark_invalid_tx);
@@ -117,7 +123,7 @@ bool gen_double_spend_in_tx<txs_keeped_by_block>::generate(std::vector<test_even
   destinations.push_back(de);
 
   CryptoNote::Transaction tx_1;
-  if (!constructTransaction(bob_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx_1, 0, this->m_logger))
+  if (!constructTransaction(bob_account.getAccountKeys(), sources, destinations, std::vector<uint8_t>(), tx_1, 0, this->m_logger.getLogger()))
     return false;
 
   SET_EVENT_VISITOR_SETT(events, event_visitor_settings::set_txs_keeped_by_block, txs_keeped_by_block);

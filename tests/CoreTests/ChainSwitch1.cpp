@@ -4,10 +4,14 @@
 
 #include "ChainSwitch1.h"
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager wManager;
+static LoggerRef wlogger(wManager, "chain switch tests");
+
 using namespace CryptoNote;
 
-
-gen_chain_switch_1::gen_chain_switch_1()
+gen_chain_switch_1::gen_chain_switch_1() : test_chain_unit_base(wlogger)
 {
   REGISTER_CALLBACK("check_split_not_switched", gen_chain_switch_1::check_split_not_switched);
   REGISTER_CALLBACK("check_split_switched", gen_chain_switch_1::check_split_switched);

@@ -16,8 +16,10 @@
 #include <future>
 #include <atomic>
 
-#include <Logging/ConsoleLogger.h>
-Logging::ConsoleLogger lg;
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager lgManager;
+static LoggerRef lglogger(lgManager, "test wallet legacy");
 
 #include "../IntegrationTestLib/TestWalletLegacy.h"
 
@@ -306,7 +308,7 @@ TEST_F(TransfersTest, base) {
 
   AccountKeys dstKeys = reinterpret_cast<const AccountKeys&>(dstAcc.getAccountKeys());
 
-  BlockchainSynchronizer blockSync(*node2.get(), lg, currency.genesisBlockHash());
+  BlockchainSynchronizer blockSync(*node2.get(), lglogger, currency.genesisBlockHash());
   TransfersSyncronizer transferSync(currency, blockSync, *node2.get());
   TransfersObserver transferObserver;
   WalletLegacyObserver walletObserver;
@@ -321,7 +323,7 @@ TEST_F(TransfersTest, base) {
   ITransfersContainer& transferContainer = transferSub.getContainer();
   transferSub.addObserver(&transferObserver);
 
-  Tests::Common::TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lg);
+  Tests::Common::TestWalletLegacy wallet1(m_dispatcher, m_currency, *node1, lglogger);
   ASSERT_FALSE(static_cast<bool>(wallet1.init()));
   wallet1.wallet()->addObserver(&walletObserver);
   ASSERT_TRUE(mineBlocks(*nodeDaemons[0], wallet1.address(), 1));
@@ -473,7 +475,7 @@ TEST_F(MultisignatureTest, createMulitisignatureTransaction) {
   nodeDaemons[0]->makeINode(node1);
   nodeDaemons[1]->makeINode(node2);
 
-  BlockchainSynchronizer blockSync(*node2.get(), lg, currency.genesisBlockHash());
+  BlockchainSynchronizer blockSync(*node2.get(), lglogger, currency.genesisBlockHash());
   TransfersSyncronizer transferSync(currency, blockSync, *node2.get());
   
   // add transaction collector

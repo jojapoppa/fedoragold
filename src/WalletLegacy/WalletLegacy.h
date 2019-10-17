@@ -39,7 +39,7 @@ class WalletLegacy :
   ITransfersObserver {
 
 public:
-  WalletLegacy(const CryptoNote::Currency& currency, INode& node, Logging::ILogger &logger);
+  WalletLegacy(const CryptoNote::Currency& currency, INode& node, Logging::LoggerRef &logger);
   virtual ~WalletLegacy();
 
   virtual void addObserver(IWalletLegacyObserver* observer) override;

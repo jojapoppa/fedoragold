@@ -11,8 +11,10 @@
 
 namespace CryptoNote {
 
-HttpClient::HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port) :
-  m_dispatcher(dispatcher), m_address(address), m_port(port) {
+HttpClient::HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::LoggerRef &logger) : m_dispatcher(dispatcher), m_address(address), m_port(port), m_logger(logger) {
+}
+
+HttpClient::HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port, Logging::ILogger &ilog) : HttpClient::HttpClient(dispatcher, address, port, Logging::LoggerRef(ilog, "httpclient log")) {
 }
 
 HttpClient::~HttpClient() {
@@ -42,7 +44,7 @@ void HttpClient::connect() {
   try {
     auto ipAddr = System::Ipv4Resolver(m_dispatcher).resolve(m_address);
     m_connection = System::TcpConnector(m_dispatcher).connect(ipAddr, m_port);
-    m_streamBuf.reset(new System::TcpStreambuf(m_connection));
+    m_streamBuf.reset(new System::TcpStreambuf(m_connection, m_logger));
     m_connected = true;
   } catch (const std::exception& e) {
     throw ConnectException(e.what());

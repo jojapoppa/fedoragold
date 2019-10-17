@@ -40,9 +40,9 @@ class IntegrationTest : public Tests::Common::BaseFunctionalTests, public ::test
 public:
 
   IntegrationTest() : 
-    currency(CryptoNote::CurrencyBuilder(log).testnet(true).currency()), 
-    BaseFunctionalTests(currency, dispatcher, baseCfg),
-    logger(log, "IntegrationTest") {
+    m_logger(logm, "IntegrationTests"),
+    currency(CryptoNote::CurrencyBuilder(m_logger.getLogger()).testnet(true).currency()), 
+    BaseFunctionalTests(currency, dispatcher, baseCfg) {
   }
 
   ~IntegrationTest() {
@@ -62,7 +62,7 @@ public:
 
   void makeWallets() {
     for (auto& n: inodes) {
-      std::unique_ptr<CryptoNote::IWalletLegacy> wallet(new CryptoNote::WalletLegacy(m_currency, *n, (Logging::ILogger&)logger));
+      std::unique_ptr<CryptoNote::IWalletLegacy> wallet(new CryptoNote::WalletLegacy(m_currency, *n, m_logger));
       std::unique_ptr<WalletLegacyObserver> observer(new WalletLegacyObserver());
 
       wallet->initAndGenerate(walletPassword);
@@ -86,8 +86,8 @@ public:
 
   void printWalletBalances() {
     for (auto& w: wallets) {
-      logger(INFO) << "Wallet " << w->getAddress().substr(0, 6);
-      logger(INFO) << "  " << currency.formatAmount(w->actualBalance()) << " actual / " << currency.formatAmount(w->pendingBalance()) << " pending";
+      m_logger(INFO) << "Wallet " << w->getAddress().substr(0, 6);
+      m_logger(INFO) << "  " << currency.formatAmount(w->actualBalance()) << " actual / " << currency.formatAmount(w->pendingBalance()) << " pending";
     }
   }
 
@@ -108,7 +108,7 @@ public:
   }
 
   std::error_code transferMoney(size_t srcWallet, size_t dstWallet, uint64_t amount, uint64_t fee) {
-    logger(INFO) 
+    m_logger(INFO) 
       << "Transferring from " << wallets[srcWallet]->getAddress().substr(0, 6) 
       << " to " << wallets[dstWallet]->getAddress().substr(0, 6) << " " << currency.formatAmount(amount);
 
@@ -119,7 +119,7 @@ public:
 
     auto txId = wallets[srcWallet]->sendTransaction(tr, fee);
 
-    logger(DEBUGGING) << "Transaction id = " << txId;
+    m_logger(DEBUGGING) << "Transaction id = " << txId;
 
     return walletObservers[srcWallet]->waitSendResult(txId);
   }
@@ -140,8 +140,8 @@ public:
   System::Dispatcher dispatcher;
   std::string walletPassword = "pass";
   CryptoNote::Currency currency;
-  Logging::ConsoleLogger log;
-  Logging::LoggerRef logger;
+  Logging::LoggerManager logm;
+  Logging::LoggerRef m_logger;
 
   std::vector<std::unique_ptr<INode>> inodes;
   std::vector<std::unique_ptr<IWalletLegacy>> wallets;
@@ -155,16 +155,16 @@ TEST_F(IntegrationTest, Wallet2Wallet) {
 
   launchTestnet(2);
 
-  logger(INFO) << "Testnet launched";
+  m_logger(INFO) << "Testnet launched";
 
   makeINodes();
   makeWallets();
 
-  logger(INFO) << "Created wallets";
+  m_logger(INFO) << "Created wallets";
 
   mineMoneyForWallet(0, 0);
 
-  logger(INFO) << "Mined money";
+  m_logger(INFO) << "Mined money";
 
   printWalletBalances();
 
@@ -215,7 +215,7 @@ TEST_F(IntegrationTest, BlockPropagationSpeed) {
         ASSERT_TRUE(remoteObserver.waitLastKnownBlockHeightUpdated(std::chrono::milliseconds(5000), remoteHeight));
       }
 
-      logger(INFO) << "Iteration " << blockNumber + 1 << ": " << "height = " << localHeight;
+      m_logger(INFO) << "Iteration " << blockNumber + 1 << ": " << "height = " << localHeight;
     }
 
     nodeDaemons.front()->stopMining();

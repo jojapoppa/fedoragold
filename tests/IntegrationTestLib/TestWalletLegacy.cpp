@@ -15,8 +15,8 @@ using namespace Crypto;
 
 const std::string TEST_PASSWORD = "password";
 
-TestWalletLegacy::TestWalletLegacy(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger& logger) :
-    m_logger(logger, "TestWalletLegacy"),
+TestWalletLegacy::TestWalletLegacy(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::LoggerRef& logger) :
+    m_logger(logger),
     m_dispatcher(dispatcher),
     m_synchronizationCompleted(dispatcher),
     m_someTransactionUpdated(dispatcher),

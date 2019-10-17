@@ -26,7 +26,6 @@
 #include "version.h"
 
 #include "Logging/LoggerManager.h"
-#include "Logging/ConsoleLogger.h"
 
 #if defined(WIN32)
 #include <crtdbg.h>
@@ -55,9 +54,8 @@ namespace
 
 bool command_line_preprocessor(const boost::program_options::variables_map& vm, LoggerRef& logger);
 
-void print_genesis_tx_hex() {
-  Logging::ConsoleLogger logger;
-  CryptoNote::Transaction tx = CryptoNote::CurrencyBuilder(logger).generateGenesisTransaction();
+void print_genesis_tx_hex(Logging::LoggerRef &logger) {
+  CryptoNote::Transaction tx = CryptoNote::CurrencyBuilder(logger.getLogger()).generateGenesisTransaction();
   CryptoNote::BinaryArray txb = CryptoNote::toBinaryArray(tx);
   std::string tx_hex = Common::toHex(txb);
 
@@ -136,7 +134,7 @@ int main(int argc, char* argv[])
       }
 
       if (command_line::get_arg(vm, arg_print_genesis_tx)) {
-        print_genesis_tx_hex();
+        print_genesis_tx_hex(logger);
         return false;
       }
 
@@ -194,7 +192,7 @@ int main(int argc, char* argv[])
     }
 
     //create objects and link them
-    CryptoNote::CurrencyBuilder currencyBuilder(logManager);
+    CryptoNote::CurrencyBuilder currencyBuilder(logger.getLogger());
     currencyBuilder.testnet(testnet_mode);
 
     try {

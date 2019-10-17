@@ -4,13 +4,17 @@
 
 #include "RingSignature.h"
 
-using namespace CryptoNote;
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager ringManager;
+static LoggerRef ringlogger(ringManager, "ring sig tests");
 
+using namespace CryptoNote;
 
 ////////
 // class gen_ring_signature_1;
 
-gen_ring_signature_1::gen_ring_signature_1()
+gen_ring_signature_1::gen_ring_signature_1() : test_chain_unit_base(ringlogger)
 {
   REGISTER_CALLBACK("check_balances_1", gen_ring_signature_1::check_balances_1);
   REGISTER_CALLBACK("check_balances_2", gen_ring_signature_1::check_balances_2);
@@ -109,7 +113,7 @@ bool gen_ring_signature_1::check_balances_2(CryptoNote::core& c, size_t ev_index
 ////////
 // class gen_ring_signature_2;
 
-gen_ring_signature_2::gen_ring_signature_2()
+gen_ring_signature_2::gen_ring_signature_2() : test_chain_unit_base(ringlogger)
 {
   REGISTER_CALLBACK("check_balances_1", gen_ring_signature_2::check_balances_1);
   REGISTER_CALLBACK("check_balances_2", gen_ring_signature_2::check_balances_2);
@@ -191,8 +195,9 @@ bool gen_ring_signature_2::check_balances_2(CryptoNote::core& c, size_t ev_index
 // class gen_ring_signature_big;
 
 gen_ring_signature_big::gen_ring_signature_big()
-  : m_test_size(100)
-  , m_tx_amount(MK_COINS(29))
+  : test_chain_unit_base(ringlogger), 
+    m_test_size(100),
+    m_tx_amount(MK_COINS(29))
 {
   REGISTER_CALLBACK("check_balances_1", gen_ring_signature_big::check_balances_1);
   REGISTER_CALLBACK("check_balances_2", gen_ring_signature_big::check_balances_2);

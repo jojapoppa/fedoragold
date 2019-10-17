@@ -30,6 +30,9 @@
 
 namespace System
 {
+
+    using namespace Logging;
+
     namespace
     {
         struct TcpConnectionContext : public OVERLAPPED
@@ -93,7 +96,7 @@ namespace System
         return *this;
     }
 
-    size_t TcpConnection::read(uint8_t *data, size_t size)
+    size_t TcpConnection::read(uint8_t *data, size_t size, Logging::LoggerRef &logger)
     {
         assert(dispatcher != nullptr);
         assert(readContext == nullptr);
@@ -111,6 +114,7 @@ namespace System
             int lastError = WSAGetLastError();
             if (lastError != WSA_IO_PENDING)
             {
+                logger(DEBUGGING) << "TcpConnection read failed:" << errorMessage(lastError);
                 throw std::runtime_error("TcpConnection::read, WSARecv failed, " + errorMessage(lastError));
             }
         }
@@ -152,6 +156,7 @@ namespace System
             int lastError = WSAGetLastError();
             if (lastError != ERROR_OPERATION_ABORTED)
             {
+                logger(DEBUGGING) << "Tcp read err: " << errorMessage(lastError);
                 throw std::runtime_error(
                     "TcpConnection::read, WSAGetOverlappedResult failed, " + errorMessage(lastError));
             }
@@ -159,6 +164,8 @@ namespace System
             assert(context.interrupted);
             throw InterruptedException();
         }
+
+        logger(DEBUGGING) << "Tcp read this number of bytes: " << transferred;
 
         if (context.interrupted)
         {

@@ -225,8 +225,8 @@ CryptoNote::AccountPublicAddress parseAccountAddressStr(const std::string& addre
 
 namespace CryptoNote {
 
-WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger &logger, uint32_t transactionSoftLockTime) :
-  m_logger(logger, "WalletGreen"),
+WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::LoggerRef &logger, uint32_t transactionSoftLockTime) :
+  m_logger(logger),
   m_dispatcher(dispatcher),
   m_currency(currency),
   m_node(node),
@@ -243,6 +243,9 @@ WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currenc
 {
   m_upperTransactionSizeLimit = m_currency.blockGrantedFullRewardZone() * 2 - m_currency.minerTxBlobReservedSize();
   m_readyEvent.set();
+}
+
+WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger &logger, uint32_t transactionSoftLockTime) : WalletGreen::WalletGreen(dispatcher, currency, node, Logging::LoggerRef(logger, "WalletGreen"), transactionSoftLockTime) {
 }
 
 WalletGreen::~WalletGreen() {

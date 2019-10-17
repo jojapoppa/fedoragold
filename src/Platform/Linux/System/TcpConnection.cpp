@@ -72,7 +72,7 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& other) {
   return *this;
 }
 
-size_t TcpConnection::read(uint8_t* data, size_t size) {
+size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logger) {
   assert(dispatcher != nullptr);
   assert(contextPair.readContext == nullptr);
   if (dispatcher->interrupted()) {

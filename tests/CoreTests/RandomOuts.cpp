@@ -6,7 +6,12 @@
 #include "TestGenerator.h"
 #include "Rpc/CoreRpcServerCommandsDefinitions.h"
 
-GetRandomOutputs::GetRandomOutputs() {
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager randManager;
+static LoggerRef randlogger(randManager, "random output tests");
+
+GetRandomOutputs::GetRandomOutputs() : test_chain_unit_base(randlogger) {
   REGISTER_CALLBACK_METHOD(GetRandomOutputs, checkHalfUnlocked);
   REGISTER_CALLBACK_METHOD(GetRandomOutputs, checkFullyUnlocked);
 }

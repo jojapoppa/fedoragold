@@ -8,13 +8,15 @@
 #include <cstdint>
 #include <streambuf>
 
+#include "Logging/LoggerRef.h"
+
 namespace System {
 
 class TcpConnection;
 
 class TcpStreambuf : public std::streambuf {
 public:
-  explicit TcpStreambuf(TcpConnection& connection);
+  explicit TcpStreambuf(TcpConnection& connection, Logging::LoggerRef&);
   TcpStreambuf(const TcpStreambuf&) = delete;
   ~TcpStreambuf();
   TcpStreambuf& operator=(const TcpStreambuf&) = delete;
@@ -23,6 +25,8 @@ private:
   TcpConnection& connection;
   std::array<char, 4096> readBuf;
   std::array<uint8_t, 1024> writeBuf;
+
+  Logging::LoggerRef &m_logger;
 
   std::streambuf::int_type overflow(std::streambuf::int_type ch) override;
   int sync() override;

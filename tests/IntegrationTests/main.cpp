@@ -18,7 +18,10 @@
 #include "../IntegrationTestLib/BaseFunctionalTests.h"
 #include "../IntegrationTestLib/Logger.h"
 
-#include "Logging/ConsoleLogger.h"
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+LoggerManager simpleManager;
+LoggerRef simplelogger(simpleManager, "integration tests");
 
 #ifndef CHECK_AND_ASSERT_MES
 #define CHECK_AND_ASSERT_MES(expr, fail_ret_val, message)   do{if(!(expr)) {LOG_ERROR(message); return fail_ret_val;};}while(0)
@@ -790,12 +793,11 @@ class SimpleTestCase : public ::testing::Test {
 public:
 
   SimpleTestCase() : 
-    currency(CryptoNote::CurrencyBuilder(logger).testnet(true).currency()), 
+    currency(CryptoNote::CurrencyBuilder(simplelogger.getLogger()).testnet(true).currency()), 
     test(currency, dispatcher, baseCfg) {
   }
 
   System::Dispatcher dispatcher;
-  Logging::ConsoleLogger logger;
   CryptoNote::Currency currency;
   SimpleTest test;
 };
@@ -817,7 +819,7 @@ TEST_F(SimpleTestCase, TESTPOOLANDINPROCNODE) {
 }
 
 TEST_F(SimpleTestCase, TESTPOOLDELETION) {
-  currency = CryptoNote::CurrencyBuilder(logger).testnet(true).mempoolTxLiveTime(60).currency();
+  currency = CryptoNote::CurrencyBuilder(simplelogger.getLogger()).testnet(true).mempoolTxLiveTime(60).currency();
   ASSERT_TRUE(test.perform6());
 }
 

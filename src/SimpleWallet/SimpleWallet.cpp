@@ -36,6 +36,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>.
 // Fee address is declared here so we can access it from other source files
 std::string remote_fee_address;
 
+static Logging::FileLogger fileLogger;
+
 using namespace Logging;
 
 int main(int argc, char **argv) {
@@ -47,7 +49,6 @@ int main(int argc, char **argv) {
     #endif
 
     Config config = parseArguments(argc, argv);
-    Logging::ConsoleLogger logger;
 
     /* User requested --help or --version, or invalid arguments */
     if (config.exit) {
@@ -60,8 +61,6 @@ int main(int argc, char **argv) {
        spams the file, on the other hand, it exposes a lot of information
        that might help more devs debug a users issues. */
     logManager.setMaxLevel(Logging::DEBUGGING);
-
-    Logging::FileLogger fileLogger;
     fileLogger.init("simplewallet.log");
     logManager.addLogger(fileLogger);
 
@@ -74,7 +73,7 @@ int main(int argc, char **argv) {
     remote_fee_address = getFeeAddress(localDispatcher, config.host, config.port);
 
     /* Our connection to the daemon */
-    std::unique_ptr<CryptoNote::INode> node(new CryptoNote::NodeRpcProxy(config.host, config.port));
+    std::unique_ptr<CryptoNote::INode> node(new CryptoNote::NodeRpcProxy(config.host, config.port, fileLogger));
 
     std::promise<std::error_code> errorPromise;
     std::future<std::error_code> error = errorPromise.get_future();
@@ -106,7 +105,7 @@ int main(int argc, char **argv) {
     }
 
     /* Create the wallet instance */
-    CryptoNote::WalletGreen wallet(*dispatcher, currency, *node, logger);
+    CryptoNote::WalletGreen wallet(*dispatcher, currency, *node, fileLogger);
 
     /* Run the interactive wallet interface */
     run(wallet, *node, config);
@@ -1260,7 +1259,7 @@ bool processServerFeeAddressResponse(const std::string& response, std::string& f
 //----------------------------------------------------------------------------------------------------
 std::string getFeeAddress(System::Dispatcher& dispatcher, std::string daemon_host, uint16_t daemon_port) {
 
-  CryptoNote::HttpClient httpClient(dispatcher, daemon_host, daemon_port);
+  CryptoNote::HttpClient httpClient(dispatcher, daemon_host, daemon_port, fileLogger);
 
   CryptoNote::HttpRequest req;
   CryptoNote::HttpResponse res;

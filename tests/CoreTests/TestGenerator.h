@@ -6,9 +6,16 @@
 
 #include "Chaingen.h"
 
+#ifndef transaction_manager_test_h
+#define transaction_manager_test_h
+
 #include "CryptoNoteCore/Currency.h"
 #include "TransactionBuilder.h"
-#include <Logging/LoggerGroup.h>
+
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager tManager;
+static LoggerRef tlogger(tManager, "Test Generator");
 
 class TestGenerator {
 public:
@@ -80,7 +87,7 @@ public:
     uint64_t amount,
     uint64_t fee,
     size_t nmix = 0) {
-    construct_tx_to_key(logger, events, tx, lastBlock, from, to, amount, fee, nmix);
+    construct_tx_to_key(tlogger, events, tx, lastBlock, from, to, amount, fee, nmix);
   }
 
   void addEvent(const test_event_entry& e) {
@@ -101,10 +108,11 @@ public:
     addCallback("check_block_purged");
   }
 
-  Logging::LoggerGroup logger;
   test_generator generator;
   CryptoNote::Block genesisBlock;
   CryptoNote::Block lastBlock;
   CryptoNote::AccountBase minerAccount;
   std::vector<test_event_entry>& events;
 };
+
+#endif

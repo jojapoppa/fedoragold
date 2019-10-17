@@ -16,6 +16,11 @@
 #include <System/Timer.h>
 #include <gtest/gtest.h>
 
+#include "Logging/LoggerManager.h"
+using namespace Logging;
+static LoggerManager tcpManager;
+static LoggerRef tcplogger(tcpManager, "tcp tests");
+
 using namespace System;
 
 namespace {
@@ -70,11 +75,11 @@ TEST_F(TcpConnectionTests, sendAndClose) {
   ASSERT_EQ(LISTEN_ADDRESS, connection2.getPeerAddressAndPort().first);
   connection1.write(reinterpret_cast<const uint8_t*>("Test"), 4);
   uint8_t data[1024];
-  size_t size = connection2.read(data, 1024);
+  size_t size = connection2.read(data, 1024, tcplogger);
   ASSERT_EQ(4, size);
   ASSERT_EQ(0, memcmp(data, "Test", 4));
   connection1 = TcpConnection();
-  size = connection2.read(data, 1024);
+  size = connection2.read(data, 1024, tcplogger);
   ASSERT_EQ(0, size);
 }
 
@@ -84,7 +89,7 @@ TEST_F(TcpConnectionTests, stoppedState) {
   contextGroup.spawn([&] {
     try {
       uint8_t data[1024];
-      connection1.read(data, 1024);
+      connection1.read(data, 1024, tcplogger);
     } catch (InterruptedException&) {
       stopped = true;
     }
@@ -115,7 +120,7 @@ TEST_F(TcpConnectionTests, interruptRead) {
   contextGroup.spawn([&]() {
     try {
       uint8_t data[1024];
-      connection1.read(data, 1024);
+      connection1.read(data, 1024, tcplogger);
     } catch (InterruptedException &) {
       stopped = true;
     }
@@ -136,7 +141,7 @@ TEST_F(TcpConnectionTests, reuseWriteAfterInterrupt) {
   contextGroup.spawn([&]() {
     try {
       uint8_t data[1024];
-      connection1.read(data, 1024);
+      connection1.read(data, 1024, tcplogger);
     } catch (InterruptedException &) {
       stopped = true;
     }
@@ -165,7 +170,7 @@ TEST_F(TcpConnectionTests, reuseWriteAfterInterrupt) {
   contextGroup.spawn([&]() {
     try {
       uint8_t data[1024];
-      connection2.read(data, 1024);
+      connection2.read(data, 1024, tcplogger);
     } catch (InterruptedException &) {
       stopped = true;
     }
@@ -186,7 +191,7 @@ TEST_F(TcpConnectionTests, reuseReadAfterInterrupt) {
   contextGroup.spawn([&]() {
     try {
       uint8_t data[1024];
-      connection1.read(data, 1024);
+      connection1.read(data, 1024, tcplogger);
     } catch (InterruptedException &) {
       stopped = true;
     }
@@ -215,7 +220,7 @@ TEST_F(TcpConnectionTests, reuseReadAfterInterrupt) {
   contextGroup.spawn([&]() {
     try {
       uint8_t data[1024];
-      connection1.read(data, 1024);
+      connection1.read(data, 1024, tcplogger);
     } catch (InterruptedException &) {
       stopped = true;
     }
@@ -239,7 +244,7 @@ TEST_F(TcpConnectionTests, sendBigChunk) {
   contextGroup.spawn([&]{
     uint8_t readBuf[1024];
     size_t readSize;
-    while ((readSize = connection2.read(readBuf, sizeof(readBuf))) > 0) {
+    while ((readSize = connection2.read(readBuf, sizeof(readBuf), tcplogger)) > 0) {
       incoming.insert(incoming.end(), readBuf, readBuf + readSize);
     }
 
@@ -279,7 +284,7 @@ TEST_F(TcpConnectionTests, writeWhenReadWaiting) {
       uint8_t readBuf[1024];
       size_t readSize;
       readStarted.set();
-      while ((readSize = connection2.read(readBuf, sizeof(readBuf))) > 0) {
+      while ((readSize = connection2.read(readBuf, sizeof(readBuf), tcplogger)) > 0) {
       }
     } catch (InterruptedException&) {
       readStopped = true;
@@ -303,7 +308,7 @@ TEST_F(TcpConnectionTests, writeWhenReadWaiting) {
   uint8_t readBuf[100];
   size_t readSize;
   size_t totalRead = 0;
-  while ((readSize = connection1.read(readBuf, sizeof(readBuf))) > 0) {
+  while ((readSize = connection1.read(readBuf, sizeof(readBuf), tcplogger)) > 0) {
     totalRead += readSize;
   }
 
@@ -326,7 +331,7 @@ TEST_F(TcpConnectionTests, sendBigChunkThruTcpStream) {
   contextGroup.spawn([&]{
     uint8_t readBuf[1024];
     size_t readSize;
-    while ((readSize = connection2.read(readBuf, sizeof(readBuf))) > 0) {
+    while ((readSize = connection2.read(readBuf, sizeof(readBuf), tcplogger)) > 0) {
       incoming.insert(incoming.end(), readBuf, readBuf + readSize);
     }
 
@@ -335,7 +340,7 @@ TEST_F(TcpConnectionTests, sendBigChunkThruTcpStream) {
 
 
   contextGroup.spawn([&]{
-    TcpStreambuf streambuf(connection1);
+    TcpStreambuf streambuf(connection1, tcplogger);
     std::iostream stream(&streambuf);
 
     stream << buf;

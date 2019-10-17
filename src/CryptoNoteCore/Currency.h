@@ -174,7 +174,7 @@ private:
 
 class CurrencyBuilder : boost::noncopyable {
 public:
-  CurrencyBuilder(Logging::ILogger& log);
+  CurrencyBuilder(Logging::ILogger &log);
 
   Currency currency() {
     if (!m_currency.init()) {
