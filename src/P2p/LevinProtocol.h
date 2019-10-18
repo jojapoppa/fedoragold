@@ -42,11 +42,10 @@ public:
   bool invoke(uint32_t command, const Request& request, Response& response, Logging::LoggerRef& logger) {
     sendMessage(command, encode(request), true);
 
+    // a false return from readCommand is NOT an error here, can just be
+    // the end of the transmission, so keep going!
     Command cmd;
-
-    if (!readCommand(cmd, logger)) {
-      return false;
-    }
+    readCommand(cmd, logger);
 
     if (!cmd.isResponse) {
       return false;

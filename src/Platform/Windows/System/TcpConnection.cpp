@@ -114,7 +114,8 @@ namespace System
             int lastError = WSAGetLastError();
             if (lastError != WSA_IO_PENDING)
             {
-                logger(DEBUGGING) << "TcpConnection read failed:" << errorMessage(lastError);
+                // Make this an INFO message, so that user knows about Windows Defender dropping it... 
+                logger(INFO) << "TcpConnection read failed:" << errorMessage(lastError);
                 throw std::runtime_error("TcpConnection::read, WSARecv failed, " + errorMessage(lastError));
             }
         }
@@ -134,6 +135,7 @@ namespace System
                     DWORD lastError = GetLastError();
                     if (lastError != ERROR_NOT_FOUND)
                     {
+                        logger(DEBUGGING) << "TcpConnection: CancelIoEx failed: " + lastErrorMessage(); 
                         throw std::runtime_error("TcpConnection::stop, CancelIoEx failed, " + lastErrorMessage());
                     }
 

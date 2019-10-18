@@ -56,6 +56,20 @@ struct Transaction : public TransactionPrefix {
   std::vector<std::vector<Crypto::Signature>> signatures;
 };
 
+struct BaseTransaction : public TransactionPrefix
+{
+};
+
+struct ParentBlock {
+  uint8_t majorVersion;
+  uint8_t minorVersion;
+  Crypto::Hash previousBlockHash;
+  uint16_t transactionCount;
+  std::vector<Crypto::Hash>baseTransactionBranch;
+  BaseTransaction baseTransaction;
+  std::vector<Crypto::Hash>blockchainBranch;
+};
+
 struct BlockHeader {
   uint8_t majorVersion;
   uint8_t minorVersion;

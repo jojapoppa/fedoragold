@@ -226,7 +226,7 @@ namespace CryptoNote
 
     if (cmd.isResponse && cmd.command == COMMAND_TIMED_SYNC::ID) {
       if (!handleTimedSyncResponse(cmd.buf, ctx)) {
-        // invalid response, close connection
+        logger(DEBUGGING) << "Sync invalid response, close connection.";
         ctx.m_state = CryptoNoteConnectionContext::state_shutdown;
       }
       return 0;
@@ -775,6 +775,8 @@ namespace CryptoNote
 
       m_workingContextGroup.spawn(std::bind(&NodeServer::connectionHandler, this, std::cref(connectionId), std::ref(connectionContext)));
 
+      logger(DEBUGGING) << "Connection established with new peer";
+
       return true;
     } catch (System::InterruptedException&) {
       logger(DEBUGGING) << "Connection process interrupted";
@@ -1303,6 +1305,7 @@ namespace CryptoNote
         P2pConnectionContext& connection = iter->second;
 
         m_workingContextGroup.spawn(std::bind(&NodeServer::connectionHandler, this, std::cref(connectionId), std::ref(connection)));
+	logger(DEBUGGING) << "back into the acceptLoop()";
       } catch (System::InterruptedException&) {
         logger(DEBUGGING) << "acceptLoop() is interrupted";
         break;
@@ -1392,7 +1395,7 @@ namespace CryptoNote
 
           logger(DEBUGGING) << "read next command...";
           if (!proto.readCommand(cmd, logger)) {
-            logger(DEBUGGING) << "no more commands ... break!";
+            logger(DEBUGGING) << "no more commands recieved... break!";
             break;
           }
 
@@ -1403,6 +1406,7 @@ namespace CryptoNote
           // send response
           if (cmd.needReply()) {
             if (!handled) {
+              logger(DEBUGGING) << "Levin command reply not handled.";
               retcode = static_cast<int32_t>(LevinError::ERROR_CONNECTION_HANDLER_NOT_DEFINED);
               response.clear();
             }

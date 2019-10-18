@@ -133,11 +133,12 @@ bool LevinProtocol::readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &lo
     logger(DEBUGGING) << "readStrict just got some bytes: " << read;
 
     if (read == 0) {
-      logger(DEBUGGING) << "the connection read found no input bytes";
+      logger(DEBUGGING) << "readStrict found no more input bytes, found: " << offset;
       return false;
     }
 
     offset += read;
+    logger(DEBUGGING) << "readStrict succeeded and found: " << offset;
   }
 
   return true;
