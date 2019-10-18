@@ -138,8 +138,8 @@ bool LevinProtocol::readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &lo
     }
 
     offset += read;
-    logger(DEBUGGING) << "readStrict succeeded and found: " << offset;
   }
 
+  logger(DEBUGGING) << "readStrict succeeded and found: " << offset;
   return true;
 }

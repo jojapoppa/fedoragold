@@ -161,7 +161,7 @@ namespace System
                 logger(DEBUGGING) << "Tcp read err: " << errorMessage(lastError);
                 throw std::runtime_error(
                     "TcpConnection::read, WSAGetOverlappedResult failed, " + errorMessage(lastError));
-            }
+            } 
 
             assert(context.interrupted);
             throw InterruptedException();

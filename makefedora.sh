@@ -25,9 +25,6 @@
 export CC=gcc-8
 export CXX=g++-8
 
-#set CC=CL.exe
-#set CXX=CL.exe
-
 # may need brew install cmake on mac...
 #export MACOSX_DEPLOYMENT_TARGET=10.11
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
@@ -42,6 +39,8 @@ export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
 # for this however, as c++ is supposed to ignore undefined directives like that... so I may
 # not need to worry about it later
 #
+# set CC=CL.exe
+# set CXX=CL.exe
 # set BOOST_ROOT=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win
 # and use cmake on Windows
 # remove CMakeCache.txt

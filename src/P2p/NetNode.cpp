@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <string>
 //#include <execinfo.h>
 
 #include <boost/foreach.hpp>
@@ -225,6 +226,7 @@ namespace CryptoNote
     handled = true;
 
     if (cmd.isResponse && cmd.command == COMMAND_TIMED_SYNC::ID) {
+      logger(DEBUGGING) << "Timed sync response...";
       if (!handleTimedSyncResponse(cmd.buf, ctx)) {
         logger(DEBUGGING) << "Sync invalid response, close connection.";
         ctx.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -1011,6 +1013,8 @@ namespace CryptoNote
   
   int NodeServer::handle_get_stat_info(int command, COMMAND_REQUEST_STAT_INFO::request& arg, COMMAND_REQUEST_STAT_INFO::response& rsp, P2pConnectionContext& context)
   {
+    logger(DEBUGGING) << "COMMAND_GETSTATINFO...";
+
     if(!check_trust(arg.tr)) {
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
       return 1;
@@ -1026,6 +1030,8 @@ namespace CryptoNote
   
   int NodeServer::handle_get_network_state(int command, COMMAND_REQUEST_NETWORK_STATE::request& arg, COMMAND_REQUEST_NETWORK_STATE::response& rsp, P2pConnectionContext& context)
   {
+    logger(DEBUGGING) << "COMMAND_GETNETWORKSTATE...";
+
     if(!check_trust(arg.tr)) {
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
       return 1;
@@ -1049,6 +1055,7 @@ namespace CryptoNote
   
   int NodeServer::handle_get_peer_id(int command, COMMAND_REQUEST_PEER_ID::request& arg, COMMAND_REQUEST_PEER_ID::response& rsp, P2pConnectionContext& context)
   {
+    logger(DEBUGGING) << "COMMAND_GETPEER_ID";
     rsp.my_id = m_config.m_peer_id;
     return 1;
   }
@@ -1128,6 +1135,8 @@ namespace CryptoNote
   //----------------------------------------------------------------------------------- 
   int NodeServer::handle_timed_sync(int command, COMMAND_TIMED_SYNC::request& arg, COMMAND_TIMED_SYNC::response& rsp, P2pConnectionContext& context)
   {
+    logger(DEBUGGING) << "COMMAND_TIMEDSYNC...";
+
     if(!m_payload_handler.process_payload_sync_data(arg.payload_data, context, false)) {
       logger((Logging::Level)ERROR) << context << "Failed to process_payload_sync_data(), dropping connection";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -1145,6 +1154,8 @@ namespace CryptoNote
   
   int NodeServer::handle_handshake(int command, COMMAND_HANDSHAKE::request& arg, COMMAND_HANDSHAKE::response& rsp, P2pConnectionContext& context)
   {
+    logger(DEBUGGING) << "COMMAND_HANDSHAKE...";
+
     context.version = arg.node_data.version;
 
     if (arg.node_data.network_id != m_network_id) {
@@ -1202,7 +1213,7 @@ namespace CryptoNote
   
   int NodeServer::handle_ping(int command, COMMAND_PING::request& arg, COMMAND_PING::response& rsp, P2pConnectionContext& context)
   {
-    logger(Logging::TRACE) << context << "COMMAND_PING";
+    logger(DEBUGGING) << context << "COMMAND_PING...";
     rsp.status = PING_OK_RESPONSE_STATUS_TEXT;
     rsp.peer_id = m_config.m_peer_id;
     return 1;
@@ -1422,7 +1433,11 @@ namespace CryptoNote
       } catch (System::InterruptedException&) {
         logger(DEBUGGING) << ctx << "connectionHandler() inner context is interrupted";
       } catch (std::exception& e) {
-        logger(WARNING) << ctx << "Exception in connectionHandler:" << e.what();
+        // Don't show this error on Windows, it's expected behavior...
+	const std::string swhat = e.what();
+        if (swhat.find("10054", 0) < 0) {
+          logger(WARNING) << ctx << "Exception in connectionHandler: " << e.what();
+	}
       }
 
       ctx.interruptP2p();

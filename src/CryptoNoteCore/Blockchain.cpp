@@ -68,7 +68,7 @@ bool serialize(google::sparse_hash_map<K, V, Hash>& value, Common::StringView na
 
 template<typename K, typename Hash>
 bool serialize(google::sparse_hash_set<K, Hash>& value, Common::StringView name, CryptoNote::ISerializer& serializer) {
-  size_t size = value.size();
+  uint64_t size = value.size();
   if (!serializer.beginArray(size, name)) {
     return false;
   }
@@ -92,8 +92,8 @@ bool serialize(google::sparse_hash_set<K, Hash>& value, Common::StringView name,
 
 // custom serialization to speedup cache loading
 bool serialize(std::vector<std::pair<Blockchain::TransactionIndex, uint16_t>>& value, Common::StringView name, CryptoNote::ISerializer& s) {
-  const size_t elementSize = sizeof(std::pair<Blockchain::TransactionIndex, uint16_t>);
-  size_t size = value.size() * elementSize;
+  const uint64_t elementSize = sizeof(std::pair<Blockchain::TransactionIndex, uint16_t>);
+  uint64_t size = value.size() * elementSize;
 
   if (!s.beginArray(size, name)) {
     return false;
@@ -408,29 +408,26 @@ uint64_t Blockchain::getCurrentBlockchainHeight() {
 }
 
 bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
+  bool results = true;
   if (load_existing && !m_blocks.empty()) {
     logger(INFO, BRIGHT_WHITE) << "Loading blockchain...";
     BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
     loader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
 
-    bool rebuilt = true;
     if (!loader.loaded()) {
-      logger(WARNING, BRIGHT_YELLOW) << "No actual blockchain cache found, rebuilding internal structures...";
-      rebuilt = rebuildCache();
-      if (! rebuilt) {
-        m_blocks.clear();
-	return false;
+      logger(INFO, BRIGHT_YELLOW) << "No recent blockchain cache found, rebuilding internal structures...";
+      if (!rebuildCache()) {
+        logger(DEBUGGING) << "Rebuild of cache failed.";
+        results = false;
       }
     }
 
-    if (rebuilt) {
-      loadBlockchainIndices();
-    }
+    loadBlockchainIndices();
   } else {
       m_blocks.clear();
   }
 
-  return true;
+  return results;
 }
 
 bool Blockchain::init(const std::string& config_folder, bool load_existing) {
@@ -458,7 +455,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   }
 
   if (! loadIndexes(config_folder, load_existing)) {
-    // resync now
+    // force resync now
     remove(blockFilePath.c_str());
     remove(indexesPath.c_str());
     if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
@@ -483,9 +480,8 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     }
     logger(INFO, BRIGHT_WHITE) << "block verification context created...";
   } else {
-    logger(WARNING, BRIGHT_YELLOW) << "get 1st block hash";
     Crypto::Hash firstBlockHash = get_block_hash(m_blocks[0].bl);
-    logger(WARNING, BRIGHT_YELLOW) << "checking genesis block";
+    logger(INFO) << "checking genesis block";
     if (!(firstBlockHash == m_currency.genesisBlockHash())) {
       logger(ERROR, BRIGHT_RED) << "Failed to init: genesis block mismatch. "
         "Probably you set --testnet flag with data "
@@ -497,11 +493,6 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
 
   update_next_comulative_size_limit();
   logger(INFO, BRIGHT_GREEN) << "size limit updated...";
-
-  uint64_t timestamp_diff = time(NULL) - m_blocks.back().bl.timestamp;
-  if (!m_blocks.back().bl.timestamp) {
-    timestamp_diff = time(NULL) - 1341378000;
-  }
 
   logger(INFO, BRIGHT_GREEN)
     << "Blockchain initialized. last block: " << m_blocks.size() - 1 << ", "
@@ -1766,7 +1757,7 @@ bool Blockchain::pushBlock(const Block& blockData, block_verification_context& b
 
 bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction>& transactions, block_verification_context& bvc) {
 
-  //logger(INFO, BRIGHT_WHITE) << "pushBlock with transactions vector...";
+  logger(INFO, BRIGHT_WHITE) << "pushBlock with transactions vector...";
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
   auto blockProcessingStart = std::chrono::steady_clock::now();
@@ -1796,7 +1787,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   auto targetTimeStart = std::chrono::steady_clock::now();
 
-  //logger(INFO, BRIGHT_WHITE) << "get diff for next block...";
+  logger(INFO, BRIGHT_WHITE) << "get diff for next block...";
   difficulty_type currentDifficulty = getDifficultyForNextBlock();
   auto target_calculating_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - targetTimeStart).count();
 
@@ -1835,8 +1826,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   auto longhash_calculating_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - longhashTimeStart).count();
 
-  //jojapoppa, this was a static_cast<uint64_t>
-  if (!prevalidate_miner_transaction(blockData, (uint64_t)(m_blocks.size()))) {
+  if (!prevalidate_miner_transaction(blockData, static_cast<uint64_t>(m_blocks.size()))) {
     logger(INFO, BRIGHT_WHITE) <<
       "Block " << blockHash << " failed to pass prevalidation";
     bvc.m_verifivation_failed = true;
@@ -1891,7 +1881,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     fee_summary += fee;
   }
 
-  //logger(INFO, BRIGHT_WHITE) << "check cumulativeBlockSize...";
+  logger(INFO, BRIGHT_WHITE) << "check cumulativeBlockSize...";
 
   if (!checkCumulativeBlockSize(blockHash, cumulative_block_size, m_blocks.size())) {
     bvc.m_verifivation_failed = true;
@@ -1902,16 +1892,14 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   uint64_t reward = 0;
   uint64_t already_generated_coins = m_blocks.empty() ? 0 : m_blocks.back().already_generated_coins;
 
-  //jojapoppa, this was a static_cast<uint64_t>
-  if (!validate_miner_transaction(blockData, (uint64_t)(m_blocks.size()), cumulative_block_size, already_generated_coins, fee_summary, reward, emissionChange)) {
+  if (!validate_miner_transaction(blockData, static_cast<uint64_t>(m_blocks.size()), cumulative_block_size, already_generated_coins, fee_summary, reward, emissionChange)) {
     logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << " has invalid miner transaction";
     bvc.m_verifivation_failed = true;
     popTransactions(block, minerTransactionHash);
     return false;
   }
 
-  //jojapoppa, this was a static_cast<uint64_t>
-  block.height = (uint64_t)(m_blocks.size());
+  block.height = static_cast<uint64_t>(m_blocks.size());
   block.block_cumulative_size = cumulative_block_size;
   block.cumulative_difficulty = currentDifficulty;
   block.already_generated_coins = already_generated_coins + emissionChange;
