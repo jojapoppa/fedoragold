@@ -38,7 +38,7 @@ bool LevinProtocol::Command::needReply() const {
 LevinProtocol::LevinProtocol(System::TcpConnection& connection) 
   : m_conn(connection) {}
 
-void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool needResponse) {
+void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool needResponse, Logging::LoggerRef& logger) {
   bucket_head2 head = { 0 };
   head.m_signature = LEVIN_SIGNATURE;
   head.m_cb = out.size();
@@ -55,7 +55,7 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool n
   stream.writeSome(&head, sizeof(head));
   stream.writeSome(out.data(), out.size());
 
-  writeStrict(writeBuffer.data(), writeBuffer.size());
+  writeStrict(writeBuffer.data(), writeBuffer.size(), logger);
 }
 
 bool LevinProtocol::readCommand(Command& cmd, Logging::LoggerRef& logger) {
@@ -96,7 +96,7 @@ bool LevinProtocol::readCommand(Command& cmd, Logging::LoggerRef& logger) {
   return true;
 }
 
-void LevinProtocol::sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode) {
+void LevinProtocol::sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode, Logging::LoggerRef& logger) {
   bucket_head2 head = { 0 };
   head.m_signature = LEVIN_SIGNATURE;
   head.m_cb = out.size();
@@ -113,13 +113,13 @@ void LevinProtocol::sendReply(uint32_t command, const BinaryArray& out, int32_t 
   stream.writeSome(&head, sizeof(head));
   stream.writeSome(out.data(), out.size());
 
-  writeStrict(writeBuffer.data(), writeBuffer.size());
+  writeStrict(writeBuffer.data(), writeBuffer.size(), logger);
 }
 
-void LevinProtocol::writeStrict(const uint8_t* ptr, size_t size) {
+void LevinProtocol::writeStrict(const uint8_t* ptr, size_t size, Logging::LoggerRef &logger) {
   size_t offset = 0;
   while (offset < size) {
-    offset += m_conn.write(ptr + offset, size - offset);
+    offset += m_conn.write(ptr + offset, size - offset, logger);
   }
 }
 

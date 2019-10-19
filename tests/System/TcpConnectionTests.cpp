@@ -73,7 +73,7 @@ TEST_F(TcpConnectionTests, sendAndClose) {
   connect();
   ASSERT_EQ(LISTEN_ADDRESS, connection1.getPeerAddressAndPort().first);
   ASSERT_EQ(LISTEN_ADDRESS, connection2.getPeerAddressAndPort().first);
-  connection1.write(reinterpret_cast<const uint8_t*>("Test"), 4);
+  connection1.write(reinterpret_cast<const uint8_t*>("Test"), 4, tcplogger);
   uint8_t data[1024];
   size_t size = connection2.read(data, 1024, tcplogger);
   ASSERT_EQ(4, size);
@@ -98,7 +98,7 @@ TEST_F(TcpConnectionTests, stoppedState) {
     contextGroup.interrupt();
     stopped = false;
     try {
-      connection1.write(reinterpret_cast<const uint8_t*>("Test"), 4);
+      connection1.write(reinterpret_cast<const uint8_t*>("Test"), 4, tcplogger);
     } catch (InterruptedException&) {
       stopped = true;
     }
@@ -160,7 +160,7 @@ TEST_F(TcpConnectionTests, reuseWriteAfterInterrupt) {
     try {
       uint8_t buff[1024];
       std::fill(std::begin(buff), std::end(buff), 0xff);
-      connection1.write(buff, sizeof(buff)); // write smth
+      connection1.write(buff, sizeof(buff), tcplogger); // write smth
       connection1 = TcpConnection();         // close connection
     } catch (InterruptedException&) {
       stopped = true;
@@ -210,7 +210,7 @@ TEST_F(TcpConnectionTests, reuseReadAfterInterrupt) {
     try {
       uint8_t buff[1024];
       std::fill(std::begin(buff), std::end(buff), 0xff);
-      connection2.write(buff, sizeof(buff)); // write smth
+      connection2.write(buff, sizeof(buff), tcplogger); // write smth
       connection2 = TcpConnection();         // close connection
     } catch (InterruptedException&) {
       stopped = true;
@@ -255,7 +255,7 @@ TEST_F(TcpConnectionTests, sendBigChunk) {
     uint8_t* bufPtr = &buf[0];
     size_t left = bufsize;
     while(left > 0) {
-      auto transferred =  connection1.write(bufPtr, std::min(left, size_t(666)));
+      auto transferred =  connection1.write(bufPtr, std::min(left, size_t(666)), tcplogger);
       left -= transferred;
       bufPtr += transferred;
     }
@@ -298,7 +298,7 @@ TEST_F(TcpConnectionTests, writeWhenReadWaiting) {
   contextGroup.spawn([&]{
     uint8_t writeBuf[1024];
     for (int i = 0; i < 100; ++i) {
-      writeSize += connection2.write(writeBuf, sizeof(writeBuf));
+      writeSize += connection2.write(writeBuf, sizeof(writeBuf), tcplogger);
     }
     //connection2.stop();
     contextGroup.interrupt();

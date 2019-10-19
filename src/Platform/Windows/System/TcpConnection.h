@@ -33,7 +33,7 @@ namespace System
 
         size_t read(uint8_t *data, size_t size, Logging::LoggerRef &logger);
 
-        size_t write(const uint8_t *data, size_t size);
+        size_t write(const uint8_t *data, size_t size, Logging::LoggerRef &logger);
 
         std::pair<IpAddress, uint16_t> getPeerAddressAndPort() const;
 

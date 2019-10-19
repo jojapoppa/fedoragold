@@ -33,8 +33,10 @@ P2pContext::P2pContext(
   bool isIncoming,
   const NetworkAddress& remoteAddress,
   std::chrono::nanoseconds timedSyncInterval,
-  const CORE_SYNC_DATA& timedSyncData)
+  const CORE_SYNC_DATA& timedSyncData,
+  Logging::LoggerRef &logger)
   :
+  m_logger(logger),
   incoming(isIncoming),
   remoteAddress(remoteAddress),
   dispatcher(dispatcher),
@@ -86,13 +88,13 @@ void P2pContext::setPeerInfo(uint8_t protocolVersion, PeerIdType id, uint16_t po
   }
 }
 
-bool P2pContext::readCommand(LevinProtocol::Command& cmd, Logging::LoggerRef &logger) {
+bool P2pContext::readCommand(LevinProtocol::Command& cmd) {
   if (stopped) {
     throw InterruptedException();
   }
 
   EventLock lk(readEvent);
-  bool result = LevinProtocol(connection).readCommand(cmd, logger);
+  bool result = LevinProtocol(connection).readCommand(cmd, m_logger);
   lastReadTime = Clock::now();
   return result;
 }
@@ -107,13 +109,13 @@ void P2pContext::writeMessage(const Message& msg) {
 
   switch (msg.messageType) {
   case P2pContext::Message::NOTIFY:
-    proto.sendMessage(msg.type, msg.data, false);
+    proto.sendMessage(msg.type, msg.data, false, m_logger);
     break;
   case P2pContext::Message::REQUEST:
-    proto.sendMessage(msg.type, msg.data, true);
+    proto.sendMessage(msg.type, msg.data, true, m_logger);
     break;
   case P2pContext::Message::REPLY:
-    proto.sendReply(msg.type, msg.data, msg.returnCode);
+    proto.sendReply(msg.type, msg.data, msg.returnCode, m_logger);
     break;
   }
 }

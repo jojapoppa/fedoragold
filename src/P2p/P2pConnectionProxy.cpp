@@ -27,7 +27,7 @@ P2pConnectionProxy::~P2pConnectionProxy() {
 bool P2pConnectionProxy::processIncomingHandshake(Logging::LoggerRef &logger) {
   LevinProtocol::Command cmd;
 
-  if (!m_context.readCommand(cmd, logger)) {
+  if (!m_context.readCommand(cmd)) {
     logger(DEBUGGING) << "Connection unexpected close";
     throw std::runtime_error("Connection unexpectedly closed");
   }
@@ -58,7 +58,7 @@ void P2pConnectionProxy::read(P2pMessage& message, Logging::LoggerRef &logger) {
 
   for (;;) {
     LevinProtocol::Command cmd;
-    if (!m_context.readCommand(cmd, logger)) {
+    if (!m_context.readCommand(cmd)) {
       logger(DEBUGGING) << "readCommand interrupted in P2pConnectionProxy::read";
       throw InterruptedException();
     }

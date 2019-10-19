@@ -63,7 +63,7 @@ bool TcpStreambuf::dumpBuffer(bool finalize) {
       return true;
     }
 
-    size_t transferred = connection.write(&writeBuf.front(), count);
+    size_t transferred = connection.write(&writeBuf.front(), count, m_logger);
     if(transferred == count) {
       pbump(-static_cast<int>(count));
     } else {
@@ -77,7 +77,7 @@ bool TcpStreambuf::dumpBuffer(bool finalize) {
       } else {
         size_t offset = transferred;
         while( offset != count) {
-          offset += connection.write(&writeBuf.front() + offset, count - offset);
+          offset += connection.write(&writeBuf.front() + offset, count - offset, m_logger);
         }
 
         pbump(-static_cast<int>(count));

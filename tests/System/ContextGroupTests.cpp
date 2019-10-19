@@ -156,7 +156,7 @@ TEST(ContextGroupTests, ConnectionReadIsContextIntrerruptible) {
       try {
         auto conn = TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
         Timer(dispatcher).sleep(std::chrono::milliseconds(1000));
-        conn.write(nullptr, 0);
+        conn.write(nullptr, 0, tcpplogger);
       } catch (InterruptedException&) {
       }
     });
@@ -167,7 +167,7 @@ TEST(ContextGroupTests, ConnectionReadIsContextIntrerruptible) {
         connected.set();
         uint8_t a[10];
         conn.read(a, 10, tcpplogger);
-        conn.write(nullptr, 0);
+        conn.write(nullptr, 0, tcpplogger);
       } catch (InterruptedException&) {
         interrupted = true;
       }
@@ -244,7 +244,7 @@ TEST(ContextGroupTests, ConnectionReadIsThrowingWhenCurrentContextIsInterrupted)
     cg1.spawn([&] {
       try {
         auto conn = TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
-        conn.write(nullptr, 0);
+        conn.write(nullptr, 0, tcpplogger);
       } catch (InterruptedException&) {
       }
     });
@@ -256,7 +256,7 @@ TEST(ContextGroupTests, ConnectionReadIsThrowingWhenCurrentContextIsInterrupted)
         dispatcher.yield();
         uint8_t a[10];
         conn.read(a, 10, tcpplogger);
-        conn.write(nullptr, 0);
+        conn.write(nullptr, 0, tcpplogger);
       } catch (InterruptedException&) {
         interrupted = true;
       }
@@ -278,7 +278,7 @@ TEST(ContextGroupTests, ConnectionWriteIsThrowingWhenCurrentContextIsInterrupted
     cg1.spawn([&] {
       try {
         auto conn = TcpListener(dispatcher, IpAddress("0.0.0.0"), 12345).accept();
-        conn.write(nullptr, 0);
+        conn.write(nullptr, 0, tcpplogger);
       } catch (InterruptedException&) {
       }
     });
@@ -288,7 +288,7 @@ TEST(ContextGroupTests, ConnectionWriteIsThrowingWhenCurrentContextIsInterrupted
         auto conn = TcpConnector(dispatcher).connect(IpAddress("127.0.0.1"), 12345);
         connected.set();
         dispatcher.yield();
-        conn.write(nullptr, 0);
+        conn.write(nullptr, 0, tcpplogger);
       } catch (InterruptedException&) {
         interrupted = true;
       }

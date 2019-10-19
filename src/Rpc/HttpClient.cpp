@@ -58,7 +58,7 @@ bool HttpClient::isConnected() const {
 void HttpClient::disconnect() {
   m_streamBuf.reset();
   try {
-    m_connection.write(nullptr, 0); //Socket shutdown.
+    m_connection.write(nullptr, 0, m_logger); //Socket shutdown.
   } catch (std::exception&) {
     //Ignoring possible exception.
   }

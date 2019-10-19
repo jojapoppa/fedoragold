@@ -41,7 +41,7 @@ public:
   };
 
   P2pContext(System::Dispatcher& dispatcher, System::TcpConnection&& conn, 
-    bool isIncoming, const NetworkAddress& remoteAddress, std::chrono::nanoseconds timedSyncInterval, const CORE_SYNC_DATA& timedSyncData);
+    bool isIncoming, const NetworkAddress& remoteAddress, std::chrono::nanoseconds timedSyncInterval, const CORE_SYNC_DATA& timedSyncData, Logging::LoggerRef&);
   ~P2pContext();
 
   PeerIdType getPeerId() const;
@@ -50,7 +50,7 @@ public:
   bool isIncoming() const;
 
   void setPeerInfo(uint8_t protocolVersion, PeerIdType id, uint16_t port);
-  bool readCommand(LevinProtocol::Command& cmd, Logging::LoggerRef &logger);
+  bool readCommand(LevinProtocol::Command& cmd);
   void writeMessage(const Message& msg);
  
   void start();
@@ -79,6 +79,8 @@ private:
   System::TcpConnection connection;
   System::Event writeEvent;
   System::Event readEvent;
+
+  Logging::LoggerRef m_logger;
 
   void timedSyncLoop();
 };

@@ -179,7 +179,7 @@ namespace System
         return transferred;
     }
 
-    size_t TcpConnection::write(const uint8_t *data, size_t size)
+    size_t TcpConnection::write(const uint8_t *data, size_t size, Logging::LoggerRef &logger)
     {
         assert(dispatcher != nullptr);
         assert(writeContext == nullptr);
@@ -201,11 +201,13 @@ namespace System
         WSABUF buf {static_cast<ULONG>(size), reinterpret_cast<char *>(const_cast<uint8_t *>(data))};
         TcpConnectionContext context;
         context.hEvent = NULL;
+	logger(DEBUGGING) << "TcpConnection WSASend... size: " << size;
         if (WSASend(connection, &buf, 1, NULL, 0, &context, NULL) != 0)
         {
             int lastError = WSAGetLastError();
             if (lastError != WSA_IO_PENDING)
             {
+                logger(DEBUGGING) << "TcpConnection::write WSASend error: " << errorMessage(lastError);
                 throw std::runtime_error("TcpConnection::write, WSASend failed, " + errorMessage(lastError));
             }
         }
@@ -224,6 +226,7 @@ namespace System
                     DWORD lastError = GetLastError();
                     if (lastError != ERROR_NOT_FOUND)
                     {
+                        logger(DEBUGGING) << "TcpConnection::stop, CancelIoEx failed, " + lastErrorMessage();
                         throw std::runtime_error("TcpConnection::stop, CancelIoEx failed, " + lastErrorMessage());
                     }
 
@@ -247,6 +250,7 @@ namespace System
             int lastError = WSAGetLastError();
             if (lastError != ERROR_OPERATION_ABORTED)
             {
+                logger(DEBUGGING) << "TcpConnection::write, WSAGetOverlappedResult failed, " + errorMessage(lastError);
                 throw std::runtime_error(
                     "TcpConnection::write, WSAGetOverlappedResult failed, " + errorMessage(lastError));
             }
@@ -262,6 +266,8 @@ namespace System
 
         assert(transferred == size);
         assert(flags == 0);
+
+	logger(DEBUGGING) << "Tcp write succeeded with bytes: " << transferred;
         return transferred;
     }
 

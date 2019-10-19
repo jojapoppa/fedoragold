@@ -40,7 +40,7 @@ public:
 
   template <typename Request, typename Response>
   bool invoke(uint32_t command, const Request& request, Response& response, Logging::LoggerRef& logger) {
-    sendMessage(command, encode(request), true);
+    sendMessage(command, encode(request), true, logger);
 
     // a false return from readCommand is NOT an error here, can just be
     // the end of the transmission, so keep going!
@@ -55,8 +55,8 @@ public:
   }
 
   template <typename Request>
-  void notify(uint32_t command, const Request& request, int) {
-    sendMessage(command, encode(request), false);
+  void notify(uint32_t command, const Request& request, int, Logging::LoggerRef& logger) {
+    sendMessage(command, encode(request), false, logger);
   }
 
   struct Command {
@@ -70,8 +70,8 @@ public:
 
   bool readCommand(Command& cmd, Logging::LoggerRef& logger);
 
-  void sendMessage(uint32_t command, const BinaryArray& out, bool needResponse);
-  void sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode);
+  void sendMessage(uint32_t command, const BinaryArray& out, bool needResponse, Logging::LoggerRef& logger);
+  void sendReply(uint32_t command, const BinaryArray& out, int32_t returnCode, Logging::LoggerRef& logger);
 
   template <typename T>
   static bool decode(const BinaryArray& buf, T& value) {
@@ -99,7 +99,7 @@ public:
 private:
 
   bool readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger);
-  void writeStrict(const uint8_t* ptr, size_t size);
+  void writeStrict(const uint8_t* ptr, size_t size, Logging::LoggerRef &logger);
   System::TcpConnection& m_conn;
 };
 

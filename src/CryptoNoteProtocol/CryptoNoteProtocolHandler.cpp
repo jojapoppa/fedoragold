@@ -214,6 +214,7 @@ int CryptoNoteProtocolHandler::handleCommand(bool is_notify, int command, const 
     HANDLE_NOTIFY(NOTIFY_REQUEST_TX_POOL, &CryptoNoteProtocolHandler::handleRequestTxPool)
 
   default:
+    logger(DEBUGGING) << "Unrecognized protocol command...";
     handled = false;
   }
 
@@ -223,7 +224,7 @@ int CryptoNoteProtocolHandler::handleCommand(bool is_notify, int command, const 
 #undef HANDLE_NOTIFY
 
 int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_BLOCK::request& arg, CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_NEW_BLOCK (hop " << arg.hop << ")";
+  logger(DEBUGGING) << "COMMAND_NOTIFY_NEW_BLOCK (hop " << arg.hop << ") " << context;
 
   updateObservedHeight(arg.current_blockchain_height, context);
 
@@ -273,7 +274,7 @@ int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_B
 }
 
 int CryptoNoteProtocolHandler::handle_notify_new_transactions(int command, NOTIFY_NEW_TRANSACTIONS::request& arg, CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_NEW_TRANSACTIONS";
+  logger(DEBUGGING) << "COMMAND_NOTIFY_NEW_TRANSACTIONS " << context;
   if (context.m_state != CryptoNoteConnectionContext::state_normal)
     return 1;
 
@@ -300,7 +301,7 @@ int CryptoNoteProtocolHandler::handle_notify_new_transactions(int command, NOTIF
 }
 
 int CryptoNoteProtocolHandler::handle_request_get_objects(int command, NOTIFY_REQUEST_GET_OBJECTS::request& arg, CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_REQUEST_GET_OBJECTS";
+  logger(DEBUGGING) << "COMMAND_NOTIFY_REQUEST_GET_OBJECTS " << context;
   NOTIFY_RESPONSE_GET_OBJECTS::request rsp;
   if (!m_core.handle_get_objects(arg, rsp)) {
     logger(Logging::ERROR) << context << "failed to handle request NOTIFY_REQUEST_GET_OBJECTS, dropping connection";
@@ -313,7 +314,7 @@ int CryptoNoteProtocolHandler::handle_request_get_objects(int command, NOTIFY_RE
 }
 
 int CryptoNoteProtocolHandler::handle_response_get_objects(int command, NOTIFY_RESPONSE_GET_OBJECTS::request& arg, CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_RESPONSE_GET_OBJECTS";
+  logger(DEBUGGING) << "COMMAND_NOTIFY_RESPONSE_GET_OBJECTS " << context;
 
   if (context.m_last_response_height > arg.current_blockchain_height) {
     logger(Logging::ERROR) << context << "sent wrong NOTIFY_HAVE_OBJECTS: arg.m_current_blockchain_height=" << arg.current_blockchain_height
@@ -450,7 +451,7 @@ bool CryptoNoteProtocolHandler::on_idle() {
 }
 
 int CryptoNoteProtocolHandler::handle_request_chain(int command, NOTIFY_REQUEST_CHAIN::request& arg, CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_REQUEST_CHAIN: m_block_ids.size()=" << arg.block_ids.size();
+  logger(DEBUGGING) << "COMMAND_NOTIFY_REQUEST_CHAIN: m_block_ids.size()=" << arg.block_ids.size() << " " << context;
 
   if (arg.block_ids.empty()) {
     logger(Logging::ERROR, Logging::BRIGHT_RED) << context << "Failed to handle NOTIFY_REQUEST_CHAIN. block_ids is empty";
@@ -474,7 +475,7 @@ int CryptoNoteProtocolHandler::handle_request_chain(int command, NOTIFY_REQUEST_
 
 bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionContext& context, bool check_having_blocks) {
   if (context.m_needed_objects.size()) {
-    //we know objects that we need, request this objects
+    // we know objects that we need, request these objects
     NOTIFY_REQUEST_GET_OBJECTS::request req;
     size_t count = 0;
     auto it = context.m_needed_objects.begin();
@@ -493,7 +494,7 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
 
     NOTIFY_REQUEST_CHAIN::request r = boost::value_initialized<NOTIFY_REQUEST_CHAIN::request>();
     r.block_ids = m_core.buildSparseChain();
-    logger(Logging::TRACE) << context << "-->>NOTIFY_REQUEST_CHAIN: m_block_ids.size()=" << r.block_ids.size();
+    logger(DEBUGGING) << context << "-->>NOTIFY_REQUEST_CHAIN: m_block_ids.size()=" << r.block_ids.size();
     post_notify<NOTIFY_REQUEST_CHAIN>(*m_p2p, r, context);
   } else {
     if (!(context.m_last_response_height ==
@@ -541,8 +542,7 @@ bool CryptoNoteProtocolHandler::on_connection_synchronized() {
 }
 
 int CryptoNoteProtocolHandler::handle_response_chain_entry(int command, NOTIFY_RESPONSE_CHAIN_ENTRY::request& arg, CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_RESPONSE_CHAIN_ENTRY: m_block_ids.size()=" << arg.m_block_ids.size()
-    << ", m_start_height=" << arg.start_height << ", m_total_height=" << arg.total_height;
+  logger(DEBUGGING) << "COMMAND_NOTIFY_RESPONSE_CHAIN_ENTRY: m_block_ids.size()=" << arg.m_block_ids.size() << ", m_start_height=" << arg.start_height << ", m_total_height=" << arg.total_height << " " << context;
 
   if (!arg.m_block_ids.size()) {
     logger(Logging::ERROR) << context << "sent empty m_block_ids, dropping connection";
@@ -572,17 +572,17 @@ int CryptoNoteProtocolHandler::handle_response_chain_entry(int command, NOTIFY_R
   }
 
   for (auto& bl_id : arg.m_block_ids) {
-    if (!m_core.have_block(bl_id))
+    if (!m_core.have_block(bl_id)) {
       context.m_needed_objects.push_back(bl_id);
+    }
   }
 
   request_missing_objects(context, false);
   return 1;
 }
 
-int CryptoNoteProtocolHandler::handleRequestTxPool(int command, NOTIFY_REQUEST_TX_POOL::request& arg,
-                                                     CryptoNoteConnectionContext& context) {
-  logger(Logging::TRACE) << context << "NOTIFY_REQUEST_TX_POOL: txs.size() = " << arg.txs.size();
+int CryptoNoteProtocolHandler::handleRequestTxPool(int command, NOTIFY_REQUEST_TX_POOL::request& arg, CryptoNoteConnectionContext& context) {
+  logger(DEBUGGING) << "COMMAND_NOTIFY_REQUEST_TX_POOL: txs.size() = " << arg.txs.size() << " " << context;
 
   std::vector<Transaction> addedTransactions;
   std::vector<Crypto::Hash> deletedTransactions;

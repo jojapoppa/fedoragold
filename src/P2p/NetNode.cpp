@@ -131,8 +131,10 @@ namespace CryptoNote
   bool P2pConnectionContext::pushMessage(P2pMessage&& msg) {
     writeQueueSize += msg.size();
 
+    logger(DEBUGGING) << "pushMessage with queuesize of: " << writeQueueSize;
+
     if (writeQueueSize > P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE) {
-      logger(DEBUGGING) << *this << "Write queue overflows. Interrupt connection";
+      logger(DEBUGGING) << "Write queue overflows. Interrupt connection: " << *this;
       interruptP2p();
       return false;
     }
@@ -245,6 +247,7 @@ namespace CryptoNote
 #endif
     default: {
         handled = false;
+	logger(DEBUGGING) << "sending to default payload handler...";
         ret = m_payload_handler.handleCommand(cmd.isNotify, cmd.command, cmd.buf, out, ctx, handled);
       }
     }
@@ -1077,8 +1080,12 @@ namespace CryptoNote
  
   //-----------------------------------------------------------------------------------
   bool NodeServer::invoke_notify_to_peer(int command, const BinaryArray& buffer, const CryptoNoteConnectionContext& context) {
+
+    logger(DEBUGGING) << "invoke_notify_to_peer";
+
     auto it = m_connections.find(context.m_connection_id);
     if (it == m_connections.end()) {
+      logger(DEBUGGING) << "connection not found...";
       return false;
     }
 
@@ -1473,13 +1480,13 @@ namespace CryptoNote
           logger(DEBUGGING) << ctx << "msg " << msg.type << ':' << msg.command;
           switch (msg.type) {
           case P2pMessage::COMMAND:
-            proto.sendMessage(msg.command, msg.buffer, true);
+            proto.sendMessage(msg.command, msg.buffer, true, logger);
             break;
           case P2pMessage::NOTIFY:
-            proto.sendMessage(msg.command, msg.buffer, false);
+            proto.sendMessage(msg.command, msg.buffer, false, logger);
             break;
           case P2pMessage::REPLY:
-            proto.sendReply(msg.command, msg.buffer, msg.returnCode);
+            proto.sendReply(msg.command, msg.buffer, msg.returnCode, logger);
             break;
           default:
             assert(false);
