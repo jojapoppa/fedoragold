@@ -1442,7 +1442,8 @@ namespace CryptoNote
       } catch (std::exception& e) {
         // Don't show this error on Windows, it's expected behavior...
 	const std::string swhat = e.what();
-        if (swhat.find("10054", 0) < 0) {
+        std::string::size_type idx = swhat.find("10054", 0);
+        if (idx == std::string::npos) {
           logger(WARNING) << ctx << "Exception in connectionHandler: " << e.what();
 	}
       }

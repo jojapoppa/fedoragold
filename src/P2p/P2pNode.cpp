@@ -188,7 +188,7 @@ void P2pNode::acceptLoop() {
     try {
       auto connection = m_listener.accept();
       auto ctx = new P2pContext(m_dispatcher, std::move(connection), true, 
-        getRemoteAddress(connection), m_cfg.getTimedSyncInterval(), getGenesisPayload());
+        getRemoteAddress(connection), m_cfg.getTimedSyncInterval(), getGenesisPayload(), logger);
       logger(INFO) << "Incoming connection from " << ctx->getRemoteAddress();
       workingContextGroup.spawn([this, ctx] {
         preprocessIncomingConnection(ContextPtr(ctx));
@@ -359,7 +359,7 @@ P2pNode::ContextPtr P2pNode::tryToConnectPeer(const NetworkAddress& address) {
 
     logger(DEBUGGING) << "connection established to " << address;
 
-    return ContextPtr(new P2pContext(m_dispatcher, std::move(tcpConnection), false, address, m_cfg.getTimedSyncInterval(), getGenesisPayload()));
+    return ContextPtr(new P2pContext(m_dispatcher, std::move(tcpConnection), false, address, m_cfg.getTimedSyncInterval(), getGenesisPayload(), logger));
   } catch (std::exception& e) {
     logger(DEBUGGING) << "Connection to " << address << " failed: " << e.what();
   }
@@ -377,7 +377,7 @@ bool P2pNode::fetchPeerList(ContextPtr connection, Logging::LoggerRef &logger) {
     connection->writeMessage(makeRequest(COMMAND_HANDSHAKE::ID, LevinProtocol::encode(request)));
 
     LevinProtocol::Command cmd;
-    if (!connection->readCommand(cmd, logger)) {
+    if (!connection->readCommand(cmd)) {
       throw std::runtime_error("Connection closed unexpectedly");
     }
 

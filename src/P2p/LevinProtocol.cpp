@@ -119,7 +119,7 @@ void LevinProtocol::sendReply(uint32_t command, const BinaryArray& out, int32_t 
 void LevinProtocol::writeStrict(const uint8_t* ptr, size_t size, Logging::LoggerRef &logger) {
   size_t offset = 0;
   while (offset < size) {
-    offset += m_conn.write(ptr + offset, size - offset, logger);
+    offset += m_conn.write(ptr + offset, size - offset);
   }
 }
 
