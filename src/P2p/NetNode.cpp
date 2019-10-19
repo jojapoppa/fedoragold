@@ -1089,6 +1089,9 @@ namespace CryptoNote
       return false;
     }
 
+    logger(DEBUGGING) << "invoke_notify_to_peer, size in bytes: " << buffer.size();
+    log_connections();
+
     it->second.pushMessage(P2pMessage(P2pMessage::NOTIFY, command, buffer));
 
     return true;
@@ -1232,13 +1235,13 @@ namespace CryptoNote
     std::list<PeerlistEntry> pl_wite;
     std::list<PeerlistEntry> pl_gray;
     m_peerlist.get_peerlist_full(pl_gray, pl_wite);
-    logger(INFO) << ENDL << "Peerlist white:" << ENDL << print_peerlist_to_string(pl_wite) << ENDL << "Peerlist gray:" << ENDL << print_peerlist_to_string(pl_gray) ;
+    logger(DEBUGGING) << ENDL << "Peerlist white:" << ENDL << print_peerlist_to_string(pl_wite) << ENDL << "Peerlist gray:" << ENDL << print_peerlist_to_string(pl_gray) ;
     return true;
   }
   //-----------------------------------------------------------------------------------
   
   bool NodeServer::log_connections() {
-    logger(INFO) << "Connections: \r\n" << print_connections_container() ;
+    logger(DEBUGGING) << "Connections: \r\n" << print_connections_container() ;
     return true;
   }
   //-----------------------------------------------------------------------------------

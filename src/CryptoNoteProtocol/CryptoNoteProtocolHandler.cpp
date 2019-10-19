@@ -231,6 +231,7 @@ int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_B
   context.m_remote_blockchain_height = arg.current_blockchain_height;
 
   if (context.m_state != CryptoNoteConnectionContext::state_normal) {
+    logger(DEBUGGING) << "context not state_normal. aborting...";
     return 1;
   }
 
@@ -275,8 +276,10 @@ int CryptoNoteProtocolHandler::handle_notify_new_block(int command, NOTIFY_NEW_B
 
 int CryptoNoteProtocolHandler::handle_notify_new_transactions(int command, NOTIFY_NEW_TRANSACTIONS::request& arg, CryptoNoteConnectionContext& context) {
   logger(DEBUGGING) << "COMMAND_NOTIFY_NEW_TRANSACTIONS " << context;
-  if (context.m_state != CryptoNoteConnectionContext::state_normal)
+  if (context.m_state != CryptoNoteConnectionContext::state_normal) {
+    logger(DEBUGGING) << "context state not state_normal... aborting...";
     return 1;
+  }
 
   for (auto tx_blob_it = arg.txs.begin(); tx_blob_it != arg.txs.end();) {
     CryptoNote::tx_verification_context tvc = boost::value_initialized<decltype(tvc)>();
@@ -488,9 +491,12 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
       }
       it = context.m_needed_objects.erase(it);
     }
-    logger(Logging::TRACE) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS: blocks.size()=" << req.blocks.size() << ", txs.size()=" << req.txs.size();
+
+    logger(DEBUGGING) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS: blocks.size()=" << req.blocks.size() << ", txs.size()=" << req.txs.size() << " : requesting objects: " << count;
     post_notify<NOTIFY_REQUEST_GET_OBJECTS>(*m_p2p, req, context);
   } else if (context.m_last_response_height < context.m_remote_blockchain_height - 1) {//we have to fetch more objects ids, request blockchain entry
+
+    logger(DEBUGGING) << "time to request more objects...";
 
     NOTIFY_REQUEST_CHAIN::request r = boost::value_initialized<NOTIFY_REQUEST_CHAIN::request>();
     r.block_ids = m_core.buildSparseChain();
@@ -514,7 +520,7 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
     requestMissingPoolTransactions(context);
 
     context.m_state = CryptoNoteConnectionContext::state_normal;
-    logger(Logging::INFO, Logging::BRIGHT_GREEN) << context << "SYNCHRONIZED OK";
+    logger(INFO, Logging::BRIGHT_GREEN) << context << "SYNCHRONIZED OK";
     on_connection_synchronized();
   }
   return true;
@@ -576,6 +582,8 @@ int CryptoNoteProtocolHandler::handle_response_chain_entry(int command, NOTIFY_R
       context.m_needed_objects.push_back(bl_id);
     }
   }
+
+  logger(DEBUGGING) << "last_response_height: " << context.m_last_response_height << " requested objects: " << context.m_needed_objects.size();
 
   request_missing_objects(context, false);
   return 1;
