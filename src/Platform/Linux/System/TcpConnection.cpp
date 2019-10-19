@@ -163,7 +163,7 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
   return transferred;
 }
 
-std::size_t TcpConnection::write(const uint8_t* data, size_t size) {
+std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef& logger) {
   assert(dispatcher != nullptr);
   assert(contextPair.writeContext == nullptr);
   if (dispatcher->interrupted()) {
