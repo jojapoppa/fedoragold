@@ -1025,7 +1025,7 @@ namespace CryptoNote
     rsp.connections_count = get_connections_count();
     rsp.incoming_connections_count = rsp.connections_count - get_outgoing_connections_count();
     rsp.version = PROJECT_VERSION_LONG;
-    rsp.os_version = Tools::get_os_version_string();
+    //rsp.os_version = Tools::get_os_version_string();
     m_payload_handler.get_stat_info(rsp.payload_info);
     return 1;
   }
@@ -1482,14 +1482,19 @@ namespace CryptoNote
 
         for (const auto& msg : msgs) {
           logger(DEBUGGING) << ctx << "msg " << msg.type << ':' << msg.command;
+	  logger(DEBUGGING) << "  state: " << get_protocol_state_string(ctx.m_state);
+
           switch (msg.type) {
           case P2pMessage::COMMAND:
+            logger(DEBUGGING) << "sending COMMAND";
             proto.sendMessage(msg.command, msg.buffer, true, logger);
             break;
           case P2pMessage::NOTIFY:
+	    logger(DEBUGGING) << "sending NOTIFY";
             proto.sendMessage(msg.command, msg.buffer, false, logger);
             break;
           case P2pMessage::REPLY:
+	    logger(DEBUGGING) << "sending REPLY";
             proto.sendReply(msg.command, msg.buffer, msg.returnCode, logger);
             break;
           default:

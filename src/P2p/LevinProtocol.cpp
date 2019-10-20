@@ -49,6 +49,9 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool n
 
   // write header and body in one operation
   BinaryArray writeBuffer;
+
+  logger(DEBUGGING) << "LevinProtocol sendMessage: " << command << " size: " << "(" << sizeof(head) + out.size() << ") " <<  "max: " << writeBuffer.max_size(); 
+
   writeBuffer.reserve(sizeof(head) + out.size());
 
   Common::VectorOutputStream stream(writeBuffer);
@@ -119,6 +122,7 @@ void LevinProtocol::sendReply(uint32_t command, const BinaryArray& out, int32_t 
 void LevinProtocol::writeStrict(const uint8_t* ptr, size_t size, Logging::LoggerRef &logger) {
   size_t offset = 0;
   while (offset < size) {
+    logger(DEBUGGING) << "LevinProtocol writeStrict offset/size: " << offset << "/" << size;
     offset += m_conn.write(ptr + offset, size - offset, logger);
   }
 }

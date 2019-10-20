@@ -316,10 +316,10 @@ bool command_line_preprocessor(const boost::program_options::variables_map &vm, 
     std::cout << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG << ENDL;
     exit = true;
   }
-  if (command_line::get_arg(vm, arg_os_version)) {
-    std::cout << "OS: " << Tools::get_os_version_string() << ENDL;
-    exit = true;
-  }
+  //if (command_line::get_arg(vm, arg_os_version)) {
+  //  std::cout << "OS: " << Tools::get_os_version_string() << ENDL;
+  //  exit = true;
+  //}
 
   if (exit) {
     return true;

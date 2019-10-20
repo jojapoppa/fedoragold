@@ -86,7 +86,7 @@ bool core::handle_command_line(const boost::program_options::variables_map& vm) 
   return true;
 }
 
-uint64_t core::get_current_blockchain_height() {
+uint32_t core::get_current_blockchain_height() {
   return m_blockchain.getCurrentBlockchainHeight();
 }
 
@@ -102,6 +102,7 @@ bool core::get_blocks(uint32_t start_offset, uint32_t count, std::list<Block>& b
 bool core::get_blocks(uint32_t start_offset, uint32_t count, std::list<Block>& blocks) {
   return m_blockchain.getBlocks(start_offset, count, blocks);
 }  
+
 void core::getTransactions(const std::vector<Crypto::Hash>& txs_ids, std::list<Transaction>& txs, std::list<Crypto::Hash>& missed_txs, bool checkTxPool) {
   m_blockchain.getTransactions(txs_ids, txs, missed_txs, checkTxPool);
 }

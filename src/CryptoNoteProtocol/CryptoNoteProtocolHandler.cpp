@@ -304,14 +304,26 @@ int CryptoNoteProtocolHandler::handle_notify_new_transactions(int command, NOTIF
 }
 
 int CryptoNoteProtocolHandler::handle_request_get_objects(int command, NOTIFY_REQUEST_GET_OBJECTS::request& arg, CryptoNoteConnectionContext& context) {
-  logger(DEBUGGING) << "COMMAND_NOTIFY_REQUEST_GET_OBJECTS " << context;
+  logger(DEBUGGING) << "COMMAND_NOTIFY_REQUEST_GET_OBJECTS : DEPRECATED " << context;
+
   NOTIFY_RESPONSE_GET_OBJECTS::request rsp;
-  if (!m_core.handle_get_objects(arg, rsp)) {
-    logger(Logging::ERROR) << context << "failed to handle request NOTIFY_REQUEST_GET_OBJECTS, dropping connection";
-    context.m_state = CryptoNoteConnectionContext::state_shutdown;
+
+//  if (!m_core.handle_get_objects(arg, rsp)) {
+//    logger(Logging::ERROR) << context << "failed to handle request NOTIFY_REQUEST_GET_OBJECTS, dropping connection";
+//    context.m_state = CryptoNoteConnectionContext::state_shutdown;
+//  }
+
+  rsp.current_blockchain_height = m_core.getTopBlockIndex() + 1;
+  std::vector<RawBlock> rawBlocks;
+  m_core.getBlocks(arg.blocks, rawBlocks, rsp.missed_ids);
+  if (!arg.txs.empty()) {
+    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << context << "NOTIFY_RESPONSE_GET_OBJECTS: request.txs.empty() != true";
   }
-  logger(Logging::TRACE) << context << "-->>NOTIFY_RESPONSE_GET_OBJECTS: blocks.size()=" << rsp.blocks.size() << ", txs.size()=" << rsp.txs.size()
-    << ", rsp.m_current_blockchain_height=" << rsp.current_blockchain_height << ", missed_ids.size()=" << rsp.missed_ids.size();
+
+  rsp.blocks = convertRawBlocksToRawBlocksLegacy(rawBlocks);
+
+  logger(Logging::TRACE) << context << "-->>NOTIFY_RESPONSE_GET_OBJECTS: blocks.size()=" << rsp.blocks.size() << ", txs.size()=" << rsp.txs.size() << ", rsp.m_current_blockchain_height=" << rsp.current_blockchain_height << ", missed_ids.size()=" << rsp.missed_ids.size();
+
   post_notify<NOTIFY_RESPONSE_GET_OBJECTS>(*m_p2p, rsp, context);
   return 1;
 }

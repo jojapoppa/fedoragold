@@ -428,7 +428,7 @@ difficulty_type Currency::nextDifficultyLWMA(std::vector<uint64_t> timestamps, s
     // To get an average solvetime to within +/- ~0.1%, use an adjustment factor.
     const double_t adjust = 0.998;
     // The divisor k normalizes LWMA.
-    const double_t k = N * (N + 1) / 2;
+    const double_t k = (double_t)(N * (N + 1) / 2);
 
     double_t LWMA(0), sum_inverse_D(0), harmonic_mean_D(0), nextDifficulty(0);
     int64_t solveTime(0);

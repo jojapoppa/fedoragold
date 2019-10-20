@@ -399,12 +399,11 @@ bool Blockchain::have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im) {
   return  m_spent_keys.find(key_im) != m_spent_keys.end();
 }
 
-uint64_t Blockchain::getCurrentBlockchainHeight() {
+// is 32 bit in the network protocol
+uint32_t Blockchain::getCurrentBlockchainHeight() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
-  // jojapoppa, look at these static_cast cases 
-  //return static_cast<uint64_t>(m_blocks.size());
-  return (uint64_t)(m_blocks.size());
+  return static_cast<uint32_t>(m_blocks.size());
 }
 
 bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
@@ -1186,7 +1185,7 @@ bool Blockchain::getBlocks(uint32_t start_offset, uint32_t count, std::list<Bloc
 
 bool Blockchain::handleGetObjects(NOTIFY_REQUEST_GET_OBJECTS::request& arg, NOTIFY_RESPONSE_GET_OBJECTS::request& rsp) { //Deprecated. Should be removed with CryptoNoteProtocolHandler.
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  rsp.current_blockchain_height = getCurrentBlockchainHeight();
+  rsp.current_blockchain_height = (uint32_t)getCurrentBlockchainHeight(); // in protocol as 32bit
   std::list<Block> blocks;
   getBlocks(arg.blocks, blocks, rsp.missed_ids);
 
@@ -1826,7 +1825,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   auto longhash_calculating_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - longhashTimeStart).count();
 
-  if (!prevalidate_miner_transaction(blockData, static_cast<uint64_t>(m_blocks.size()))) {
+  if (!prevalidate_miner_transaction(blockData, static_cast<uint32_t>(m_blocks.size()))) {
     logger(INFO, BRIGHT_WHITE) <<
       "Block " << blockHash << " failed to pass prevalidation";
     bvc.m_verifivation_failed = true;
@@ -1892,14 +1891,14 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   uint64_t reward = 0;
   uint64_t already_generated_coins = m_blocks.empty() ? 0 : m_blocks.back().already_generated_coins;
 
-  if (!validate_miner_transaction(blockData, static_cast<uint64_t>(m_blocks.size()), cumulative_block_size, already_generated_coins, fee_summary, reward, emissionChange)) {
+  if (!validate_miner_transaction(blockData, static_cast<uint32_t>(m_blocks.size()), cumulative_block_size, already_generated_coins, fee_summary, reward, emissionChange)) {
     logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << " has invalid miner transaction";
     bvc.m_verifivation_failed = true;
     popTransactions(block, minerTransactionHash);
     return false;
   }
 
-  block.height = static_cast<uint64_t>(m_blocks.size());
+  block.height = static_cast<uint32_t>(m_blocks.size());
   block.block_cumulative_size = cumulative_block_size;
   block.cumulative_difficulty = currentDifficulty;
   block.already_generated_coins = already_generated_coins + emissionChange;
