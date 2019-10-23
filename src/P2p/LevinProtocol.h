@@ -98,7 +98,7 @@ public:
 
 private:
 
-  bool readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger);
+  bool readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger, bool bSynchronous=false);
   void writeStrict(const uint8_t* ptr, size_t size, Logging::LoggerRef &logger);
   System::TcpConnection& m_conn;
 };

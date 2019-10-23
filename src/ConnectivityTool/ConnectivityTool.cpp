@@ -233,7 +233,7 @@ bool handle_request_stat(po::variables_map& vm, PeerIdType peer_id) {
     System::TcpConnector connector(dispatcher);
     System::Ipv4Resolver resolver(dispatcher);
 
-    std::cout << "Connecting to " << command_line::get_arg(vm, arg_ip) << ":" << command_line::get_arg(vm, arg_port) << ENDL;
+    //std::cout << "Connecting to " << command_line::get_arg(vm, arg_ip) << ":" << command_line::get_arg(vm, arg_port) << ENDL;
 
     auto addr = resolver.resolve(command_line::get_arg(vm, arg_ip));
 

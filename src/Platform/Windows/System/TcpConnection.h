@@ -31,7 +31,7 @@ namespace System
 
         TcpConnection &operator=(TcpConnection &&other);
 
-        size_t read(uint8_t *data, size_t size, Logging::LoggerRef &logger);
+        size_t read(uint8_t *data, size_t size, Logging::LoggerRef &logger, bool bSynchronous=false);
 
         size_t write(const uint8_t *data, size_t size, Logging::LoggerRef &logger);
 

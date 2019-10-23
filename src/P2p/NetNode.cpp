@@ -247,7 +247,7 @@ namespace CryptoNote
 #endif
     default: {
         handled = false;
-	logger(DEBUGGING) << "sending to default payload handler...";
+	logger(DEBUGGING) << "m_payload_handler routing command to CN protocol... (not Levin)";
         ret = m_payload_handler.handleCommand(cmd.isNotify, cmd.command, cmd.buf, out, ctx, handled);
       }
     }
@@ -824,8 +824,7 @@ namespace CryptoNote
       if(is_peer_used(pe))
         continue;
 
-      logger(DEBUGGING) << "Selected peer: " << pe.id << " " << pe.adr << " [white=" << use_white_list
-                    << "] last_seen: " << (pe.last_seen ? Common::timeIntervalToString(time(NULL) - pe.last_seen) : "never");
+      //logger(DEBUGGING) << "Selected peer: " << pe.id << " " << pe.adr << " [white=" << use_white_list << "] last_seen: " << (pe.last_seen ? Common::timeIntervalToString(time(NULL) - pe.last_seen) : "never");
       
       if(!try_to_connect_and_handshake_with_new_peer(pe.adr, false, pe.last_seen, use_white_list))
         continue;
@@ -1081,7 +1080,7 @@ namespace CryptoNote
   //-----------------------------------------------------------------------------------
   bool NodeServer::invoke_notify_to_peer(int command, const BinaryArray& buffer, const CryptoNoteConnectionContext& context) {
 
-    logger(DEBUGGING) << "invoke_notify_to_peer";
+    //logger(DEBUGGING) << "invoke_notify_to_peer";
 
     auto it = m_connections.find(context.m_connection_id);
     if (it == m_connections.end()) {
@@ -1089,8 +1088,8 @@ namespace CryptoNote
       return false;
     }
 
-    logger(DEBUGGING) << "invoke_notify_to_peer, size in bytes: " << buffer.size();
-    log_connections();
+    logger(DEBUGGING) << "invoke_notify_to_peer command: " << command << ", size in bytes: " << buffer.size();
+    //log_connections();
 
     it->second.pushMessage(P2pMessage(P2pMessage::NOTIFY, command, buffer));
 
@@ -1414,9 +1413,14 @@ namespace CryptoNote
             m_payload_handler.requestMissingPoolTransactions(ctx);
           }
 
-          logger(DEBUGGING) << "read next command...";
           if (!proto.readCommand(cmd, logger)) {
-            logger(DEBUGGING) << "no more commands recieved... break!";
+            // Under high network volume allow it to retry - Windows OS sockets will fail...
+	    //   and tcp.recv will start returning 0 bytes for the headers...
+            if (cmd.command == COMMAND_BLOCKED::ID) {
+              continue;
+            }
+
+            logger(DEBUGGING) << "No command recieved...";
             break;
           }
 
@@ -1469,7 +1473,7 @@ namespace CryptoNote
   }
 
   void NodeServer::writeHandler(P2pConnectionContext& ctx) {
-    logger(DEBUGGING) << ctx << "writeHandler started";
+    logger(DEBUGGING) << "**************writeHandler started " << ctx;
 
     try {
       LevinProtocol proto(ctx.connection);
@@ -1486,15 +1490,15 @@ namespace CryptoNote
 
           switch (msg.type) {
           case P2pMessage::COMMAND:
-            logger(DEBUGGING) << "sending COMMAND";
+            logger(DEBUGGING) << "sending COMMAND: " << msg.command;
             proto.sendMessage(msg.command, msg.buffer, true, logger);
             break;
           case P2pMessage::NOTIFY:
-	    logger(DEBUGGING) << "sending NOTIFY";
+	    logger(DEBUGGING) << "sending NOTIFY: " << msg.command;
             proto.sendMessage(msg.command, msg.buffer, false, logger);
             break;
           case P2pMessage::REPLY:
-	    logger(DEBUGGING) << "sending REPLY";
+	    logger(DEBUGGING) << "sending REPLY: " << msg.command;
             proto.sendReply(msg.command, msg.buffer, msg.returnCode, logger);
             break;
           default:

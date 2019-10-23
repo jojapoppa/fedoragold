@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "LevinProtocol.h"
+#include "P2pProtocolDefinitions.h"
 #include "System/TcpConnection.h"
 
 using namespace CryptoNote;
@@ -64,10 +65,9 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool n
 bool LevinProtocol::readCommand(Command& cmd, Logging::LoggerRef& logger) {
   bucket_head2 head = { 0 };
 
-  logger(DEBUGGING) << "Trying to read header of size: " << sizeof(head);
-
-  if (!readStrict(reinterpret_cast<uint8_t*>(&head), sizeof(head), logger)) {
-    logger(DEBUGGING) << "Levin readCommand failed because of no header";
+  if (!readStrict(reinterpret_cast<uint8_t*>(&head), sizeof(head), logger, false)) {
+    // Windows OS network fails under high volume, allow it to retry headers...
+    cmd.command = COMMAND_BLOCKED::ID;
     return false;
   }
 
@@ -122,28 +122,28 @@ void LevinProtocol::sendReply(uint32_t command, const BinaryArray& out, int32_t 
 void LevinProtocol::writeStrict(const uint8_t* ptr, size_t size, Logging::LoggerRef &logger) {
   size_t offset = 0;
   while (offset < size) {
-    logger(DEBUGGING) << "LevinProtocol writeStrict offset/size: " << offset << "/" << size;
+    //logger(DEBUGGING) << "LevinProtocol writeStrict offset/size: " << offset << "/" << size;
     offset += m_conn.write(ptr + offset, size - offset, logger);
   }
 }
 
-bool LevinProtocol::readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger) {
+bool LevinProtocol::readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &logger, bool bSynchronous) {
   size_t offset = 0;
-  logger(DEBUGGING) << "readStrict is looking for these many bytes: " << size;
+  //logger(DEBUGGING) << "readStrict is looking for these many bytes: " << size;
   
   while (offset < size) {
-    size_t read = m_conn.read(ptr + offset, size - offset, logger);
+    size_t read = m_conn.read(ptr + offset, size - offset, logger, bSynchronous);
 
-    logger(DEBUGGING) << "readStrict just got some bytes: " << read;
+    //logger(DEBUGGING) << "readStrict just got some bytes: " << read;
 
     if (read == 0) {
-      logger(DEBUGGING) << "readStrict found no more input bytes, found: " << offset;
+      //logger(DEBUGGING) << "readStrict found no more input bytes, found: " << offset;
       return false;
     }
 
     offset += read;
   }
 
-  logger(DEBUGGING) << "readStrict succeeded and found: " << offset;
+  //logger(DEBUGGING) << "readStrict succeeded and found: " << offset;
   return true;
 }

@@ -78,6 +78,11 @@ namespace CryptoNote
 
 #define P2P_COMMANDS_POOL_BASE 1000
 
+  struct COMMAND_BLOCKED
+  {
+    enum { ID = P2P_COMMANDS_POOL_BASE };
+  };
+
   /************************************************************************/
   /*                                                                      */
   /************************************************************************/

@@ -42,7 +42,7 @@ namespace {
     }
 
     std::unique_ptr<ITransactionReader> addTransaction(uint32_t height = WALLET_LEGACY_UNCONFIRMED_TRANSACTION_HEIGHT,
-                                                 uint64_t outputAmount = TEST_OUTPUT_AMOUNT) {
+      uint64_t outputAmount = TEST_OUTPUT_AMOUNT) {
       TestTransactionBuilder builder;
 
       // auto tx = createTransaction();
@@ -576,7 +576,7 @@ TEST_F(TransfersContainer_deleteUnconfirmedTransaction, deleteTx) {
 //--------------------------------------------------------------------------- 
 class TransfersContainer_markTransactionConfirmed : public TransfersContainerTest {
 public:
-  bool markConfirmed(const Hash& txHash, uint64_t height = TEST_BLOCK_HEIGHT, 
+  bool markConfirmed(const Hash& txHash, uint32_t height = TEST_BLOCK_HEIGHT, 
     const std::vector<uint32_t>& globalIndices = { TEST_TRANSACTION_OUTPUT_GLOBAL_INDEX }) {
     return container.markTransactionConfirmed(blockInfo(height), txHash, globalIndices);
   }

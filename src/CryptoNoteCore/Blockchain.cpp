@@ -1183,7 +1183,7 @@ bool Blockchain::getBlocks(uint32_t start_offset, uint32_t count, std::list<Bloc
   return true;
 }
 
-bool Blockchain::handleGetObjects(NOTIFY_REQUEST_GET_OBJECTS::request& arg, NOTIFY_RESPONSE_GET_OBJECTS::request& rsp) { //Deprecated. Should be removed with CryptoNoteProtocolHandler.
+bool Blockchain::handleGetObjects(NOTIFY_REQUEST_GET_OBJECTS::request& arg, NOTIFY_RESPONSE_GET_OBJECTS::request& rsp) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
   rsp.current_blockchain_height = (uint32_t)getCurrentBlockchainHeight(); // in protocol as 32bit
   std::list<Block> blocks;
@@ -1193,7 +1193,7 @@ bool Blockchain::handleGetObjects(NOTIFY_REQUEST_GET_OBJECTS::request& arg, NOTI
     std::list<Crypto::Hash> missed_tx_id;
     std::list<Transaction> txs;
     getTransactions(bl.transactionHashes, txs, rsp.missed_ids);
-    if (!(!missed_tx_id.size())) { logger(ERROR, BRIGHT_RED) << "Internal error: have missed missed_tx_id.size()=" << missed_tx_id.size() << ENDL << "for block id = " << get_block_hash(bl); return false; } //WTF???
+    if (!(!missed_tx_id.size())) { logger(ERROR, BRIGHT_RED) << "Internal error: have missed missed_tx_id.size()=" << missed_tx_id.size() << ENDL << "for block id = " << get_block_hash(bl); return false; } 
     rsp.blocks.push_back(block_complete_entry());
     block_complete_entry& e = rsp.blocks.back();
     //pack block
@@ -1545,8 +1545,8 @@ bool Blockchain::check_tx_input(const KeyInput& txin, const Crypto::Hash& tx_pre
     std::vector<const Crypto::PublicKey *>& m_results_collector;
     Blockchain& m_bch;
     LoggerRef logger;
-    outputs_visitor(std::vector<const Crypto::PublicKey *>& results_collector, Blockchain& bch, ILogger& logger) :m_results_collector(results_collector), m_bch(bch), logger(logger, "outputs_visitor") {
-    }
+
+    outputs_visitor(std::vector<const Crypto::PublicKey *>& results_collector, Blockchain& bch, ILogger& logger) :m_results_collector(results_collector), m_bch(bch), logger(logger, "outputs_visitor") { }
 
     bool handle_output(const Transaction& tx, const TransactionOutput& out, size_t transactionOutputIndex) {
       //check tx unlock time
@@ -1567,23 +1567,41 @@ bool Blockchain::check_tx_input(const KeyInput& txin, const Crypto::Hash& tx_pre
     }
   };
 
+  // additional key_image check, fix discovered by Monero Lab and 
+  //   suggested by "fluffypony" (bitcointalk.org)
+  // static const Crypto::KeyImage I = { { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+  // static const Crypto::KeyImage L = { { 0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 } };
+  // if (!(scalarmultKey(txin.keyImage, L) == I)) {
+  //   logger(ERROR) << "Transaction uses key image not in the valid domain";
+  //   return false;
+  // }
+
   //check ring signature
   std::vector<const Crypto::PublicKey *> output_keys;
   outputs_visitor vi(output_keys, *this, logger.getLogger());
   if (!scanOutputKeysForIndexes(txin, vi, pmax_related_block_height)) {
     logger(INFO, BRIGHT_WHITE) <<
-      "Failed to get output keys for tx with amount = " << m_currency.formatAmount(txin.amount) <<
+      "Failed to get output keys for tx with amount = " << 
+      m_currency.formatAmount(txin.amount) <<
       " and count indexes " << txin.outputIndexes.size();
     return false;
   }
 
   if (txin.outputIndexes.size() != output_keys.size()) {
     logger(INFO, BRIGHT_WHITE) <<
-      "Output keys for tx with amount = " << txin.amount << " and count indexes " << txin.outputIndexes.size() << " returned wrong keys count " << output_keys.size();
+      "Output keys for tx with amount = " << m_currency.formatAmount(txin.amount) << 
+      " and count indexes " << txin.outputIndexes.size() << 
+      " returned wrong keys count " << output_keys.size();
     return false;
   }
 
-  if (!(sig.size() == output_keys.size())) { logger(ERROR, BRIGHT_RED) << "internal error: tx signatures count=" << sig.size() << " mismatch with outputs keys count for inputs=" << output_keys.size(); return false; }
+  if (!(sig.size() == output_keys.size())) { 
+    logger(ERROR, BRIGHT_RED) << "internal error: tx signatures count=" << 
+    sig.size() << " mismatch with outputs keys count for inputs=" << 
+    output_keys.size(); 
+    return false; 
+  }
+
   if (m_is_in_checkpoint_zone) {
     return true;
   }
@@ -1756,7 +1774,6 @@ bool Blockchain::pushBlock(const Block& blockData, block_verification_context& b
 
 bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction>& transactions, block_verification_context& bvc) {
 
-  logger(INFO, BRIGHT_WHITE) << "pushBlock with transactions vector...";
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
   auto blockProcessingStart = std::chrono::steady_clock::now();
@@ -1786,7 +1803,6 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 
   auto targetTimeStart = std::chrono::steady_clock::now();
 
-  logger(INFO, BRIGHT_WHITE) << "get diff for next block...";
   difficulty_type currentDifficulty = getDifficultyForNextBlock();
   auto target_calculating_time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - targetTimeStart).count();
 
@@ -1879,8 +1895,6 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     cumulative_block_size += blob_size;
     fee_summary += fee;
   }
-
-  logger(INFO, BRIGHT_WHITE) << "check cumulativeBlockSize...";
 
   if (!checkCumulativeBlockSize(blockHash, cumulative_block_size, m_blocks.size())) {
     bvc.m_verifivation_failed = true;

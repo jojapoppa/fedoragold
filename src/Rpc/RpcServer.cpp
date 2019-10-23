@@ -372,7 +372,9 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
 
   std::list<Block> blocks;
   std::list<Transaction> txs;
-  if (!m_core.get_blocks(req.height, 1, blocks, txs)) {
+
+  // height is 32bit in the network protocol for CN
+  if (!m_core.get_blocks((uint32_t)req.height, 1, blocks, txs)) {
     logger(INFO) << "block not found at: " << req.height;
     return false;
   }
@@ -394,7 +396,8 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
   res.currentmediansize = m_core.getcurrentmediansize();
   res.alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
 
-  res.hash = m_core.getBlockIdByHeight(req.height);
+  // height is 32bit in the network protocol for CN
+  res.hash = m_core.getBlockIdByHeight((uint32_t)req.height);
   size_t size=0;
   m_core.getBlockSize(res.hash, size);
   res.blocksize = size;
@@ -479,7 +482,8 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
 
 bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res) {
 
-  for (uint64_t i=0; i<m_core.get_current_blockchain_height(); i++) {
+  // height is 32bit in the network protocol for CN
+  for (uint32_t i=0; i<m_core.get_current_blockchain_height(); i++) {
 
     std::list<Block> blocks;
     std::list<Transaction> txs;

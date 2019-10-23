@@ -1150,7 +1150,7 @@ std::error_code WalletService::getStatus(uint32_t& blockCount, uint32_t& knownBl
     System::EventLock lk(readyEvent);
 
     knownBlockCount = node.getKnownBlockCount();
-    peerCount = node.getPeerCount();
+    peerCount = (uint32_t)node.getPeerCount();
     blockCount = wallet.getBlockCount();
 
     auto lastHashes = wallet.getBlockHashes(blockCount - 1, 1);

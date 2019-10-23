@@ -90,8 +90,12 @@ const uint8_t  BLOCK_MINOR_VERSION_0                         =  0;
 //    {BLOCK_MAJOR_VERSION_6, Crypto::chukwa_slow_hash} /* UPGRADE_HEIGHT_V6 */
 //};
 
-const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000;  //by default, blocks ids count in synchronizing
-const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  200;    //by default, blocks count in blocks downloading
+// default: blocks ids count in synchronizing
+const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000; 
+// default: blocks count in blocks downloading 
+const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  75;
+
+const size_t   CURRENCY_PROTOCOL_MAX_OBJECT_REQUEST_COUNT    =  2000;
 const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  1000;
 
 // This port will be used by the daemon to establish connections with p2p network
@@ -102,23 +106,23 @@ const int      RPC_DEFAULT_PORT                              = 30159;
 const size_t   P2P_LOCAL_WHITE_PEERLIST_LIMIT                =  1000;
 const size_t   P2P_LOCAL_GRAY_PEERLIST_LIMIT                 =  5000;
 
-const size_t   P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE          = 16 * 1024 * 1024; // 16 MB
+const size_t   P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE          = 20 * 1024 * 1024; // 16 MB //20
 const uint32_t P2P_DEFAULT_CONNECTIONS_COUNT                 = 16;
 const size_t   P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT     = 70;
 const uint32_t P2P_DEFAULT_HANDSHAKE_INTERVAL                = 60;            // seconds
 const uint32_t P2P_DEFAULT_PACKET_MAX_SIZE                   = 50000000;      // 50000000 bytes maximum packet size
 const uint32_t P2P_DEFAULT_PEERS_IN_HANDSHAKE                = 250;
-const uint32_t P2P_DEFAULT_CONNECTION_TIMEOUT                = 10000;          // 5 seconds TEST
+const uint32_t P2P_DEFAULT_CONNECTION_TIMEOUT                = 10000;         // 5 seconds TEST
 const uint32_t P2P_DEFAULT_PING_CONNECTION_TIMEOUT           = 5000;          // 2 seconds TEST
 const uint64_t P2P_DEFAULT_INVOKE_TIMEOUT                    = 60 * 3 * 1000; // 2 minutes TEST
 const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 9000;          // 7 seconds TEST
-const char     P2P_STAT_TRUSTED_PUB_KEY[]                    ="";
+const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 
 // Add here your network seed nodes
+// "34.235.55.80:30158",   // goblin 
 const std::initializer_list<const char*> SEED_NODES = {
   "18.223.178.174:30158", // seed1
   "18.222.96.134:30158",  // seed2
-  "34.235.55.80:30158",   // goblin
   "213.136.89.252:30158", // cryptonote.club server 1
   "173.249.27.160:30158", // cryptonote.club server 2
   "fed.cryptonote.club:30158" // cryptonote.club on DNS 

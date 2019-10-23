@@ -96,31 +96,43 @@ namespace System
         return *this;
     }
 
-    size_t TcpConnection::read(uint8_t *data, size_t size, Logging::LoggerRef &logger)
+    size_t TcpConnection::read(uint8_t *data, size_t size, Logging::LoggerRef &logger, bool bSynchronous)
     {
+        //logger(DEBUGGING) << "TcpConnection:read";
+    
         assert(dispatcher != nullptr);
         assert(readContext == nullptr);
-        if (dispatcher->interrupted())
-        {
+        if (dispatcher->interrupted()) {
+            logger(DEBUGGING) << "TcpConnection::read dispatcher interrupted...";
             throw InterruptedException();
         }
 
         WSABUF buf {static_cast<ULONG>(size), reinterpret_cast<char *>(data)};
-        DWORD flags = 0;
+        int bytesIn = 0;
         TcpConnectionContext context;
         context.hEvent = NULL;
-        if (WSARecv(connection, &buf, 1, NULL, &flags, &context, NULL) != 0)
-        {
-            int lastError = WSAGetLastError();
-            if (lastError != WSA_IO_PENDING)
-            {
-                // Make this an INFO message, so that user knows about Windows Defender dropping it... 
-                logger(INFO) << "TcpConnection read failed:" << errorMessage(lastError);
-                throw std::runtime_error("TcpConnection::read, WSARecv failed, " + errorMessage(lastError));
-            }
-        }
 
-        assert(flags == 0);
+        if (bSynchronous) {
+          int flags = 0;
+          bytesIn = recv(connection, (char*)data, (int)size, flags);
+          if (bytesIn == SOCKET_ERROR) {
+            int lastError = WSAGetLastError();
+            throw std::runtime_error("TcpConnection::read, WSARecv synchronous: " +
+              errorMessage(lastError));
+          }
+        } else {
+          DWORD flags = 0;
+          int iResult = WSARecv(connection, &buf, 1, NULL, &flags, &context, NULL);
+          if (iResult != 0) { 
+            int lastError = WSAGetLastError();
+            if (lastError != WSA_IO_PENDING) {
+              // Make visible so that user knows about Windows Defender dropping it... 
+              throw std::runtime_error("TcpConnection::read, WSARecv failed, " + 
+                errorMessage(lastError));
+            }
+          }
+        }
+       
         context.context = dispatcher->getCurrentContext();
         context.interrupted = false;
         readContext = &context;
@@ -128,46 +140,51 @@ namespace System
             assert(dispatcher != nullptr);
             assert(readContext != nullptr);
             TcpConnectionContext *context = static_cast<TcpConnectionContext *>(readContext);
-            if (!context->interrupted)
-            {
-                if (CancelIoEx(reinterpret_cast<HANDLE>(connection), context) != TRUE)
-                {
+            if (!context->interrupted) {
+                if (CancelIoEx(reinterpret_cast<HANDLE>(connection), context) != TRUE) {
                     DWORD lastError = GetLastError();
-                    if (lastError != ERROR_NOT_FOUND)
-                    {
-                        logger(DEBUGGING) << "TcpConnection: CancelIoEx failed: " + lastErrorMessage(); 
+                    if (lastError != ERROR_NOT_FOUND) {
                         throw std::runtime_error("TcpConnection::stop, CancelIoEx failed, " + lastErrorMessage());
                     }
 
-                    context->context->interrupted = true;
+		    context->context->interrupted = true;
                 }
 
                 context->interrupted = true;
             }
         };
 
-        dispatcher->dispatch();
+	if (!bSynchronous) {
+          dispatcher->dispatch();
+        }
+
         dispatcher->getCurrentContext()->interruptProcedure = nullptr;
         assert(context.context == dispatcher->getCurrentContext());
         assert(dispatcher != nullptr);
         assert(readContext == &context);
-        readContext = nullptr;
-        DWORD transferred;
-        if (WSAGetOverlappedResult(connection, &context, &transferred, FALSE, &flags) != TRUE)
-        {
+	readContext = nullptr;
+
+	// Don't get the results if you already have them...
+        if (bSynchronous) {
+          return bytesIn;
+        }
+
+	DWORD flags = 0;
+        DWORD transferred = 0;
+        if (WSAGetOverlappedResult(connection, &context, &transferred, FALSE, &flags) != TRUE) {
             int lastError = WSAGetLastError();
-            if (lastError != ERROR_OPERATION_ABORTED)
-            {
+            if (lastError != ERROR_OPERATION_ABORTED) {
                 logger(DEBUGGING) << "Tcp read err: " << errorMessage(lastError);
                 throw std::runtime_error(
                     "TcpConnection::read, WSAGetOverlappedResult failed, " + errorMessage(lastError));
             } 
 
+	    logger(DEBUGGING) << "TcpConnection WSAGetOverlappedResult interrupted...";
             assert(context.interrupted);
             throw InterruptedException();
         }
 
-        logger(DEBUGGING) << "Tcp read this number of bytes: " << transferred;
+        //logger(DEBUGGING) << "Tcp read this number of bytes: " << transferred;
 
         if (context.interrupted)
         {
@@ -175,7 +192,6 @@ namespace System
         }
 
         assert(transferred <= size);
-        assert(flags == 0);
         return transferred;
     }
 
@@ -226,7 +242,6 @@ namespace System
                     DWORD lastError = GetLastError();
                     if (lastError != ERROR_NOT_FOUND)
                     {
-                        logger(DEBUGGING) << "TcpConnection::stop, CancelIoEx failed, " + lastErrorMessage();
                         throw std::runtime_error("TcpConnection::stop, CancelIoEx failed, " + lastErrorMessage());
                     }
 
@@ -265,7 +280,6 @@ namespace System
         }
 
         assert(transferred == size);
-        assert(flags == 0);
 
 	logger(DEBUGGING) << "Tcp write succeeded with bytes: " << transferred;
         return transferred;

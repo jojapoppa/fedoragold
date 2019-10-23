@@ -144,17 +144,6 @@ namespace System
         NativeContext *context;
         for (;;)
         {
-            if (firstResumingContext != nullptr)
-            {
-                context = firstResumingContext;
-                firstResumingContext = context->next;
-
-                assert(context->inExecutionQueue);
-                context->inExecutionQueue = false;
-
-                break;
-            }
-
             LARGE_INTEGER frequency;
             LARGE_INTEGER ticks;
             QueryPerformanceCounter(&ticks);
@@ -168,14 +157,10 @@ namespace System
                 timerContextPair = timers.erase(timerContextPair);
             }
 
-            if (firstResumingContext != nullptr)
-            {
+            if (firstResumingContext != nullptr) {
                 context = firstResumingContext;
                 firstResumingContext = context->next;
-
-                assert(context->inExecutionQueue);
                 context->inExecutionQueue = false;
-
                 break;
             }
 
@@ -420,7 +405,8 @@ namespace System
     {
         if (firstReusableContext == nullptr)
         {
-            void *fiber = CreateFiberEx(STACK_SIZE, RESERVE_STACK_SIZE, 0, contextProcedureStatic, this);
+            DWORD flags = FIBER_FLAG_FLOAT_SWITCH;
+            void *fiber = CreateFiberEx(STACK_SIZE, RESERVE_STACK_SIZE, flags, contextProcedureStatic, this);
             if (fiber == NULL)
             {
                 throw std::runtime_error("Dispatcher::getReusableContext, CreateFiberEx failed, " + lastErrorMessage());
