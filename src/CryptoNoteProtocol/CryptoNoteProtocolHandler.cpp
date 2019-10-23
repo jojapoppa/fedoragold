@@ -161,7 +161,7 @@ bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& 
       hshd.current_height << " [" << std::abs(diff) << " blocks (" << 
       std::abs(diff) / (24 * 60 * 60 / m_currency.difficultyTarget()) << " days) " << 
       (diff >= 0 ? std::string("behind") : std::string("ahead")) << "] " << std::endl << 
-      "SYNCHRONIZATION started";
+      "SYNCHRONIZATION processing...";
 
     // let the socket send response to handshake, but request a callback, to send 
     // a new request as well

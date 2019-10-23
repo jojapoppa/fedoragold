@@ -72,12 +72,14 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& other) {
   return *this;
 }
 
-size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logger) {
+size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logger, bool bSynchronous) {
   assert(dispatcher != nullptr);
   assert(contextPair.readContext == nullptr);
   if (dispatcher->interrupted()) {
     throw InterruptedException();
   }
+
+  // Note: the bSynchronous flag is not needed on Linux...
 
   std::string message;
   ssize_t transferred = ::recv(connection, (void *)data, size, 0);
