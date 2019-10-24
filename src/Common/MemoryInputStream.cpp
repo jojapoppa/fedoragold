@@ -6,7 +6,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring> // memcpy
-#include <stdlib>
+#include <iostream>
+#include <string>
 
 namespace Common {
 
@@ -23,7 +24,7 @@ bool MemoryInputStream::endOfStream() const {
 
 uint64_t MemoryInputStream::readSome(void* data, uint64_t size) {
   assert(position <= bufferSize);
-  uint64_t readSize = std::min(size, bufferSize - position);
+  uint64_t readSize = std::min(size, (uint64_t)(bufferSize - position));
 
   if (readSize > 0) {
     memcpy(data, buffer + position, readSize);

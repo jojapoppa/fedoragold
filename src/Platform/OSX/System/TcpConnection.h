@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <utility>
 
+#include "Logging/LoggerRef.h"
+
 namespace System {
 
 class Dispatcher;
@@ -21,8 +23,8 @@ public:
   ~TcpConnection();
   TcpConnection& operator=(const TcpConnection&) = delete;
   TcpConnection& operator=(TcpConnection&& other);
-  std::size_t read(uint8_t* data, std::size_t size);
-  std::size_t write(const uint8_t* data, std::size_t size);
+  std::size_t read(uint8_t* data, std::size_t size, Logging::LoggerRef &logger, bool bSynchronous=false);
+  std::size_t write(const uint8_t* data, std::size_t size, Logging::LoggerRef &logger);
   std::pair<IpAddress, uint16_t> getPeerAddressAndPort() const;
 
 private:

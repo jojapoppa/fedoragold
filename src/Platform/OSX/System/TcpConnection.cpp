@@ -63,7 +63,7 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& other) {
   return *this;
 }
 
-size_t TcpConnection::read(uint8_t* data, size_t size) {
+size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logger, bool bSynchronous) {
   assert(dispatcher != nullptr);
   assert(readContext == nullptr);
   if (dispatcher->interrupted()) {
@@ -130,7 +130,7 @@ size_t TcpConnection::read(uint8_t* data, size_t size) {
   return transferred;
 }
 
-size_t TcpConnection::write(const uint8_t* data, size_t size) {
+size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef &logger) {
   assert(dispatcher != nullptr);
   assert(writeContext == nullptr);
   if (dispatcher->interrupted()) {

@@ -131,7 +131,7 @@ namespace CryptoNote {
     struct TransactionDetails : public TransactionCheckInfo {
       Crypto::Hash id;
       Transaction tx;
-      size_t blobSize;
+      uint64_t blobSize;
       uint64_t fee;
       bool keptByBlock;
       time_t receiveTime;

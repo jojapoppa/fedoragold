@@ -151,7 +151,7 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
                   else if (errno == EINVAL)
                     message = "invalid value passed to connection : ";
                 }
-                message = message + "getsockopt failed, reval: " + retval + " : " + lastErrorMessage();
+                message = message + "getsockopt failed, reval: " + lastErrorMessage();
               }
             }
           }
