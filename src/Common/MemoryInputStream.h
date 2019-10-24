@@ -15,7 +15,7 @@ namespace Common {
     bool endOfStream() const;
     
     // IInputStream
-    virtual size_t readSome(void* data, size_t size) override;
+    virtual uint64_t readSome(void* data, uint64_t size) override;
 
   private:
     const char* buffer;
