@@ -57,7 +57,7 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
         address.sin_port = htons(port);
         address.sin_addr.s_addr = htonl( addr.getValue());
         if (bind(listener, reinterpret_cast<sockaddr *>(&address), sizeof address) != 0) {
-          message = "bind failed, " + lastErrorMessage();
+          message = "bind failed, " + lastErrorMessage() + "port already in use: " + port;
         } else if (listen(listener, SOMAXCONN) != 0) {
           message = "listen failed, " + lastErrorMessage();
         } else {
