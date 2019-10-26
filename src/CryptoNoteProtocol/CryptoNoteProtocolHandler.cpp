@@ -158,7 +158,7 @@ bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& 
 
     logger(Logging::INFO, Logging::BRIGHT_GREEN) << context <<
       "Sync data returned unknown top block: " << get_current_blockchain_height() << " -> " << 
-      hshd.current_height << " [" << std::abs(diff) << " blocks (" << 
+      hshd.current_height << " [" << std::abs(diff) << " blocks (that block was created " << 
       std::abs(diff) / (24 * 60 * 60 / m_currency.difficultyTarget()) << " days) " << 
       (diff >= 0 ? std::string("behind") : std::string("ahead")) << "] " << std::endl << 
       "SYNCHRONIZATION processing...";
