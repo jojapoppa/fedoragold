@@ -53,6 +53,9 @@ void ConsoleLogger::doLogString(const std::string& message) {
       }
     } else if (readingText) {
       std::cout << message[charPos];
+      if (message[charPos] == '\n') {
+        std::cout << std::flush;
+      }
     } else {
       color += message[charPos];
     }
