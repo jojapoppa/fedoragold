@@ -664,10 +664,8 @@ bool core::on_idle() {
     logger(INFO, BRIGHT_GREEN) << ENDL << 
 	 "**********************************************************************" << ENDL
       << "The daemon is now synchronizing with the network. " << ENDL
-      << "It may take up to several hours." << ENDL
-      << "Use \"help\" command to see the list of available commands." << ENDL
-      << "Note: in case you need to interrupt the process, use \"exit\" command." << ENDL
-      << "   Otherwise, the current progress won't be saved." << ENDL
+      << "Note: in case you need to interrupt this process, please exit software" << ENDL
+      << "  normally otherwise, the current progress won't be saved." << ENDL
       << "**********************************************************************";
     m_starter_message_showed = true;
   }
