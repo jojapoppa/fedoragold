@@ -472,18 +472,25 @@ void WalletSerializer::saveTransfers(Common::IOutputStream& destination, CryptoC
   }
 }
 
-void WalletSerializer::load(const std::string& password, Common::IInputStream& source) {
+void WalletSerializer::load(const std::string& password, Common::IInputStream& source, Logging::LoggerRef logger) {
+  logger(Logging::INFO) << "WalletSerializer load";
+
   CryptoNote::BinaryInputStreamSerializer s(source);
   s.beginObject("wallet");
 
   uint32_t version = loadVersion(source);
 
+  logger(Logging::INFO) << "wallet version detected: " << version; 
+
   if (version > SERIALIZATION_VERSION) {
+    logger(Logging::INFO) << "exceeded supported version number defined in SERIALIZATION_VERSION";
     throw std::system_error(make_error_code(error::WRONG_VERSION));
-  } else if (version != 1) {
+  } else if (version == 1) {
+    loadWalletV1(source, password);
+  } else if (version == 5) {
     loadWallet(source, password, version);
   } else {
-    loadWalletV1(source, password);
+    loadWallet(source, password, version);
   }
 
   s.endObject();

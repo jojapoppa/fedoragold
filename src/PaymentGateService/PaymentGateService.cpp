@@ -10,6 +10,7 @@
 #include "InProcessNode/InProcessNode.h"
 #include "Logging/LoggerRef.h"
 #include "PaymentGate/PaymentServiceJsonRpcServer.h"
+#include "Wallet/WalletGreen.h"
 
 #include "CryptoNoteCore/CoreConfig.h"
 #include "CryptoNoteCore/Core.h"
@@ -141,8 +142,12 @@ void PaymentGateService::runInProcess(Logging::LoggerRef& log) {
   CryptoNote::Currency currency = currencyBuilder.currency();
   CryptoNote::core core(currency, NULL, logger);
 
+  log(Logging::INFO) << "Core created";
+
   CryptoNote::CryptoNoteProtocolHandler protocol(currency, *dispatcher, core, NULL, logger);
+  log(Logging::INFO) << "CryptoNote Protocol Handler created";
   CryptoNote::NodeServer p2pNode(*dispatcher, protocol, logger);
+  log(Logging::INFO) << "NodeServer created";
 
   protocol.set_p2p_endpoint(&p2pNode);
   core.set_cryptonote_protocol(&protocol);
@@ -214,9 +219,10 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
     config.gateConfiguration.containerPassword
   };
 
-  std::unique_ptr<CryptoNote::IWallet> wallet (WalletFactory::createWallet(currency, node, *dispatcher, logger));
+  std::unique_ptr<CryptoNote::WalletGreen> wallet(new CryptoNote::WalletGreen(*dispatcher, currency, node, logger));
 
-  service = new PaymentService::WalletService(currency, *dispatcher, node, *wallet, walletConfiguration, logger);
+  service = new PaymentService::WalletService(currency, *dispatcher, node, *wallet, *wallet, walletConfiguration, logger);
+
   std::unique_ptr<PaymentService::WalletService> serviceGuard(service);
   try {
     service->init();
@@ -233,8 +239,16 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
       std::cout << "Address: " << address << std::endl;
     }
   } else {
-    PaymentService::PaymentServiceJsonRpcServer rpcServer(*dispatcher, *stopEvent, *service, logger);
-    rpcServer.start(config.gateConfiguration.bindAddress, config.gateConfiguration.bindPort);
+
+    PaymentService::PaymentServiceJsonRpcServer rpcServer(*dispatcher, 
+      *stopEvent, *service, logger);
+    rpcServer.start(config.gateConfiguration.bindAddress, 
+      config.gateConfiguration.bindPort,
+      config.gateConfiguration.m_rpcUser, 
+      config.gateConfiguration.m_rpcPassword);
+
+    Logging::LoggerRef(logger, "PaymentGateService")(Logging::INFO, 
+      Logging::BRIGHT_WHITE) << "JSON-RPC server stopped, stopping wallet service...";
 
     try {
       service->saveWallet();

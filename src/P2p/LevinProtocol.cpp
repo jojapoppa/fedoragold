@@ -132,7 +132,9 @@ bool LevinProtocol::readStrict(uint8_t* ptr, size_t size, Logging::LoggerRef &lo
   //logger(DEBUGGING) << "readStrict is looking for these many bytes: " << size;
   
   while (offset < size) {
-    size_t read = m_conn.read(ptr + offset, size - offset, logger, bSynchronous);
+
+    // bSyncronous
+    size_t read = m_conn.read(ptr + offset, size - offset, logger);
 
     //logger(DEBUGGING) << "readStrict just got some bytes: " << read;
 

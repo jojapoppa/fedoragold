@@ -23,7 +23,7 @@ class WalletGreen : public IWallet,
                     ITransfersObserver,
                     IBlockchainSynchronizerObserver,
                     ITransfersSynchronizerObserver,
-                    IFusionManager {
+                    public IFusionManager {
 public:
   WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, const Logging::LoggerRef logger, uint32_t transactionSoftLockTime = 1);
   WalletGreen(System::Dispatcher& dispatcher, const Currency& currency, INode& node, Logging::ILogger &ilog, uint32_t transactionSoftLockTime = 1);
@@ -76,9 +76,15 @@ public:
   virtual void stop() override;
   virtual WalletEvent getEvent() override;
 
-  virtual size_t createFusionTransaction(uint64_t threshold, uint64_t mixin) override;
+  void validateChangeDestination(const std::vector<std::string>& sourceAddresses, const std::string& changeDestination, bool isFusion) const;
+  void validateSourceAddresses(const std::vector<std::string>& sourceAddresses) const;
+
+  virtual size_t createFusionTransaction(uint64_t threshold, uint64_t mixin,
+    const std::vector<std::string>& sourceAddresses = {}, 
+    const std::string& destinationAddress = "") override;
   virtual bool isFusionTransaction(size_t transactionId) const override;
-  virtual IFusionManager::EstimateResult estimate(uint64_t threshold) const override;
+  virtual IFusionManager::EstimateResult estimate(uint64_t threshold, 
+    const std::vector<std::string>& sourceAddresses = {}) const override;
 
   void createViewWallet(const std::string &password, const std::string address, const Crypto::SecretKey &viewSecretKey);
 
@@ -163,8 +169,8 @@ protected:
   void transactionDeleteEnd(Crypto::Hash transactionHash);
 
   std::vector<WalletOuts> pickWalletsWithMoney() const;
-  WalletOuts pickWallet(const std::string& address);
-  std::vector<WalletOuts> pickWallets(const std::vector<std::string>& addresses);
+  WalletOuts pickWallet(const std::string& address) const;
+  std::vector<WalletOuts> pickWallets(const std::vector<std::string>& addresses) const;
 
   void updateBalance(CryptoNote::ITransfersContainer* container);
   void unlockBalances(uint32_t height);
@@ -251,8 +257,8 @@ protected:
   void unsafeLoad(std::istream& source, const std::string& password);
   void unsafeSave(std::ostream& destination, bool saveDetails, bool saveCache);
 
-  std::vector<OutputToTransfer> pickRandomFusionInputs(uint64_t threshold, size_t minInputCount, size_t maxInputCount);
-  ReceiverAmounts decomposeFusionOutputs(uint64_t inputsAmount);
+  std::vector<OutputToTransfer> pickRandomFusionInputs(const std::vector<std::string>& addresses, uint64_t threshold, size_t minInputCount, size_t maxInputCount);
+  static ReceiverAmounts decomposeFusionOutputs(const AccountPublicAddress& address, uint64_t inputsAmount);
 
   enum class WalletState {
     INITIALIZED,

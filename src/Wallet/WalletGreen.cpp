@@ -391,14 +391,14 @@ void WalletGreen::unsafeSave(std::ostream& destination, bool saveDetails, bool s
 }
 
 void WalletGreen::load(std::istream& source, const std::string& password) {
+  m_logger(Logging::INFO) << "WalletGreen load";
   if (m_state != WalletState::NOT_INITIALIZED) {
+    m_logger(Logging::INFO) << "Error in wallet m_state";
     throw std::system_error(make_error_code(error::WRONG_STATE));
   }
 
   throwIfStopped();
-
   stopBlockchainSynchronizer();
-
   unsafeLoad(source, password);
 
   assert(m_blockchain.empty());
@@ -430,8 +430,10 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
     m_uncommitedTransactions
   );
 
+  m_logger(Logging::INFO) << "calling WalletSerializer.load";
+
   StdInputStream inputStream(source);
-  s.load(password, inputStream);
+  s.load(password, inputStream, m_logger);
 
   m_password = password;
   m_blockchainSynchronizer.addObserver(this);
@@ -1474,7 +1476,7 @@ std::vector<WalletGreen::WalletOuts> WalletGreen::pickWalletsWithMoney() const {
   return walletOuts;
 }
 
-WalletGreen::WalletOuts WalletGreen::pickWallet(const std::string& address) {
+WalletGreen::WalletOuts WalletGreen::pickWallet(const std::string& address) const {
   const auto& wallet = getWalletRecord(address);
 
   ITransfersContainer* container = wallet.container;
@@ -1485,7 +1487,7 @@ WalletGreen::WalletOuts WalletGreen::pickWallet(const std::string& address) {
   return outs;
 }
 
-std::vector<WalletGreen::WalletOuts> WalletGreen::pickWallets(const std::vector<std::string>& addresses) {
+std::vector<WalletGreen::WalletOuts> WalletGreen::pickWallets(const std::vector<std::string>& addresses) const {
   std::vector<WalletOuts> wallets;
   wallets.reserve(addresses.size());
 
@@ -2069,35 +2071,122 @@ WalletGreen::WalletTrackingMode WalletGreen::getTrackingMode() const {
         WalletTrackingMode::TRACKING : WalletTrackingMode::NOT_TRACKING;
 }
 
-size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin) {
-  Tools::ScopeExit releaseContext([this] {
+void WalletGreen::validateSourceAddresses(const std::vector<std::string>& sourceAddresses) const {
+
+  validateAddresses(sourceAddresses, m_currency);
+
+  auto badAddr = std::find_if(sourceAddresses.begin(), sourceAddresses.end(), 
+    [this](const std::string& addr) {
+
+    return !isMyAddress(addr);
+  });
+
+  if (badAddr != sourceAddresses.end()) {
+    m_logger(Logging::ERROR) << "Source address isn't belong to the container: " << 
+      *badAddr;
+    throw std::system_error(make_error_code(error::BAD_ADDRESS), 
+      "Source address must belong to current container: " + *badAddr);
+  }
+}
+
+void WalletGreen::validateChangeDestination(const std::vector<std::string>& 
+  sourceAddresses, const std::string& changeDestination, bool isFusion) const {
+
+  std::string message;
+  if (changeDestination.empty()) {
+    if (sourceAddresses.size() > 1 || (sourceAddresses.empty() && 
+      m_walletsContainer.size() > 1)) {
+
+      message = std::string(isFusion ? "Destination" : "Change destination") + 
+        " address is necessary";
+      m_logger(Logging::ERROR) << message << ". Source addresses size=" << 
+        sourceAddresses.size() << ", wallets count=" << m_walletsContainer.size();
+      throw std::system_error(make_error_code(isFusion ? 
+        error::DESTINATION_ADDRESS_REQUIRED : 
+        error::CHANGE_ADDRESS_REQUIRED), message);
+    }
+  } else {
+    if (!CryptoNote::validateAddress(changeDestination, m_currency)) {
+      message = std::string("Bad ") + (isFusion ? "destination" : 
+        "change destination") + " address: " + changeDestination;
+      m_logger(Logging::ERROR) << message;
+      throw std::system_error(make_error_code(CryptoNote::error::BAD_ADDRESS), message);
+    }
+
+    if (!isMyAddress(changeDestination)) {
+      message = std::string(isFusion ? "Destination" : "Change destination") + 
+        " address is not found in current container: " + changeDestination;
+      m_logger(Logging::ERROR) << message;
+      throw std::system_error(make_error_code(isFusion ? 
+        error::DESTINATION_ADDRESS_NOT_FOUND : 
+        error::CHANGE_ADDRESS_NOT_FOUND), message);
+    }
+  }
+}
+
+size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin, 
+  const std::vector<std::string>& sourceAddresses, 
+  const std::string& destinationAddress) {
+
+  size_t id = WALLET_INVALID_TRANSACTION_ID;
+  Tools::ScopeExit releaseContext([this, &id] {
     m_dispatcher.yield();
+
+    if (id != WALLET_INVALID_TRANSACTION_ID) {
+      auto& tx = m_transactions[id];
+      m_logger(Logging::INFO) << "Fusion transaction created and sent, ID " << id <<
+        ", hash " << m_transactions[id].hash;
+    }
   });
 
   System::EventLock lk(m_readyEvent);
+
+  std::string sAddr;
+  for (const auto &piece : sourceAddresses) sAddr += piece;
+  m_logger(Logging::INFO) << "createFusionTransaction" <<
+    ", from " << sAddr <<
+    ", to '" << destinationAddress << '\'' <<
+    ", threshold " << m_currency.formatAmount(threshold) <<
+    ", mixin " << mixin;
 
   throwIfNotInitialized();
   throwIfTrackingMode();
   throwIfStopped();
 
+  validateSourceAddresses(sourceAddresses);
+  validateChangeDestination(sourceAddresses, destinationAddress, true);
+
   const size_t MAX_FUSION_OUTPUT_COUNT = 4;
+  uint64_t fusionThreshold = m_currency.defaultDustThreshold();
 
   if (threshold <= m_currency.defaultDustThreshold()) {
-    throw std::runtime_error("Threshold must be greater than " + std::to_string(m_currency.defaultDustThreshold()));
+    m_logger(Logging::ERROR) << 
+      "Fusion transaction threshold is too small. Threshold " << 
+      m_currency.formatAmount(threshold) <<
+      ", minimum threshold " << 
+      m_currency.formatAmount(fusionThreshold + 1);
+    throw std::runtime_error("Threshold must be greater than " + 
+      std::to_string(m_currency.defaultDustThreshold()));
   }
 
   if (m_walletsContainer.get<RandomAccessIndex>().size() == 0) {
+    m_logger(Logging::ERROR) << "The container doesn't have any wallets";
     throw std::runtime_error("You must have at least one address");
   }
 
-  size_t estimatedFusionInputsCount = m_currency.getApproximateMaximumInputCount(m_currency.fusionTxMaxSize(), MAX_FUSION_OUTPUT_COUNT, mixin);
+  size_t estimatedFusionInputsCount = m_currency.getApproximateMaximumInputCount(
+    m_currency.fusionTxMaxSize(), MAX_FUSION_OUTPUT_COUNT, mixin);
   if (estimatedFusionInputsCount < m_currency.fusionTxMinInputCount()) {
+    m_logger(Logging::ERROR) << "Fusion transaction mixin is too big " << mixin;
     throw std::system_error(make_error_code(error::MIXIN_COUNT_TOO_BIG));
   }
 
-  std::vector<OutputToTransfer> fusionInputs = pickRandomFusionInputs(threshold, m_currency.fusionTxMinInputCount(), estimatedFusionInputsCount);
+  std::vector<OutputToTransfer> fusionInputs = pickRandomFusionInputs(sourceAddresses, 
+    threshold, m_currency.fusionTxMinInputCount(), estimatedFusionInputsCount);
   if (fusionInputs.size() < m_currency.fusionTxMinInputCount()) {
     //nothing to optimize
+    m_logger(Logging::WARNING) << "Fusion transaction not created: nothing to optimize" <<
+      ", threshold " << m_currency.formatAmount(threshold);
     return WALLET_INVALID_TRANSACTION_ID;
   }
 
@@ -2110,23 +2199,26 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin) 
   std::vector<InputInfo> keysInfo;
   prepareInputs(fusionInputs, mixinResult, mixin, keysInfo);
 
+  AccountPublicAddress destination = getChangeDestination(destinationAddress, 
+    sourceAddresses);
+  m_logger(Logging::DEBUGGING) << "Destination address " << 
+    m_currency.accountAddressAsString(destination);
+
   std::unique_ptr<ITransaction> fusionTransaction;
   size_t transactionSize;
   int round = 0;
-  //uint64_t transactionAmount=0;
   do {
     if (round != 0) {
       fusionInputs.pop_back();
       keysInfo.pop_back();
     }
 
-    uint64_t inputsAmount = std::accumulate(fusionInputs.begin(), fusionInputs.end(), static_cast<uint64_t>(0), [] (uint64_t amount, const OutputToTransfer& input) {
+    uint64_t inputsAmount = std::accumulate(fusionInputs.begin(), fusionInputs.end(), 
+      static_cast<uint64_t>(0), [] (uint64_t amount, const OutputToTransfer& input) {
       return amount + input.out.amount;
     });
 
-    //transactionAmount = inputsAmount;
-
-    ReceiverAmounts decomposedOutputs = decomposeFusionOutputs(inputsAmount);
+    ReceiverAmounts decomposedOutputs = decomposeFusionOutputs(destination, inputsAmount);
     assert(decomposedOutputs.amounts.size() <= MAX_FUSION_OUTPUT_COUNT);
 
     fusionTransaction = makeTransaction(std::vector<ReceiverAmounts>{decomposedOutputs}, keysInfo, "", 0);
@@ -2137,17 +2229,18 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin) 
   } while (transactionSize > m_currency.fusionTxMaxSize() && fusionInputs.size() >= m_currency.fusionTxMinInputCount());
 
   if (fusionInputs.size() < m_currency.fusionTxMinInputCount()) {
+    m_logger(Logging::ERROR) << "Unable to create fusion transaction";
     throw std::runtime_error("Unable to create fusion transaction");
   }
 
   return validateSaveAndSendTransaction(*fusionTransaction, {}, true, true);
 }
 
-WalletGreen::ReceiverAmounts WalletGreen::decomposeFusionOutputs(uint64_t inputsAmount) {
-  assert(m_walletsContainer.get<RandomAccessIndex>().size() > 0);
+WalletGreen::ReceiverAmounts WalletGreen::decomposeFusionOutputs(const
+  AccountPublicAddress& address, uint64_t inputsAmount) {
 
   WalletGreen::ReceiverAmounts outputs;
-  outputs.receiver = {m_walletsContainer.get<RandomAccessIndex>().begin()->spendPublicKey, m_viewPublicKey};
+  outputs.receiver = address;
 
   decomposeAmount(inputsAmount, 0, outputs.amounts);
   std::sort(outputs.amounts.begin(), outputs.amounts.end());
@@ -2160,6 +2253,8 @@ bool WalletGreen::isFusionTransaction(size_t transactionId) const {
   throwIfStopped();
 
   if (m_transactions.size() <= transactionId) {
+    m_logger(Logging::ERROR) << "Failed to check transaction: invalid index " << 
+    transactionId << ". Number of transactions: " << m_transactions.size();
     throw std::system_error(make_error_code(CryptoNote::error::INDEX_OUT_OF_RANGE));
   }
 
@@ -2214,22 +2309,29 @@ bool WalletGreen::isFusionTransaction(const WalletTransaction& walletTx) const {
   if (outputsSum != inputsSum || outputsSum != txInfo.totalAmountOut || inputsSum != txInfo.totalAmountIn) {
     return false;
   } else {
-    return m_currency.isFusionTransaction(inputsAmounts, outputsAmounts, 0); //size = 0 here because can't get real size of tx in wallet.
+    //size = 0 here because can't get real size of tx in wallet. 
+    return m_currency.isFusionTransaction(inputsAmounts, outputsAmounts, 0);
   }
 }
 
-IFusionManager::EstimateResult WalletGreen::estimate(uint64_t threshold) const {
+IFusionManager::EstimateResult WalletGreen::estimate(uint64_t threshold, 
+  const std::vector<std::string>& sourceAddresses) const {
   throwIfNotInitialized();
   throwIfStopped();
 
+  validateSourceAddresses(sourceAddresses);
+
   IFusionManager::EstimateResult result{0, 0};
-  auto walletOuts = pickWalletsWithMoney();
+  auto walletOuts = sourceAddresses.empty() ? pickWalletsWithMoney() : 
+    pickWallets(sourceAddresses);
   std::array<size_t, std::numeric_limits<uint64_t>::digits10 + 1> bucketSizes;
   bucketSizes.fill(0);
   for (size_t walletIndex = 0; walletIndex < walletOuts.size(); ++walletIndex) {
     for (auto& out : walletOuts[walletIndex].outs) {
       uint8_t powerOfTen = 0;
-      if (m_currency.isAmountApplicableInFusionTransactionInput(out.amount, threshold, powerOfTen)) {
+      if (m_currency.isAmountApplicableInFusionTransactionInput(out.amount, threshold, 
+        powerOfTen)) {
+
         assert(powerOfTen < std::numeric_limits<uint64_t>::digits10 + 1);
         bucketSizes[powerOfTen]++;
       }
@@ -2247,15 +2349,20 @@ IFusionManager::EstimateResult WalletGreen::estimate(uint64_t threshold) const {
   return result;
 }
 
-std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(uint64_t threshold, size_t minInputCount, size_t maxInputCount) {
+std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(
+  const std::vector<std::string>& addresses, uint64_t threshold, 
+  size_t minInputCount, size_t maxInputCount) {
+
   std::vector<WalletGreen::OutputToTransfer> allFusionReadyOuts;
-  auto walletOuts = pickWalletsWithMoney();
+  auto walletOuts = addresses.empty() ? pickWalletsWithMoney() : pickWallets(addresses);
   std::array<size_t, std::numeric_limits<uint64_t>::digits10 + 1> bucketSizes;
   bucketSizes.fill(0);
   for (size_t walletIndex = 0; walletIndex < walletOuts.size(); ++walletIndex) {
     for (auto& out : walletOuts[walletIndex].outs) {
       uint8_t powerOfTen = 0;
-      if (m_currency.isAmountApplicableInFusionTransactionInput(out.amount, threshold, powerOfTen)) {
+      if (m_currency.isAmountApplicableInFusionTransactionInput(out.amount, threshold, 
+        powerOfTen)) {
+
         allFusionReadyOuts.push_back({std::move(out), walletOuts[walletIndex].wallet});
         assert(powerOfTen < std::numeric_limits<uint64_t>::digits10 + 1);
         bucketSizes[powerOfTen]++;
@@ -2266,7 +2373,8 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(u
   //now, pick the bucket
   std::vector<uint8_t> bucketNumbers(bucketSizes.size());
   std::iota(bucketNumbers.begin(), bucketNumbers.end(), 0);
-  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), 
+    std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
   size_t bucketNumberIndex = 0;
   for (; bucketNumberIndex < bucketNumbers.size(); ++bucketNumberIndex) {
     if (bucketSizes[bucketNumbers[bucketNumberIndex]] >= minInputCount) {
@@ -2286,18 +2394,22 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(u
     lowerBound *= 10;
   }
    
-  uint64_t upperBound = selectedBucket == std::numeric_limits<uint64_t>::digits10 ? UINT64_MAX : lowerBound * 10;
+  uint64_t upperBound = selectedBucket == std::numeric_limits<uint64_t>::digits10 ? 
+    UINT64_MAX : lowerBound * 10;
   std::vector<WalletGreen::OutputToTransfer> selectedOuts;
   selectedOuts.reserve(bucketSizes[selectedBucket]);
   for (size_t outIndex = 0; outIndex < allFusionReadyOuts.size(); ++outIndex) {
-    if (allFusionReadyOuts[outIndex].out.amount >= lowerBound && allFusionReadyOuts[outIndex].out.amount < upperBound) {
+    if (allFusionReadyOuts[outIndex].out.amount >= lowerBound && 
+      allFusionReadyOuts[outIndex].out.amount < upperBound) {
+
       selectedOuts.push_back(std::move(allFusionReadyOuts[outIndex]));
     }
   }
 
   assert(selectedOuts.size() >= minInputCount);
 
-  auto outputsSortingFunction = [](const OutputToTransfer& l, const OutputToTransfer& r) { return l.out.amount < r.out.amount; };
+  auto outputsSortingFunction = [](const OutputToTransfer& l, const OutputToTransfer& r) 
+    { return l.out.amount < r.out.amount; };
   if (selectedOuts.size() <= maxInputCount) {
     std::sort(selectedOuts.begin(), selectedOuts.end(), outputsSortingFunction);
     return selectedOuts;

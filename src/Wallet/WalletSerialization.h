@@ -13,6 +13,8 @@
 
 #include "crypto/chacha8.h"
 
+#include "Logging/LoggerRef.h"
+
 namespace CryptoNote {
 
 struct CryptoContext {
@@ -40,12 +42,13 @@ public:
   );
   
   void save(const std::string& password, Common::IOutputStream& destination, bool saveDetails, bool saveCache);
-  void load(const std::string& password, Common::IInputStream& source);
+  void load(const std::string& password, Common::IInputStream& source, Logging::LoggerRef logger);
 
 private:
   static const uint32_t SERIALIZATION_VERSION;
 
   void loadWallet(Common::IInputStream& source, const std::string& password, uint32_t version);
+  void loadWalletV5(Common::IInputStream& source, const std::string& password, uint32_t version);
   void loadWalletV1(Common::IInputStream& source, const std::string& password);
 
   CryptoContext generateCryptoContext(const std::string& password);

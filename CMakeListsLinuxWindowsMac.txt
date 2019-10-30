@@ -107,7 +107,7 @@ else()
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
   endif()
-  set(DEBUG_FLAGS "-g3 -rdynamic -Og")
+  set(DEBUG_FLAGS "-g3 -ggdb -rdynamic -Og")
   set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
   if(NOT APPLE)
     # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
