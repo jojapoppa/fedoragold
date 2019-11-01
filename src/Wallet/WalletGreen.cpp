@@ -16,6 +16,8 @@
 #include <System/EventLock.h>
 #include <System/RemoteContext.h>
 
+#include <boost/filesystem.hpp>
+
 #include "ITransaction.h"
 
 #include "Common/ScopeExit.h"
@@ -32,6 +34,7 @@
 #include "crypto/crypto.h"
 #include "Transfers/TransfersContainer.h"
 #include "WalletSerialization.h"
+#include "WalletSerializationV5.h"
 #include "WalletErrors.h"
 #include "WalletUtils.h"
 
@@ -399,7 +402,21 @@ void WalletGreen::load(std::istream& source, const std::string& password) {
 
   throwIfStopped();
   stopBlockchainSynchronizer();
-  unsafeLoad(source, password);
+
+  int version = source.peek();
+  if (version == EOF) {
+    m_logger(Logging::ERROR) << "Failed to read wallet version";
+    throw std::system_error(make_error_code(error::WRONG_VERSION), 
+      "Failed to read wallet version");
+  }
+
+std::cout << "We are on wallet format version: " << version;
+
+  if (version < (int)WalletSerializer::SERIALIZATION_VERSION) {
+    convertAndLoadWalletFile(source, password);
+  } else {
+    unsafeLoad(source, password);
+  }
 
   assert(m_blockchain.empty());
   if (m_walletsContainer.get<RandomAccessIndex>().size() != 0) {
@@ -432,11 +449,38 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
 
   m_logger(Logging::INFO) << "calling WalletSerializer.load";
 
+  std::cout << "calling WalletSerializer now...";
+
   StdInputStream inputStream(source);
   s.load(password, inputStream, m_logger);
 
   m_password = password;
   m_blockchainSynchronizer.addObserver(this);
+}
+
+void WalletGreen::convertAndLoadWalletFile(std::istream& source, const std::string& password) {
+  WalletSerializerV5 s(
+    (ITransfersObserver&)*this,
+    m_viewPublicKey,
+    m_viewSecretKey,
+    m_actualBalance,
+    m_pendingBalance,
+    m_walletsContainer,
+    m_synchronizer,
+    m_unlockTransactionsJob,
+    m_transactions,
+    m_transfers,
+    m_transactionSoftLockTime,
+    m_uncommitedTransactions
+  );
+
+  StdInputStream inputStream(source);
+  s.load(password, inputStream);
+
+  m_password = password;
+  m_blockchainSynchronizer.addObserver(this);
+
+  m_logger(Logging::INFO) << "Wallet file converted!";
 }
 
 void WalletGreen::changePassword(const std::string& oldPassword, const std::string& newPassword) {
@@ -2133,7 +2177,6 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
     m_dispatcher.yield();
 
     if (id != WALLET_INVALID_TRANSACTION_ID) {
-      auto& tx = m_transactions[id];
       m_logger(Logging::INFO) << "Fusion transaction created and sent, ID " << id <<
         ", hash " << m_transactions[id].hash;
     }

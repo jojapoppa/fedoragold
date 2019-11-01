@@ -46,7 +46,7 @@ namespace Crypto {
     Hash pwd_hash;
 
     // hard coded at CNv1 for chacha8 only
-    cn_slow_hash(1, context, password.data(), password.size(), pwd_hash);
+    cn_slow_hash(1, context, password.data(), password.size(), pwd_hash, true);
 
     memcpy((void *)&key, &pwd_hash, sizeof(key));
     memset(&pwd_hash, 0, sizeof(pwd_hash));

@@ -76,6 +76,8 @@ public:
   virtual void stop() override;
   virtual WalletEvent getEvent() override;
 
+  void convertAndLoadWalletFile(std::istream& source, const std::string& password);
+
   void validateChangeDestination(const std::vector<std::string>& sourceAddresses, const std::string& changeDestination, bool isFusion) const;
   void validateSourceAddresses(const std::vector<std::string>& sourceAddresses) const;
 

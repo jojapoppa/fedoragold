@@ -47,7 +47,7 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
       message = "fcntl failed, " + lastErrorMessage();
     } else {
       int on = 1;
-      if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on) == -1) {
+      if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR|SO_REUSEPORT, &on, sizeof on) == -1) {
         message = "setsockopt failed, " + lastErrorMessage();
       } else {
         sockaddr_in address;

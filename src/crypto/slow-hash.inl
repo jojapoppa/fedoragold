@@ -8,7 +8,7 @@ cn_slow_hash_aesni
 #else
 cn_slow_hash_noaesni
 #endif
-(size_t majorVersion, void *restrict context, const void *restrict data, size_t length, void *restrict hash)
+(size_t majorVersion, void *restrict context, const void *restrict data, size_t length, void *restrict hash, bool walletkey)
 {
 #define ctx ((struct cn_ctx *) context)
   ALIGNED_DECL(uint8_t ExpandedKey[256], 16);
@@ -184,5 +184,10 @@ cn_slow_hash_noaesni
 
   memcpy(ctx->state.init, ctx->text, INIT_SIZE_BYTE);
   hash_permutation(&ctx->state.hs);
-  extra_hashes[ctx->state.hs.b[0] & 7](&ctx->state, 200, hash);
+
+  if (walletkey) {
+    extra_hashes_wallet[ctx->state.hs.b[0] & 7](&ctx->state, 200, hash);
+  } else {
+    extra_hashes[ctx->state.hs.b[0] & 7](&ctx->state, 200, hash);
+  }
 }

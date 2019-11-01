@@ -21,10 +21,10 @@
 #include "crypto/hash-ops.h"
 #include "crypto/oaes_lib.h"
 
-void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *);
+void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *, bool);
 
-void cn_slow_hash_f(size_t v, void * a, const void * b, size_t c, void * d){
-(*cn_slow_hash_fp)(v, a, b, c, d);
+void cn_slow_hash_f(size_t v, void * a, const void * b, size_t c, void * d, bool e){
+(*cn_slow_hash_fp)(v, a, b, c, d, e);
 }
 
 #if defined(__GNUC__)
@@ -156,6 +156,12 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   ExpandAESKey256_sub1(&tmp1, &tmp2);
   keys[14] = tmp1;
 }
+
+  static void (*const extra_hashes_wallet[8])(const void *, size_t, char *) =
+    {
+        hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
+        hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein
+    };
 
   // jojapoppa, soft fork here...
   //size_t majorVersion = 1; // DON'T HARD CODE (IT'S PASSED IN)

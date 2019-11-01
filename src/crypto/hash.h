@@ -43,11 +43,11 @@ namespace Crypto {
 
   private:
 
-    friend inline void cn_slow_hash(size_t, cn_context &, const void *, size_t, Hash &);
+    friend inline void cn_slow_hash(size_t, cn_context &, const void *, size_t, Hash &, bool);
   };
 
-  inline void cn_slow_hash(size_t majorVersion, cn_context &context, const void *data, size_t length, Hash &hash) {
-    (*cn_slow_hash_f)(majorVersion, context.data, data, length, reinterpret_cast<void *>(&hash));
+  inline void cn_slow_hash(size_t majorVersion, cn_context &context, const void *data, size_t length, Hash &hash, bool walletkey=false) {
+    (*cn_slow_hash_f)(majorVersion, context.data, data, length, reinterpret_cast<void *>(&hash), walletkey);
   }
 
   inline void tree_hash(const Hash *hashes, size_t count, Hash &root_hash) {
