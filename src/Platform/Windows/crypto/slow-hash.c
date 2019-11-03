@@ -157,6 +157,12 @@ static inline void ExpandAESKey256(uint8_t *keybuf)
   keys[14] = tmp1;
 }
 
+  static void (*const extra_hashes_wallet[8])(const void *, size_t, char *) =
+  {
+    hash_extra_jh, hash_extra_skein, hash_extra_blake, hash_extra_groestl,
+    hash_extra_blake, hash_extra_groestl, hash_extra_jh, hash_extra_skein 
+  };
+
   // jojapoppa, soft fork here...
   //size_t majorVersion = 1; // DON'T HARD CODE (IT'S PASSED IN)
   //static void (*const extra_hashes[8])(const void *, size_t, char *);
