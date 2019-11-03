@@ -21,10 +21,10 @@
 #include "crypto/hash-ops.h"
 #include "crypto/oaes_lib.h"
 
-void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *);
+void (*cn_slow_hash_fp)(size_t, void *, const void *, size_t, void *, bool);
 
-void cn_slow_hash_f(size_t v, void * a, const void * b, size_t c, void * d){
-(*cn_slow_hash_fp)(v, a, b, c, d);
+void cn_slow_hash_f(size_t v, void * a, const void * b, size_t c, void * d, bool e){
+(*cn_slow_hash_fp)(v, a, b, c, d, e);
 }
 
 #if defined(__GNUC__)
