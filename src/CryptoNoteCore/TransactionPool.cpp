@@ -8,6 +8,7 @@
 #include <ctime>
 #include <vector>
 #include <unordered_set>
+#include <sys/stat.h>
 
 #include <boost/filesystem.hpp>
 
@@ -394,11 +395,20 @@ namespace CryptoNote {
 
     m_config_folder = config_folder;
     std::string state_file_path = config_folder + "/" + m_currency.txPoolFileName();
-    boost::system::error_code ec;
-    if (!boost::filesystem::exists(state_file_path, ec)) {
+    logger(INFO) << "loading memory pool from: " << state_file_path;
+
+    //boost::system::error_code ec;
+    //if (!boost::filesystem::exists(state_file_path, ec)) {
+    //  return true;
+    //}
+
+    // return true if file does not exist (boost::filesystem::exists does not work on some systems)   
+    struct stat buffer; 
+    if (! (stat (state_file_path.c_str(), &buffer) == 0)) {
       return true;
     }
-
+ 
+    logger(INFO) << "load binary file: " << state_file_path;
     if (!loadFromBinaryFile(*this, state_file_path)) {
       logger(ERROR) << "Failed to load memory pool from file " << state_file_path;
 
@@ -409,9 +419,11 @@ namespace CryptoNote {
       m_paymentIdIndex.clear();
       m_timestampIndex.clear();
     } else {
+      logger(INFO) << "build indices...";
       buildIndices();
     }
 
+    logger(INFO) << "remove expired transactions...";
     removeExpiredTransactions();
 
     // Ignore deserialization error

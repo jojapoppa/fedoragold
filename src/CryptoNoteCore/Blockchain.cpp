@@ -130,11 +130,13 @@ public:
     try {
       std::ifstream stdStream(filename, std::ios::binary);
       if (!stdStream) {
+        logger(INFO) << "error loading input stream for: " << filename;
         return;
       }
 
       StdInputStream stream(stdStream);
       BinaryInputStreamSerializer s(stream);
+      logger(INFO) << "calling serialize for block cache load...";
       CryptoNote::serialize(*this, s);
     } catch (std::exception& e) {
       logger(WARNING) << "loading failed: " << e.what();
@@ -145,11 +147,13 @@ public:
     try {
       std::ofstream file(filename, std::ios::binary);
       if (!file) {
+        logger(INFO) << "error creating output stream for: " << filename;
         return false;
       }
 
       StdOutputStream stream(file);
       BinaryOutputStreamSerializer s(stream);
+      logger(INFO) << "calling serialize for block cache save...";
       CryptoNote::serialize(*this, s);
     } catch (std::exception&) {
       return false;
@@ -165,8 +169,10 @@ public:
     s(version, "version");
 
     // ignore old versions, do rebuild
-    if (version < CURRENT_BLOCKCACHE_STORAGE_ARCHIVE_VER)
+    if (version < CURRENT_BLOCKCACHE_STORAGE_ARCHIVE_VER) {
+      logger(INFO) << "this is an old version... rebuild block cache...";
       return;
+    }
 
     std::string operation;
     if (s.type() == ISerializer::INPUT) {
@@ -175,6 +181,7 @@ public:
       s(blockHash, "last_block");
 
       if (blockHash != m_lastBlockHash) {
+        logger(INFO) << "last block does not match... rebuild block cache...";
         return;
       }
 
@@ -243,6 +250,7 @@ public:
       s(blockHash, "blockHash");
 
       if (blockHash != m_lastBlockHash) {
+        logger(INFO) << "last block does not match, reloading block indices...";
         return;
       }
 
@@ -453,16 +461,32 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     load_existing = false;
   }
 
-  if (! loadIndexes(config_folder, load_existing)) {
-    // force resync now
-    remove(blockFilePath.c_str());
-    remove(indexesPath.c_str());
-    if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
-      logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
-      return false;
-    }
+  std::string cachePath = "";
+  if (load_existing && !m_blocks.empty()) {
+    logger(INFO) << "Loading blockchain...";
+    BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger()); 
+    cachePath = appendPath(config_folder, m_currency.blocksCacheFileName());
+    loader.load(cachePath);
 
-    loadIndexes(config_folder, false);
+    if (loader.loaded()) {
+      loadBlockchainIndices();
+    } else {
+      logger(INFO) << "Block cache not loaded from: " + cachePath;
+      if (! loadIndexes(config_folder, load_existing)) {
+        logger(INFO) << "Failed to load indexes, doing resync now...";
+        // force resync now
+        remove(blockFilePath.c_str());
+        remove(indexesPath.c_str());
+        if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
+          logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
+          return false;
+        }
+
+        loadIndexes(config_folder, false);
+      }
+    }
+  } else {
+    m_blocks.clear();
   }
 
   logger(WARNING, BRIGHT_YELLOW) << "Checking blocks...";

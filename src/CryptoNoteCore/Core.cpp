@@ -113,17 +113,21 @@ bool core::get_alternative_blocks(std::list<Block>& blocks) {
 
 size_t core::get_alternative_blocks_count() {
   return m_blockchain.getAlternativeBlocksCount();
-  }
-  //-----------------------------------------------------------------------------------------------
-  bool core::init(const CoreConfig& config, const MinerConfig& minerConfig, bool load_existing) {
-    m_config_folder = config.configFolder;
-    bool r = m_mempool.init(m_config_folder);
+}
 
+//-----------------------------------------------------------------------------------------------
+bool core::init(const CoreConfig& config, const MinerConfig& minerConfig, bool load_existing) {
+  m_config_folder = config.configFolder;
+
+  logger(INFO) << "Initialize memory pool...";
+  bool r = m_mempool.init(m_config_folder);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize memory pool"; return false; }
 
+  logger(INFO) << "Initialize block chain...";
   r = m_blockchain.init(m_config_folder, load_existing);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage"; return false; }
 
+  logger(INFO) << "Miner state init...";
   r = m_miner->init(minerConfig);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage for miner"; return false; }
 
@@ -661,12 +665,7 @@ bool core::update_miner_block_template() {
 
 bool core::on_idle() {
   if (!m_starter_message_showed) {
-    logger(INFO, BRIGHT_GREEN) << ENDL << 
-	 "**********************************************************************" << ENDL
-      << "The daemon is now synchronizing with the network. " << ENDL
-      << "Note: in case you need to interrupt this process, please exit software" << ENDL
-      << "  normally otherwise, the current progress won't be saved." << ENDL
-      << "**********************************************************************";
+    logger(INFO, BRIGHT_GREEN) << "daemon synchronizing...";
     m_starter_message_showed = true;
   }
 

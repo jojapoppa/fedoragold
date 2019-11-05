@@ -60,7 +60,7 @@ struct BaseTransaction : public TransactionPrefix
 {
 };
 
-struct ParentBlock {
+/* struct ParentBlock {
   uint8_t majorVersion;
   uint8_t minorVersion;
   Crypto::Hash previousBlockHash;
@@ -68,7 +68,7 @@ struct ParentBlock {
   std::vector<Crypto::Hash>baseTransactionBranch;
   BaseTransaction baseTransaction;
   std::vector<Crypto::Hash>blockchainBranch;
-};
+}; */
 
 struct BlockHeader {
   uint8_t majorVersion;
