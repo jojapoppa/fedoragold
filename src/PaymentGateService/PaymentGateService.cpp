@@ -41,10 +41,28 @@ void stopSignalHandler(PaymentGateService* pg) {
   pg->stop();
 }
 
+JsonValue PaymentGateService::consoleLogConfig() {
+  JsonValue loggerConfiguration(JsonValue::OBJECT);
+  loggerConfiguration.insert("globalLevel", static_cast<int64_t>(2));
+
+  JsonValue& cfgLoggers = loggerConfiguration.insert("loggers", JsonValue::ARRAY);
+
+  JsonValue& consoleLogger = cfgLoggers.pushBack(JsonValue::OBJECT);
+  consoleLogger.insert("type", "console");
+  consoleLogger.insert("level", static_cast<int64_t>(2));
+  consoleLogger.insert("pattern", "%T %L ");
+
+  return loggerConfiguration;
+}
+
 bool PaymentGateService::init(int argc, char** argv) {
   if (!config.init(argc, argv)) {
     return false;
   }
+
+  logManager.configure(consoleLogConfig());
+  Logging::LoggerRef cLogger(logManager, "payment daemon");
+  logger.addLogger(cLogger.getLogger());
 
   logger.setMaxLevel(static_cast<Logging::Level>(config.gateConfiguration.logLevel));
   logger.addLogger(consoleLogger);

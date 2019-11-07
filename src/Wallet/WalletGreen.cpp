@@ -449,7 +449,7 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
 
   m_logger(Logging::INFO) << "calling WalletSerializer.load";
 
-  std::cout << "calling WalletSerializer now...";
+  std::cout << "  calling WalletSerializer now...";
 
   StdInputStream inputStream(source);
   s.load(password, inputStream, m_logger);
@@ -2671,8 +2671,8 @@ void WalletGreen::deleteFromUncommitedTransactions(const std::vector<size_t>& de
    stops. After some investigation, it appears that we need to run this
    archaic line of code to run other code on the dispatcher? */
 void WalletGreen::updateInternalCache() {
-    //System::RemoteContext<void> updateInternalBC(m_dispatcher, [this] () {});
-    //updateInternalBC.get();
+    System::RemoteContext<void> updateInternalBC(m_dispatcher, [this] () {});
+    updateInternalBC.get();
 }
 
 size_t WalletGreen::getTxSize(const TransactionParameters &sendingTransaction)

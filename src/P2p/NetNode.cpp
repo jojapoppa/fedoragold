@@ -1398,6 +1398,7 @@ namespace CryptoNote
 
       try {
         on_connection_new(ctx);
+        int retrycnt=0;
 
         LevinProtocol proto(ctx.connection);
         LevinProtocol::Command cmd;
@@ -1417,7 +1418,11 @@ namespace CryptoNote
             // Under high network volume allow it to retry - Windows OS sockets will fail...
 	    //   and tcp.recv will start returning 0 bytes for the headers...
             if (cmd.command == COMMAND_BLOCKED::ID) {
-              continue;
+              if (retrycnt < 10) {
+                retrycnt++;
+                continue;
+              }
+              retrycnt = 0;
             }
 
             logger(DEBUGGING) << "No command recieved...";

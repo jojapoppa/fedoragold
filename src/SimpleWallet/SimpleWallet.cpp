@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 }
 
 void saveWallet(std::string walletFileName, CryptoNote::WalletGreen &wallet) {
-  std::cout << InformationMsg("Saving...") << std::endl;
+  std::cout << InformationMsg(" Saving...") << std::endl;
   std::ofstream of(walletFileName, std::ios::binary | std::ios::trunc);
   if (of.is_open())
   {
@@ -157,7 +157,6 @@ void run(CryptoNote::WalletGreen &wallet, CryptoNote::INode &node, Config &confi
         std::cout << WarningMsg("It looks like the FED daemon isn't open!") << std::endl
                   << std::endl
                   << WarningMsg("Ensure the FED daemon is open and has finished initializing.") << std::endl
-                  << WarningMsg("If it's still not working, try restarting b2bcoind. The daemon sometimes gets stuck.") << std::endl
                   << WarningMsg("Alternatively, perhaps the daemon can't communicate with any peers.") << std::endl
                   << std::endl
                   << WarningMsg("The wallet can't function until it can communicate with the network.") << std::endl
@@ -1077,12 +1076,12 @@ void changePassword(std::shared_ptr<WalletInfo> &walletInfo, std::vector<std::st
 }
 
 void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &walletInfo) {
+
     uint32_t localHeight = node.getLastLocalBlockHeight();
     uint32_t walletHeight = walletInfo->wallet.getBlockCount();
     uint32_t remoteHeight = node.getLastKnownBlockHeight();
 
     size_t transactionCount = walletInfo->wallet.getTransactionCount();
-
     int stuckCounter = 0;
 
     if (localHeight != remoteHeight) {
@@ -1091,17 +1090,6 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
                   << "and your balance may be missing or incorrect!" << std::endl 
                   << std::endl;
     }
-
-    /* If we open a legacy wallet then it will load the transactions but not
-       have the walletHeight == transaction height. Lets just throw away the
-       transactions and rescan. */
-//jojapoppa, this does not appear to be necessary...
-//    if (walletHeight == 1 && transactionCount != 0) {
-//        std::cout << "Upgrading your wallet from an older version of the software..." << std::endl
-//                  << "Unfortunately, we have to rescan the chain to find your transactions." << std::endl;
-//        transactionCount = 0;
-//        walletInfo->wallet.clearCaches();
-//    }
 
     if (walletHeight == 1) {
         std::cout << "Scanning through the blockchain to find transactions that belong to you." << std::endl
@@ -1114,8 +1102,8 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
                   << std::endl;
     }
 
+    int counter = 1;
     while (walletHeight < localHeight) {
-        int counter = 1;
 
         /* This MUST be called on the main thread! */
         walletInfo->wallet.updateInternalCache();
@@ -1142,10 +1130,10 @@ void findNewTransactions(CryptoNote::INode &node, std::shared_ptr<WalletInfo> &w
 
             if (stuckCounter > 20) {
                 std::string warning =
-                    "Syncing may be stuck. Try restarting the FED daemon.\n"
-                    "If this persists, visit "
-                    "https://t.me/joinchat/Fxlb2Qw8ivAta7iYgM0Wiw"
-                    " for support.";
+                    "\nSyncing may be stuck. Try restarting the FED daemon.\n";
+                    //"If this persists, visit "
+                    //"https://t.me/joinchat/Fxlb2Qw8ivAta7iYgM0Wiw"
+                    //" for support.";
                 std::cout << WarningMsg(warning) << std::endl;
             } else if (stuckCounter > 19) {
                 /*

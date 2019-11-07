@@ -1,6 +1,7 @@
 // Copyright (c) 2019 Helder Garcia <helder.garcia@gmail.com>
 // Copyright (c) 2019, The Karbo developers
-
+// Copyright (c) 2019, FedoraGold developers
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -46,14 +47,14 @@ const uint64_t DEFAULT_THRESHOLD = UINT64_C(100000000000000);
 namespace {
   const command_line::arg_descriptor<std::string> arg_address   = {"address", "Address of the wallet to optimize inputs. If not provided, all addresses will be checked and, if applicable, optimized using polling interval between each interaction. Default: All", "", true};
   const command_line::arg_descriptor<std::string> arg_ip        = {"walletd-ip", "IP address of walletd. Default: 127.0.0.1", "127.0.0.1"};
-  const command_line::arg_descriptor<uint16_t>    arg_rpc_port  = {"walletd-port", "RPC port of walletd. Default: 8070", 8070};
+  const command_line::arg_descriptor<uint16_t>    arg_rpc_port  = {"walletd-port", "RPC port of walletd. Default: 30159", 30159};
   const command_line::arg_descriptor<std::string> arg_user      = {"walletd-user", "RPC user. Default: none", "", true};
   const command_line::arg_descriptor<std::string> arg_pass      = {"walletd-password", "RPC password. Default: none", "", true};
-  const command_line::arg_descriptor<uint16_t>    arg_interval  = {"interval", "polling interval in seconds. Default: 5. Minimum: 1. Maximum: 120.", 5, true};
+  const command_line::arg_descriptor<uint16_t>    arg_interval  = {"interval", "polling interval in seconds. Default: 30. Minimum: 1. Maximum: 120.", 30, true};
   const command_line::arg_descriptor<uint16_t>    arg_duration  = {"duration", "maximum execution time, in minutes. Default: 0 (unlimited)", 0, true};
   const command_line::arg_descriptor<uint64_t>    arg_threshold = {"threshold", "Only outputs lesser than the threshold value will be included into optimization. Default: 100000000000000 (do not use decimal point)", DEFAULT_THRESHOLD, true};
-  const command_line::arg_descriptor<uint16_t>    arg_anonimity = {"anonymity", "Privacy level. Higher values give more privacy but bigger transactions. Default: 6", 6, true};
-  const command_line::arg_descriptor<bool>        arg_preview   = {"preview", "print on screen what it would be doing, but not really doing it", false, true};
+  //const command_line::arg_descriptor<uint16_t>    arg_anonimity = {"anonymity", "Privacy level. Higher values give more privacy but bigger transactions. Default: 0", 0, true};
+  const command_line::arg_descriptor<bool>        arg_preview   = {"preview", "print on screen what it would be doing, but not really doing it. Default: false", false, true};
   Logging::ConsoleLogger log;
   Logging::LoggerRef logger(log, "optimizer");
   System::Dispatcher dispatcher;
@@ -139,6 +140,7 @@ bool isWalletEligible(po::variables_map& vm, std::string address) {
   }
 
   uint32_t fusionReadyCount = res.fusionReadyCount;
+  logger(INFO, GREEN) << "The next wallet fusionReadyCount is: " << fusionReadyCount;
   if (fusionReadyCount > 0) {
     return true;
   }
@@ -148,14 +150,14 @@ bool isWalletEligible(po::variables_map& vm, std::string address) {
 
 bool optimizeWallet(po::variables_map& vm, std::string address) {
   uint64_t threshold = DEFAULT_THRESHOLD;
-  uint16_t anonymity = 6;
+  uint16_t anonymity = 0;
 
   if (command_line::has_arg(vm, arg_threshold)) {
     threshold = command_line::get_arg(vm, arg_threshold);
   }
-  if (command_line::has_arg(vm, arg_anonimity)) {
-    anonymity = command_line::get_arg(vm, arg_anonimity);
-  }
+  //if (command_line::has_arg(vm, arg_anonimity)) {
+  //  anonymity = command_line::get_arg(vm, arg_anonimity);
+  //}
 
   PaymentService::SendFusionTransaction::Request req;
   PaymentService::SendFusionTransaction::Response res;
@@ -185,7 +187,7 @@ bool optimizeWallet(po::variables_map& vm, std::string address) {
 }
 
 void processWallets(po::variables_map& vm, std::vector<std::string>& containerAddresses, int& optimized, int& notOptimized, const std::chrono::time_point<std::chrono::steady_clock>& start) {
-  uint16_t timeInterval = 5;
+  uint16_t timeInterval = 30;
   int32_t maxDuration = 0;
   if (command_line::has_arg(vm, arg_interval)) {
     timeInterval = command_line::get_arg(vm, arg_interval);
@@ -205,7 +207,7 @@ void processWallets(po::variables_map& vm, std::vector<std::string>& containerAd
     steps = 10;
   }
   if (command_line::has_arg(vm, arg_preview)) {
-    previewMode = true;
+    previewMode = command_line::get_arg(vm, arg_preview);
   }
   for (const auto& address : containerAddresses) {
     if (isWalletEligible(vm, address)) {
@@ -282,15 +284,15 @@ bool run_optimizer(po::variables_map& vm) {
     if (!(command_line::has_arg(vm, arg_address))) {
       std::cout   << "============== SUMMARY =============" << ENDL;
       if (command_line::has_arg(vm, arg_preview)) {
-        std::cout << "   Optimizable wallets     : " << optimized << ENDL;
-        std::cout << "   Non optimizable wallets : " << notOptimized << ENDL;
+        std::cout << "   Preview optimized wallets    : " << optimized << ENDL;
+        std::cout << "   Preview nonoptimized wallets : " << notOptimized << ENDL;
       } else {
-        std::cout << "   Wallets optimized       : " << optimized << ENDL;
-        std::cout << "   Wallets not optimized   : " << notOptimized << ENDL;
+        std::cout << "   Wallets optimized            : " << optimized << ENDL;
+        std::cout << "   Wallets not optimized        : " << notOptimized << ENDL;
       }
-      std::cout   << "   Scanned wallets         : " << processed << ENDL;
-      std::cout   << "   Total of wallets found  : " << addresses.size() << ENDL;
-      std::cout   << "   Processing time (sec)   : " << std::chrono::duration_cast<std::chrono::seconds>(dur).count() << ENDL;
+      std::cout   << "   Scanned wallets              : " << processed << ENDL;
+      std::cout   << "   Total of wallets found       : " << addresses.size() << ENDL;
+      std::cout   << "   Processing time (sec)        : " << std::chrono::duration_cast<std::chrono::seconds>(dur).count() << ENDL;
       std::cout   << "====================================" << ENDL;
     }
     return true;
@@ -311,8 +313,8 @@ int main(int argc, char *argv[]) {
   command_line::add_arg(desc_params, arg_interval);
   command_line::add_arg(desc_params, arg_duration);
   command_line::add_arg(desc_params, arg_threshold);
-  command_line::add_arg(desc_params, arg_anonimity);
   command_line::add_arg(desc_params, arg_preview);
+  //command_line::add_arg(desc_params, arg_anonimity); // don't even give them the option, not useful for exchanges and pools
 
   po::options_description desc_all;
   desc_all.add(desc_general).add(desc_params);

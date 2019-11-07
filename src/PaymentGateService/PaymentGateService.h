@@ -10,9 +10,12 @@
 #include "Logging/ConsoleLogger.h"
 #include "Logging/LoggerGroup.h"
 #include "Logging/StreamLogger.h"
+#include "Logging/LoggerManager.h"
 
 #include "PaymentGate/NodeFactory.h"
 #include "PaymentGate/WalletService.h"
+
+using Common::JsonValue;
 
 class PaymentGateService {
 public:
@@ -28,7 +31,7 @@ public:
 
   void run();
   void stop();
-  
+ 
   Logging::ILogger& getLogger() { return logger; }
 
 private:
@@ -43,7 +46,9 @@ private:
   PaymentService::ConfigurationManager config;
   PaymentService::WalletService* service;
   CryptoNote::CurrencyBuilder currencyBuilder;
-  
+
+  JsonValue consoleLogConfig();
+  Logging::LoggerManager logManager; 
   Logging::LoggerGroup logger;
   std::ofstream fileStream;
   Logging::StreamLogger fileLogger;
