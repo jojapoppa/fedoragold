@@ -584,7 +584,7 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
 bool CryptoNoteProtocolHandler::on_connection_synchronized() {
   bool val_expected = false;
   if (m_synchronized.compare_exchange_strong(val_expected, true)) {
-    logger(Logging::INFO) << "Sychronized!";
+    logger(Logging::INFO) << "reload complete!";
     m_core.on_synchronized();
 
     uint32_t height;
