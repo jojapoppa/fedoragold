@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <fstream>
 #include <string>
+#include <chrono>
+#include <thread>
 //#include <execinfo.h>
 
 #include <boost/foreach.hpp>
