@@ -1422,10 +1422,7 @@ namespace CryptoNote
             if (cmd.command == COMMAND_BLOCKED::ID) {
               if (retrycnt < 10) {
                 retrycnt++;
-
-//joja
-//              std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                 continue;
               }
               retrycnt = 0;
