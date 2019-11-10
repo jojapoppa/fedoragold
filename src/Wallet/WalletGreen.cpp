@@ -2673,11 +2673,12 @@ void WalletGreen::deleteFromUncommitedTransactions(const std::vector<size_t>& de
 void WalletGreen::updateInternalCache() {
 
     // mac cannot compile this next line... says "this" is not used...
-    //System::RemoteContext<void> updateInternalBC(m_dispatcher, [this] () {});
+//    System::RemoteContext<void> updateInternalBC(m_dispatcher, [this] () {});
 
-    System::RemoteContext<void> updateInternalBC(m_dispatcher, [] () {});
+//jojapoppa
+    //System::RemoteContext<void> updateInternalBC(m_dispatcher, [] () {});
 
-    updateInternalBC.get();
+//    updateInternalBC.get();
 }
 
 size_t WalletGreen::getTxSize(const TransactionParameters &sendingTransaction)

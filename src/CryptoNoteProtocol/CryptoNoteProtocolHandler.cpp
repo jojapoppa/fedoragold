@@ -496,10 +496,10 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
 
 // jojapoppa - tst to see if removing this restriction helps sync on Windows... other CN
 //   coins have always called yield here as well...
-//    if (bvc.m_switched_to_alt_chain) {
-//      logger(DEBUGGING) << "...calling m_dispatcher.yield() after checking for alt chain...";
+    if (bvc.m_switched_to_alt_chain) {
+      logger(DEBUGGING) << "...calling m_dispatcher.yield() after checking for alt chain...";
       m_dispatcher.yield();
-//    }
+    }
   }
   return 0;
 }
