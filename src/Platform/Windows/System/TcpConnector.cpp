@@ -232,6 +232,16 @@ namespace System
                                     assert(transferred == 0);
                                     assert(flags == 0);
                                     DWORD value = 1;
+
+				    // Windows has a very poor Nagle algo implementation.  Nagle
+				    // said that WWWWWR is bad, and rwrwrw or rrrrr or wwww are good.
+				    // Microsoft interpreted that to mean small packets are bad... and
+				    // therefore don't support lots of rwrwrw... but that's Not what
+				    // Nagle said at all imho... the Levin protocol is All rwrwrwrwrw
+				    // ... this call turns off Nagle's Algo on Windows.
+				    int retv = setsockopt(connection, IPPROTO_TCP, TCP_NODELAY,
+                                      reinterpret_cast<char *>(&value), sizeof(value));
+
                                     if (setsockopt(
                                             connection,
                                             SOL_SOCKET,
