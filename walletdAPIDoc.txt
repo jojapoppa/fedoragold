@@ -1,0 +1,228 @@
+
+All fedoragold_walletd calls are JSON and are shown below
+
+Note: FED has 8 decimal places
+Note: All fedoragold_walletd calls are POST (not GET like fedorgold daemon)
+
+Example: walletd getBalance
+curl -X POST -i -H "Accept: application/json" -d '{"params": {"address": "NJkTBid4ZXSPVd6pVSRhRvPN6Qsa32Gbfe1uRLbCxnMQemVh1787L2r9B2Q3FjSpbbbhChRbdfJAH777Q4Sqi1V4M89d8X8"}, "jsonrpc": "2.0", "id": "test", "method":"getBalance"}' http://localhost:9090/json_rpc
+
+Example: walletd getAddresses
+curl -X POST -i -H "Accept: application/json" -d '{"params": {}, "jsonrpc": "2.0", "id": "test", "method":"getAddresses"}' http://localhost:9090/json_rpc
+
+Example: walletd getTransactions by block
+curl -X POST -i -H "Accept: application/json" -d '{"params": {"firstBlockIndex": 1331400, "blockCount": 1}, "jsonrpc": "2.0", "id": "test", "method":"getTransactions"}' http://localhost:9090/json_rpc
+
+Example: walletd getTransactionHashes by address
+curl -X POST -i -H "Accept: application/json" -d '{"params": {"firstBlockIndex": 1331400, "blockCount": 1, "addresses": ["NJkTBid4ZXSPVd6pVSRhRvPN6Qsa32Gbfe1uRLbCxnMQemVh1787L2r9B2Q3FjSpbbbhChRbdfJAH777Q4Sqi1V4M89d8X8"]}, "jsonrpc": "2.0", "id": "test", "method":"getTransactionHashes"}' http://localhost:9090/json_rpc
+
+Example: walletd getTransactions by hash
+curl -X POST -i -H "Accept: application/json" -d '{"params": {"blockHash": "b3bc90d04ca017fcaf5ee2c8efda95b1ac450beca30a9985e2a9f302f0afed22", "blockCount": 1, "addresses": ["NJkTBid4ZXSPVd6pVSRhRvPN6Qsa32Gbfe1uRLbCxnMQemVh1787L2r9B2Q3FjSpbbbhChRbdfJAH777Q4Sqi1V4M89d8X8"]}, "jsonrpc": "2.0", "id": "test", "method":"getTransactions"}' http://localhost:9090/json_rpc
+
+Example GET (daemon height): getheight
+curl -X GET -i -H "Accept: application/json" -d '{"jsonrpc": "2.0"}' http://localhost:30159/getheight  
+
+All Walletd JSON RPC Calls Are Described Below:
+
+save
+ function: handleSave
+  no parameters
+
+reset
+ function: handleReset
+  optional: request.viewSecretKey (to replace with new wallet)
+
+createAddress
+ function: handleCreateAddress
+  optional: request.spendSecretKey (to load from keys)
+  optional: request.spendPublicKey (to load from keys)
+  response.address
+
+deleteAddress
+ function: handleDeleteAddress
+  request.address
+
+getSpendKeys
+ function: handleGetSpendKeys
+  request.address
+  response.spendPublicKey
+  response.spendSecretKey
+
+getBalance
+ function: handleGetBalance
+  optional: request.address
+  response.availableBalance
+  response.lockedAmount
+
+getBlockHashes
+ function: handleGetBlockHashes
+  request.firstBlockIndex
+  request.blockCount
+  response.blockHashes
+
+getTransactionHashes
+ function: handleGetTransactionHashes
+    request.addresses
+    request.blockHash
+    request.blockCount
+    request.paymentId (optional)
+    response.items (list of hashes)
+      blockHash
+      transactionHashes
+  or
+    request.addresses
+    request.blockHash
+    request.firstBlockIndex
+    request.blockCount
+    request.paymentId (optional)
+    response.items (list of hashes)
+      blockHash
+      transactionHashes
+
+getTransactions
+ function: handleGetTransactions
+    request.addresses
+    request.blockHash
+    request.blockCount
+    request.paymentId (optional)
+    response.items (list of hashes)
+      blockHash
+      transactions
+        state
+          SUCCEEDED=0, FAILED=1, CANCELLED=2, CREATED=3, DELETED=4
+        transactionHash
+        blockIndex
+        timestamp
+        isBase
+        unlockTime (measured in blocks)
+        amount
+        fee
+        transfers
+          address
+          amount 
+        extra
+        paymentId 
+  or
+    request.addresses
+    request.firstBlockIndex
+    request.blockCount
+    request.paymentId (optional)
+    response.items (list of hashes)
+      blockHash
+      transactions
+        state
+          SUCCEEDED=0, FAILED=1, CANCELLED=2, CREATED=3, DELETED=4
+        transactionHash
+        blockIndex
+        timestamp
+        isBase
+        unlockTime (measured in blocks)
+        amount
+        fee
+        transfers
+          address
+          amount 
+        extra
+        paymentId 
+
+getUnconfirmedTransactionHashes
+ function: handleGetUnconfirmedTransactionHashes
+  request.addresses
+  response.transactionHashes
+
+getTransaction
+ function: handleGetTransaction
+  request.transactionHash
+  response.transaction
+    state
+      SUCCEEDED=0, FAILED=1, CANCELLED=2, CREATED=3, DELETED=4
+    transactionHash
+    blockIndex
+    timestamp
+    isBase
+    unlockTime (measured in blocks)
+    amount
+    fee
+    transfers
+      address
+      amount 
+    extra
+    paymentId
+
+sendTransaction
+ function: handleSendTransaction
+  request
+    sourceAddresses
+    transfers
+      address
+      amount
+    changeAddress
+    fee
+    anonymity (same as mixin)
+    extra
+    paymentId (optional)
+    unlockTime (measured in blocks)
+  response.transactionHash
+
+createDelayedTransaction
+ function: handleCreateDelayedTransaction
+  request
+    addresses
+    transfers
+      address
+      amount
+    changeAddress
+    fee
+    anonymity (same as mixin)
+    extra
+    paymentId (optional)
+    unlockTime (measured in blocks)
+  response.transactionHash
+
+getDelayedTransactionHashes
+ function: handleGetDelayedTransactionHashes
+  response.transactionHashes
+
+deleteDelayedTransaction
+ function: handleDeleteDelayedTransaction
+  request.transactionHash
+
+sendDelayedTransaction
+ function: handleSendDelayedTransaction
+  request.transactionHash
+
+bindDaemon
+ function: handleBindDaemon
+  request.daemonIP
+  request.daemonPort
+
+getViewKey
+ function: handleGetViewKey
+  response.viewSecretKey
+
+getStatus
+ function: handleGetStatus
+  response.blockCount
+  response.knownBlockCount
+  response.lastBlockHash
+  response.peerCount
+
+getAddresses
+ function: handleGetAddresses
+  response.addresses
+
+sendFusionTransaction
+ function: handleSendFusionTransaction
+  request.threshold (FED has 8 decimal places)
+  request.anonymity (same as mixin)
+  request.addresses
+  request.destinationAddress
+  response.transactionHash
+
+estimateFusion
+ function: handleEstimateFusion
+  request.threshold (FED has 8 decimal places)
+  request.addresses
+  response.fusionReadyCount
+  response.totalOutputCount
+
