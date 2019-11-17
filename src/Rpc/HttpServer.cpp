@@ -1,15 +1,16 @@
 // Copyright (c) 2012-2016, The CryptoNote developers, The Bytecoin developers
 // Copyright (c) 2014-2016 XDN developers
 // Copyright (c) 2016-2018 Karbowanec developers
+// Copyright (c) 2019-2020 Fedoragold developers
 //
-// This file is part of Karbo.
+// This file is part of FedoraGold.
 //
-// Karbo is free software: you can redistribute it and/or modify
+// FedoraGold is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Karbo is distributed in the hope that it will be useful,
+// FedoraGold is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.

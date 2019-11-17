@@ -33,8 +33,10 @@ void GetStatus::Request::serialize(CryptoNote::ISerializer& serializer) {
 void GetStatus::Response::serialize(CryptoNote::ISerializer& serializer) {
   serializer(blockCount, "blockCount");
   serializer(knownBlockCount, "knownBlockCount");
+  serializer(localDaemonBlockCount, "localDaemonBlockCount");
   serializer(lastBlockHash, "lastBlockHash");
   serializer(peerCount, "peerCount");
+  serializer(version, "version");
 }
 
 void GetAddresses::Request::serialize(CryptoNote::ISerializer& serializer) {
