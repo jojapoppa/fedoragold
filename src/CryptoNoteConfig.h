@@ -112,10 +112,10 @@ const size_t   P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT     = 70;
 const uint32_t P2P_DEFAULT_HANDSHAKE_INTERVAL                = 60;            // seconds
 const uint32_t P2P_DEFAULT_PACKET_MAX_SIZE                   = 50000000;      // 50000000 bytes maximum packet size
 const uint32_t P2P_DEFAULT_PEERS_IN_HANDSHAKE                = 250;
-const uint32_t P2P_DEFAULT_CONNECTION_TIMEOUT                = 10000;         // 5 seconds TEST
-const uint32_t P2P_DEFAULT_PING_CONNECTION_TIMEOUT           = 5000;          // 2 seconds TEST
-const uint64_t P2P_DEFAULT_INVOKE_TIMEOUT                    = 60 * 3 * 1000; // 2 minutes TEST
-const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 9000;          // 7 seconds TEST
+const uint32_t P2P_DEFAULT_CONNECTION_TIMEOUT                = 10000;         // 10 seconds 
+const uint32_t P2P_DEFAULT_PING_CONNECTION_TIMEOUT           = 5000;
+const uint64_t P2P_DEFAULT_INVOKE_TIMEOUT                    = 60 * 3 * 1000; // 3 minutes 
+const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 9000;
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 
 // Add here your network seed nodes
@@ -137,6 +137,7 @@ struct CheckpointData {
 __attribute__((unused))
 #endif
 
+// jojapoppa
 // You may add here other checkpoints using the following format:
 // {<block height>, "<block hash>"},
 const std::initializer_list<CheckpointData> CHECKPOINTS = {

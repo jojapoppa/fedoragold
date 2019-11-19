@@ -48,9 +48,12 @@ std::error_code interpretResponseStatus(const std::string& status) {
 
 }
 
+//jojapoppa, hard coded timeoutvalues...
+//    m_rpcTimeout(10000),
+//    m_pullInterval(5000),
 NodeRpcProxy::NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort, Logging::ILogger &logger) :
-    m_rpcTimeout(10000),
-    m_pullInterval(5000),
+    m_rpcTimeout(20000),
+    m_pullInterval(10000),
     m_nodeHost(nodeHost),
     m_nodePort(nodePort),
     m_lastLocalBlockTimestamp(0),
