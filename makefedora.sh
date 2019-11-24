@@ -49,7 +49,7 @@ export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
 # cmake -G "Visual Studio 15 2017 Win64" ..
 # cmake --build . --config Release
 
-cp CMakeListsLinuxWindowsMac.txt CMakeLists.txt
+cp CMakeListsLinux.txt CMakeLists.txt
 
 #built with gcc 8 (https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/)
 
