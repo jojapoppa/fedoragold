@@ -3,36 +3,18 @@ cmake_minimum_required(VERSION 2.8.6)
 set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
-set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS "-Wl,-Bdynamic")
-set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS "-Wl,-Bdynamic")
-set(CMAKE_SHARED_LIBRARY_C_FLAGS, "-std=c11 -fPIC")
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "-std=c++11 -fPIC")
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "-rdynamic")
-
 enable_language(C CXX ASM)
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads)
 
-set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
-set(Boost_USE_STATIC_RUNTIME ON)
-set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(Boost_USE_STATIC_RUNTIME OFF)
 
-if(APPLE)
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000") # increase stack to 256MB
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-set(CMAKE_EXE_LINKER_FLAGS "-lpthread -static-libstdc++ -static-libgcc")
-else() # Windows
-endif()
+#set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v")
 
 set(BOOST_HAS_THREADS ON)
 set(BOOST_HAS_PTHREADS ON) 
+
 set(BUILD_SHARED_LIBS OFF)
-set(STATIC ON CACHE BOOL "Link libraries statically")
-set(BOOST_THREAD_LIBRARY libboost_thread.a)
-add_library(c STATIC IMPORTED)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 

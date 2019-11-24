@@ -238,7 +238,7 @@ void serialize(TransactionInput& in, ISerializer& serializer) {
     VariantSerializer visitor(serializer, "value");
     boost::apply_visitor(visitor, in);
   } else {
-    uint8_t tag;
+    uint8_t tag=0;
     serializer.binary(&tag, sizeof(tag), "type");
 
     getVariantValue(serializer, tag, in);
@@ -275,7 +275,7 @@ void serialize(TransactionOutputTarget& output, ISerializer& serializer) {
     VariantSerializer visitor(serializer, "data");
     boost::apply_visitor(visitor, output);
   } else {
-    uint8_t tag;
+    uint8_t tag=0;
     serializer.binary(&tag, sizeof(tag), "type");
 
     getVariantValue(serializer, tag, output);
