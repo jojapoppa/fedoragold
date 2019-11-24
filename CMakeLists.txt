@@ -23,7 +23,8 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 if(APPLE)
 set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000") # increase stack to 256MB
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-set(CMAKE_EXE_LINKER_FLAGS "-lpthread -static-libstdc++ -static-libgcc")
+#set(CMAKE_EXE_LINKER_FLAGS "-lpthread -static-libstdc++ -static-libgcc")
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc")
 else() # Windows
 endif()
 
