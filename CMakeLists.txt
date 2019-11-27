@@ -9,12 +9,16 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
-
 set(BOOST_HAS_THREADS ON)
 set(BOOST_HAS_PTHREADS ON) 
 
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+set(STATIC ON CACHE BOOL "Link libraries statically")
+add_library(c STATIC IMPORTED)
+add_library(m STATIC IMPORTED)
+
 #-Wl,-v
-set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a -Wl,-Bdynamic -Llibpthread")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v -static-libgcc -static-libstdc++ -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a -Wl,-Bdynamic -Llibpthread")
 
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 11)
