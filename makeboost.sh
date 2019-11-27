@@ -84,7 +84,7 @@ if ! clang-emscripten in [ feature.values <toolset> ]
 export EMSCRIPTEN_PATH=/home/jojapoppa/emsdk/upstream/emscripten
 
 #non emscripten does this... build on old Debian system for full Ubuntu/Deb distro support (Tradebots)
-./b2 -d+2 cxxflags="-fPIC" cflags="-fPIC" toolset=gcc address-model=64 link=static variant=release boost.locale.icu=off install --prefix=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+./b2 -d+2 cxxflags="-fPIC" cflags="-fPIC" toolset=gcc address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
 # emscripten does this...
 USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora_emscripten --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
