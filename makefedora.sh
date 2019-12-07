@@ -27,14 +27,14 @@
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 
 // v6 on final build... from old OS
-export CC=gcc-8
-export CXX=g++-8
+export CC=gcc-6
+export CXX=g++-6
 
 // use path for old OS on final build
-//export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
-//export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
-export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
-export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
+export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
+export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
+//export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
+//export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
 
 # on Windows
 # can deal with this next bit using a typedef check later...
