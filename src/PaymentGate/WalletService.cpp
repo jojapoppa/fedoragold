@@ -568,6 +568,7 @@ std::error_code WalletService::saveWalletNoThrow() {
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while saving wallet: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl; 
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while saving wallet: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -616,6 +617,7 @@ std::error_code WalletService::resetWallet() {
     logger(Logging::WARNING) << "Error while reseting wallet: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while reseting wallet: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -645,6 +647,7 @@ std::error_code WalletService::replaceWithNewWallet(const std::string& viewSecre
     logger(Logging::WARNING) << "Error while replacing container: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while replacing container: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -826,6 +829,7 @@ std::error_code WalletService::getTransactionHashes(const std::vector<std::strin
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -850,6 +854,7 @@ std::error_code WalletService::getTransactionHashes(const std::vector<std::strin
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -876,6 +881,7 @@ std::error_code WalletService::getTransactions(const std::vector<std::string>& a
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -900,6 +906,7 @@ std::error_code WalletService::getTransactions(const std::vector<std::string>& a
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -916,7 +923,7 @@ std::error_code WalletService::getTransaction(const std::string& transactionHash
 
     if (transactionWithTransfers.transaction.state == CryptoNote::WalletTransactionState::DELETED) {
       logger(Logging::WARNING) << "Transaction " << transactionHash << " is deleted";
-      return make_error_code(CryptoNote::error::OBJECT_NOT_FOUND);
+      return make_error_code(CryptoNote::error::WalletServiceErrorCode::NO_OBJECTS);
     }
 
     transaction = convertTransactionWithTransfersToTransactionRpcInfo(transactionWithTransfers);
@@ -924,6 +931,7 @@ std::error_code WalletService::getTransaction(const std::string& transactionHash
     logger(Logging::WARNING) << "Error while getting transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting transaction: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -942,6 +950,7 @@ std::error_code WalletService::getAddresses(std::vector<std::string>& addresses)
       addresses.push_back(wallet.getAddress(i));
     }
   } catch (std::exception& e) {
+    std::cout << e.what() << std::endl;
     logger(Logging::WARNING) << "Can't get addresses: " << e.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -981,6 +990,7 @@ std::error_code WalletService::sendTransaction(const SendTransaction::Request& r
     logger(Logging::WARNING) << "Error while sending transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while sending transaction: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1020,6 +1030,7 @@ std::error_code WalletService::createDelayedTransaction(const CreateDelayedTrans
     logger(Logging::WARNING) << "Error while creating delayed transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while creating delayed transaction: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1042,6 +1053,7 @@ std::error_code WalletService::getDelayedTransactionHashes(std::vector<std::stri
     logger(Logging::WARNING) << "Error while getting delayed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting delayed transaction hashes: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1068,6 +1080,7 @@ std::error_code WalletService::deleteDelayedTransaction(const std::string& trans
     logger(Logging::WARNING) << "Error while deleting delayed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while deleting delayed transaction hashes: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1094,6 +1107,7 @@ std::error_code WalletService::sendDelayedTransaction(const std::string& transac
     logger(Logging::WARNING) << "Error while sending delayed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while sending delayed transaction hashes: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1115,6 +1129,7 @@ std::error_code WalletService::bindDaemon(const std::string& daemonIP, const std
     logger(Logging::WARNING) << "Error while switching to new daemon: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while switching to new daemon: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1141,6 +1156,7 @@ std::error_code WalletService::getUnconfirmedTransactionHashes(const std::vector
     logger(Logging::WARNING) << "Error while getting unconfirmed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting unconfirmed transaction hashes: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1163,6 +1179,7 @@ std::error_code WalletService::getStatus(uint32_t& blockCount, uint32_t& knownBl
     logger(Logging::WARNING) << "Error while getting status: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING) << "Error while getting status: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1188,6 +1205,7 @@ std::error_code WalletService::sendFusionTransaction(uint64_t threshold, uint32_
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while sending fusion transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while sending fusion transaction: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1209,6 +1227,7 @@ std::error_code WalletService::estimateFusion(uint64_t threshold, const std::vec
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Failed to estimate number of fusion outputs: " << x.what();
     return x.code();
   } catch (std::exception& x) {
+    std::cout << x.what() << std::endl;
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Failed to estimate number of fusion outputs: " << x.what();
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
   }
@@ -1260,7 +1279,7 @@ void WalletService::replaceWithNewWallet(const Crypto::SecretKey& viewSecretKey)
 std::vector<CryptoNote::TransactionsInBlockInfo> WalletService::getTransactions(const Crypto::Hash& blockHash, size_t blockCount) const {
   std::vector<CryptoNote::TransactionsInBlockInfo> result = wallet.getTransactions(blockHash, blockCount);
   if (result.empty()) {
-    throw std::system_error(make_error_code(CryptoNote::error::WalletServiceErrorCode::OBJECT_NOT_FOUND));
+    throw std::system_error(make_error_code(CryptoNote::error::WalletServiceErrorCode::NO_OBJECTS));
   }
 
   return result;
@@ -1269,7 +1288,7 @@ std::vector<CryptoNote::TransactionsInBlockInfo> WalletService::getTransactions(
 std::vector<CryptoNote::TransactionsInBlockInfo> WalletService::getTransactions(uint32_t firstBlockIndex, size_t blockCount) const {
   std::vector<CryptoNote::TransactionsInBlockInfo> result = wallet.getTransactions(firstBlockIndex, blockCount);
   if (result.empty()) {
-    throw std::system_error(make_error_code(CryptoNote::error::WalletServiceErrorCode::OBJECT_NOT_FOUND));
+    throw std::system_error(make_error_code(CryptoNote::error::WalletServiceErrorCode::NO_OBJECTS));
   }
 
   return result;

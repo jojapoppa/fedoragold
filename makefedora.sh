@@ -22,15 +22,19 @@
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
-export CC=gcc-6
-export CXX=g++-6
-
 # may need brew install cmake on mac...
 #export MACOSX_DEPLOYMENT_TARGET=10.11
 #export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
 
-export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
-export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
+// v6 on final build... from old OS
+export CC=gcc-8
+export CXX=g++-8
+
+// use path for old OS on final build
+//export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
+//export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
+export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
+export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
 
 # on Windows
 # can deal with this next bit using a typedef check later...

@@ -14,7 +14,8 @@ enum class WalletServiceErrorCode {
   WRONG_KEY_FORMAT = 1,
   WRONG_PAYMENT_ID_FORMAT,
   WRONG_HASH_FORMAT,
-  OBJECT_NOT_FOUND
+  OBJECT_NOT_FOUND,
+  NO_OBJECTS
 };
 
 // custom category:
@@ -38,6 +39,7 @@ public:
       case WalletServiceErrorCode::WRONG_PAYMENT_ID_FORMAT: return "Wrong payment id format";
       case WalletServiceErrorCode::WRONG_HASH_FORMAT: return "Wrong block id format";
       case WalletServiceErrorCode::OBJECT_NOT_FOUND: return "Requested object not found";
+      case WalletServiceErrorCode::NO_OBJECTS: return "Empty object list";
       default: return "Unknown error";
     }
   }

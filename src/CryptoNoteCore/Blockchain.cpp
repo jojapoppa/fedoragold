@@ -712,8 +712,7 @@ difficulty_type Blockchain::getDifficultyForNextBlock() {
   std::vector<uint64_t> timestamps;
   std::vector<difficulty_type> commulative_difficulties;
 
-  //jojapoppa, check this static_cast<uint64_t>
-  size_t offset = m_blocks.size() - std::min(m_blocks.size(), (uint64_t)(m_currency.difficultyBlocksCount()));
+  size_t offset = m_blocks.size() - std::min(m_blocks.size(), static_cast<uint64_t>(m_currency.difficultyBlocksCount()));
   if (offset == 0) {
     ++offset;
   }
@@ -724,6 +723,11 @@ difficulty_type Blockchain::getDifficultyForNextBlock() {
   }
 
   return m_currency.nextDifficulty(timestamps, commulative_difficulties);
+}
+
+uint64_t Blockchain::getBlockTimestamp(uint32_t height) {
+  assert(height < m_blocks.size());
+  return m_blocks[height].bl.timestamp;
 }
 
 uint64_t Blockchain::getCoinsInCirculation() {
@@ -947,7 +951,7 @@ bool Blockchain::validate_miner_transaction(const Block& b, uint32_t height, siz
   }
 
   // jojapoppa, turn back on at 1st soft fork
-  // the premine hisory violates this... can't add back until after first soft fork to start check at given height
+  // the premine history violates this... can't add back until after first soft fork to start check at given height
   //if (minerReward > reward) {
   //  logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " << m_currency.formatAmount(minerReward) <<
   //    ", block reward is " << m_currency.formatAmount(reward);
@@ -1014,15 +1018,16 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
   auto block_height = get_block_height(b);
   if (block_height == 0) {
     logger(ERROR, BRIGHT_RED) <<
-      "Block with id: " << Common::podToHex(id) << " (as alternative) have wrong miner transaction";
+      "Block with id: " << Common::podToHex(id) << " (as alternative) has wrong miner transaction";
     bvc.m_verifivation_failed = true;
     return false;
   }
 
+  //jojapoppa, can be used to lock out annoying forks
   if (!m_checkpoints.is_alternative_block_allowed(getCurrentBlockchainHeight(), block_height)) {
-    logger(TRACE) << "Block with id: " << id << std::endl <<
-      " can't be accepted for alternative chain, block height: " << block_height << std::endl <<
-      " blockchain height: " << getCurrentBlockchainHeight();
+    logger(TRACE) << "Block with id: " << id << 
+      " can't be accepted for alternative chain, block height: " << block_height <<
+      " blockchain height: " << getCurrentBlockchainHeight() << std::endl;
     bvc.m_verifivation_failed = true;
     return false;
   }
@@ -1071,8 +1076,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
     //check timestamp correct
     if (!check_block_timestamp(timestamps, b)) {
       logger(INFO, BRIGHT_RED) <<
-        "Block with id: " << id
-        << ENDL << " for alternative chain, have invalid timestamp: " << b.timestamp;
+        "Block with id: " << id << " for alternative chain, have invalid timestamp: " << b.timestamp << ENDL;
 
       //add_block_as_invalid(b, id); //DON'T DO THIS: do not add blocks to invalid storage before proof of work check was passed - this comment is a reminder not to put add_block_as_invalid back in again
       
@@ -1082,11 +1086,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
 
     BlockEntry bei = boost::value_initialized<BlockEntry>();
     bei.bl = b;
-
-    // jojapoppa, this was a static_cast<uint32_t) ... but I think these size() fuctions
-    // are actually uint64_t so i used an old style cast as it checks the type conversion
-    // -- We should just change ALL integers system wide (mostly) to uint64_t... later
-    bei.height = (uint32_t)(alt_chain.size() ? it_prev->second.height + 1 : mainPrevHeight + 1);
+    bei.height = static_cast<uint32_t>(alt_chain.size() ? it_prev->second.height + 1 : mainPrevHeight + 1);
 
     bool is_a_checkpoint;
     if (!m_checkpoints.check_block(bei.height, id, is_a_checkpoint)) {
@@ -1103,9 +1103,8 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
     Crypto::Hash proof_of_work = NULL_HASH;
     if (!m_currency.checkProofOfWork(m_cn_context, bei.bl, current_diff, proof_of_work)) {
       logger(INFO, BRIGHT_RED) <<
-        "Block with id: " << id
-        << ENDL << " for alternative chain, have not enough proof of work: " << proof_of_work
-        << ENDL << " expected difficulty: " << current_diff;
+        "Block with id: " << id << " for alternative chain, not enough proof of work: " << proof_of_work
+        << " expected difficulty: " << current_diff << " at height: " << bei.height << ENDL;
       bvc.m_verifivation_failed = true;
       return false;
     }
@@ -1250,9 +1249,7 @@ bool Blockchain::getAlternativeBlocks(std::list<Block>& blocks) {
 
 uint32_t Blockchain::getAlternativeBlocksCount() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-
-  // jojapoppa, same as size() conversion above ... see above note
-  return (uint32_t)(m_alternative_chains.size());
+  return static_cast<uint32_t>(m_alternative_chains.size());
 }
 
 bool Blockchain::add_out_to_get_random_outs(std::vector<std::pair<TransactionIndex, uint16_t>>& amount_outs, COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::outs_for_amount& result_outs, uint64_t amount, size_t i) {
@@ -1269,9 +1266,7 @@ bool Blockchain::add_out_to_get_random_outs(std::vector<std::pair<TransactionInd
     return false;
 
   COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::out_entry& oen = *result_outs.outs.insert(result_outs.outs.end(), COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::out_entry());
-
-  //jojapoppa (need to check these static_casts... they don't do any runtime checks at all, was static_cast<uint32_t>
-  oen.global_amount_index = (uint32_t)(i);
+  oen.global_amount_index = static_cast<uint32_t>(i);
   oen.out_key = boost::get<KeyOutput>(tx.outputs[amount_outs[i].second].target).key;
   return true;
 }
@@ -1407,9 +1402,7 @@ std::vector<Crypto::Hash> Blockchain::findBlockchainSupplement(const std::vector
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
   totalBlockCount = getCurrentBlockchainHeight();
   startBlockIndex = findBlockchainSupplement(remoteBlockIds);
-
-  //jojapoppa, need to check these static_casts as they don't do any runtime checks at all, was static_cast<uint32_t>
-  return m_blockIndex.getBlockIds(startBlockIndex, (uint32_t)(maxCount));
+  return m_blockIndex.getBlockIds(startBlockIndex, static_cast<uint32_t>(maxCount));
 }
 
 bool Blockchain::haveBlock(const Crypto::Hash& id) {
@@ -1551,9 +1544,10 @@ bool Blockchain::is_tx_spendtime_unlocked(uint64_t unlock_time) {
       return false;
   } else {
     //interpret as time
-    // jojapoppa, check this static_cast ... is that really a uint64?
-    uint64_t current_time = (uint64_t)(time(NULL));
-    if (current_time + m_currency.lockedTxAllowedDeltaSeconds() >= unlock_time)
+
+    // compare with last block timestamp + delta seconds
+    const uint64_t lastBlockTimestamp = getBlockTimestamp(getCurrentBlockchainHeight() - 1);
+    if (lastBlockTimestamp + m_currency.lockedTxAllowedDeltaSeconds() >= unlock_time)
       return true;
     else
       return false;
@@ -1847,19 +1841,10 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     }
   } else {
     if (!m_currency.checkProofOfWork(m_cn_context, blockData, currentDifficulty, proof_of_work)) {
-      // This is not a valid error, as a resync would hit this... just ignore it.
-      //   just allow consensus to drive the resync...
-
-      // when algo changed the proof of work calculation changed, and therefore the past history
-      // of POW hashes could not be verified.  so, this failed and held up syncs... not critical
-      // for now... just turn it back on at the height of the next soft fork 
-
-      // jojapoppa, after soft fork we should begin checking this again but only
-      //   at that block height forward...
-
-      //logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << ", has too weak proof of work: " << proof_of_work << ", expected difficulty: " << currentDifficulty;
-      //bvc.m_verifivation_failed = true;
-      //return false;
+      // jojapoppa, after checkpoints are defined this is okay to check...
+      logger(INFO, BRIGHT_WHITE) << "Block " << blockHash << ", has too weak proof of work: " << proof_of_work << ", expected difficulty: " << currentDifficulty;
+      bvc.m_verifivation_failed = true;
+      return false;
     }
   }
 
@@ -1879,15 +1864,8 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
   block.transactions.resize(1);
   block.transactions[0].tx = blockData.baseTransaction;
 
-  //jojapoppa need to figure out if transaction index should start with a uint64 here
-  // code for blocks.size() used to have a static_cast<uint64_t> & static_cast<uint16_t>
-  //
-  // jojapoppa this transactionIndex definitely needs the first param expanded to uint64 at least
-
-  //logger(INFO, BRIGHT_WHITE) << "About to set transactionIndex...";
-  TransactionIndex transactionIndex = {(uint32_t)(m_blocks.size()), (uint16_t)(0) };
+  TransactionIndex transactionIndex = { static_cast<uint32_t>(m_blocks.size()), static_cast<uint16_t>(0) };
   pushTransaction(block, minerTransactionHash, transactionIndex);
-  //logger(INFO, BRIGHT_WHITE) << "transactionIndex is set.";
 
   size_t coinbase_blob_size = getObjectBinarySize(blockData.baseTransaction);
   size_t cumulative_block_size = coinbase_blob_size;
@@ -1902,16 +1880,15 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     blob_size = toBinaryArray(block.transactions.back().tx).size();
     fee = getInputAmount(block.transactions.back().tx) - getOutputAmount(block.transactions.back().tx);
 
-// jojapoppa, add back after Soft Fork
-//    if (!checkTransactionInputs(block.transactions.back().tx)) {
-//      logger(INFO, BRIGHT_WHITE) <<
-//        "Block " << blockHash << " has at least one transaction with wrong inputs: " << tx_id;
-//      bvc.m_verifivation_failed = true;
-//
-//      block.transactions.pop_back();
-//      popTransactions(block, minerTransactionHash);
-//      return false;
-//    }
+    if (!checkTransactionInputs(block.transactions.back().tx)) {
+      logger(INFO, BRIGHT_WHITE) <<
+        "Block " << blockHash << " has at least one transaction with wrong inputs: " << tx_id;
+      bvc.m_verifivation_failed = true;
+
+      block.transactions.pop_back();
+      popTransactions(block, minerTransactionHash);
+      return false;
+    }
 
     ++transactionIndex.transaction;
     pushTransaction(block, tx_id, transactionIndex);
@@ -2045,17 +2022,15 @@ bool Blockchain::pushTransaction(BlockEntry& block, const Crypto::Hash& transact
     }
   }
 
-  //jojapoppa, check these static_casts... are those really uint32?
-  // static checks don't check the data types at all.. better be right, there as 2 static_cast<uint32_t> on amountOutputs.size()
   transaction.m_global_output_indexes.resize(transaction.tx.outputs.size());
   for (uint16_t output = 0; output < transaction.tx.outputs.size(); ++output) {
     if (transaction.tx.outputs[output].target.type() == typeid(KeyOutput)) {
       auto& amountOutputs = m_outputs[transaction.tx.outputs[output].amount];
-      transaction.m_global_output_indexes[output] = (uint32_t)(amountOutputs.size());
+      transaction.m_global_output_indexes[output] = static_cast<uint32_t>(amountOutputs.size());
       amountOutputs.push_back(std::make_pair<>(transactionIndex, output));
     } else if (transaction.tx.outputs[output].target.type() == typeid(MultisignatureOutput)) {
       auto& amountOutputs = m_multisignatureOutputs[transaction.tx.outputs[output].amount];
-      transaction.m_global_output_indexes[output] = (uint32_t)(amountOutputs.size());
+      transaction.m_global_output_indexes[output] = static_cast<uint32_t>(amountOutputs.size());
       MultisignatureOutputUsage outputUsage = { transactionIndex, output, false };
       amountOutputs.push_back(outputUsage);
     }
@@ -2244,8 +2219,7 @@ bool Blockchain::getLowerBound(uint64_t timestamp, uint64_t startOffset, uint32_
     return false;
   }
 
-  // jojapoppa, check that static_cast, was static_cast<uint32_t>
-  height = (uint32_t)(std::distance(m_blocks.begin(), bound));
+  height = static_cast<uint32_t>(std::distance(m_blocks.begin(), bound));
   return true;
 }
 

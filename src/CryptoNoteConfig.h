@@ -119,13 +119,9 @@ const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 9000;
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 
 // Add here your network seed nodes
-// "34.235.55.80:30158",   // goblin 
 const std::initializer_list<const char*> SEED_NODES = {
   "18.223.178.174:30158", // seed1
-  "18.222.96.134:30158",  // seed2
-  "213.136.89.252:30158", // cryptonote.club server 1
-  "173.249.27.160:30158", // cryptonote.club server 2
-  "fed.cryptonote.club:30158" // cryptonote.club on DNS 
+  "18.222.96.134:30158"   // seed2
 };
 
 struct CheckpointData {
@@ -137,11 +133,14 @@ struct CheckpointData {
 __attribute__((unused))
 #endif
 
-// jojapoppa
 // You may add here other checkpoints using the following format:
 // {<block height>, "<block hash>"},
 const std::initializer_list<CheckpointData> CHECKPOINTS = {
-  //{ 10000, "84b6345731e2702cdaadc6ce5e5238c4ca5ecf48e3447136b2ed829b8a95f3ad" },
+  { 1386085, "6d7be65f3d02a1c38782284b82d09be4a613ab7c216a1fc41f8767a3c7948ee8" },
+  { 1391475, "ba660437996fdc103f9bb630536bb3d8b1689916f8370cac315eec95b4a1410d" },
+  { 1410011, "4b42ebeff2876543858a9528244ba5bec4521572b7f6c692576e6814850a8e26" },
+  { 1415284, "ea812d907def2f7d41eba3ccab2851b58c924d703f485a3a4cfc0822b0bb12ce" },
+  { 1418082, "db1a346269efcb3a2aff3e6a4aeb2c79a91abc33d85207d577c02b177b5156da" }
 };
 } // CryptoNote
 
