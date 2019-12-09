@@ -18,7 +18,7 @@ add_library(c STATIC IMPORTED)
 add_library(m STATIC IMPORTED)
 
 #-Wl,-v
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v -static-libgcc -static-libstdc++ -Wl,-Bstatic -Llibc.a -Wl,-Bstatic -Llibm.a -Wl,-Bdynamic -lpthread")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v -static-libgcc -static-libstdc++ -Wl,-Bdynamic -Llibc.a -Wl,-Bdynamic -Llibm.a -Wl,-Bdynamic -lpthread")
 
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 11)
