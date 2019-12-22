@@ -168,30 +168,25 @@ bool createOutputBinaryFile(const std::string& filename, std::fstream& file) {
   return true;
 }
 
+//returns true on success
+bool deleteFile(const std::string& filename) {
+  boost::system::error_code err;
+  return boost::filesystem::remove(filename, err) && !err;
+}
+
 std::string createTemporaryFile(const std::string& path, std::fstream& tempFile) {
   bool created = false;
-  std::string temporaryName;
+  std::string temporaryName = path + ".backup";
+  try {deleteFile(temporaryName);} catch(...) { /* just eat the error, it may not exist yet */ }
 
-  for (size_t i = 1; i < 100; i++) {
-    temporaryName = path + "." + std::to_string(i++);
-
-    if (createOutputBinaryFile(temporaryName, tempFile)) {
-      created = true;
-      break;
-    }
+  if (createOutputBinaryFile(temporaryName, tempFile)) {
+    created = true;
   }
-
   if (!created) {
     throw std::runtime_error("Couldn't create temporary file: " + temporaryName);
   }
 
   return temporaryName;
-}
-
-//returns true on success
-bool deleteFile(const std::string& filename) {
-  boost::system::error_code err;
-  return boost::filesystem::remove(filename, err) && !err;
 }
 
 void replaceWalletFiles(const std::string &path, const std::string &tempFilePath) {
@@ -568,9 +563,10 @@ std::error_code WalletService::saveWalletNoThrow() {
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while saving wallet: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl; 
-    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while saving wallet: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while saving wallet: ";
+    ermsg += x.what();
+    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -612,14 +608,16 @@ std::error_code WalletService::resetWallet() {
     }
 
     reset();
+
     logger(Logging::INFO) << "Wallet has been reset";
   } catch (std::system_error& x) {
     logger(Logging::WARNING) << "Error while reseting wallet: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while reseting wallet: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while reseting wallet: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -642,14 +640,15 @@ std::error_code WalletService::replaceWithNewWallet(const std::string& viewSecre
     }
 
     replaceWithNewWallet(viewSecretKey);
+
     logger(Logging::INFO) << "The container has been replaced";
   } catch (std::system_error& x) {
     logger(Logging::WARNING) << "Error while replacing container: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while replacing container: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while replacing container: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
   }
 
   return std::error_code();
@@ -663,13 +662,13 @@ std::error_code WalletService::createAddress(const std::string& spendSecretKeyTe
 
     Crypto::SecretKey secretKey;
     if (!Common::podFromHex(spendSecretKeyText, secretKey)) {
-      logger(Logging::WARNING) << "Wrong key format: " << spendSecretKeyText;
+      logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Wrong key format: " << spendSecretKeyText;
       return make_error_code(CryptoNote::error::WalletServiceErrorCode::WRONG_KEY_FORMAT);
     }
 
     address = wallet.createAddress(secretKey);
   } catch (std::system_error& x) {
-    logger(Logging::WARNING) << "Error while creating address: " << x.what();
+    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while creating address: " << x.what();
     return x.code();
   }
 
@@ -826,12 +825,13 @@ std::error_code WalletService::getTransactionHashes(const std::vector<std::strin
 
     transactionHashes = getRpcTransactionHashes(blockHash, blockCount, transactionFilter);
   } catch (std::system_error& x) {
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
+    logger(Logging::WARNING) << "Error while getting transactions for block RPC Info: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting transaction hashes: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -851,12 +851,13 @@ std::error_code WalletService::getTransactionHashes(const std::vector<std::strin
     transactionHashes = getRpcTransactionHashes(firstBlockIndex, blockCount, transactionFilter);
 
   } catch (std::system_error& x) {
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
+    logger(Logging::WARNING) << "Error while getting transactions for hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting transaction hashes by index: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -878,12 +879,13 @@ std::error_code WalletService::getTransactions(const std::vector<std::string>& a
 
     transactions = getRpcTransactions(blockHash, blockCount, transactionFilter);
   } catch (std::system_error& x) {
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
+    logger(Logging::WARNING) << "System error while getting transactions: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting transactions: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -903,12 +905,13 @@ std::error_code WalletService::getTransactions(const std::vector<std::string>& a
 
     transactions = getRpcTransactions(firstBlockIndex, blockCount, transactionFilter);
   } catch (std::system_error& x) {
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
+    logger(Logging::DEBUGGING) << "Sys error while getting transactions: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting transactions: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting transactions with addresses: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -931,9 +934,10 @@ std::error_code WalletService::getTransaction(const std::string& transactionHash
     logger(Logging::WARNING) << "Error while getting transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting transaction: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting transaction: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -950,9 +954,10 @@ std::error_code WalletService::getAddresses(std::vector<std::string>& addresses)
       addresses.push_back(wallet.getAddress(i));
     }
   } catch (std::exception& e) {
-    std::cout << e.what() << std::endl;
-    logger(Logging::WARNING) << "Can't get addresses: " << e.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Can't get addresses: ";
+    ermsg += e.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -990,9 +995,10 @@ std::error_code WalletService::sendTransaction(const SendTransaction::Request& r
     logger(Logging::WARNING) << "Error while sending transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while sending transaction: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while sending transaction: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1030,9 +1036,10 @@ std::error_code WalletService::createDelayedTransaction(const CreateDelayedTrans
     logger(Logging::WARNING) << "Error while creating delayed transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while creating delayed transaction: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while creating delayed transaction: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1053,9 +1060,10 @@ std::error_code WalletService::getDelayedTransactionHashes(std::vector<std::stri
     logger(Logging::WARNING) << "Error while getting delayed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting delayed transaction hashes: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting delayed transaction hashes: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1080,9 +1088,10 @@ std::error_code WalletService::deleteDelayedTransaction(const std::string& trans
     logger(Logging::WARNING) << "Error while deleting delayed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while deleting delayed transaction hashes: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while deleting delayed transaction hashes: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1107,9 +1116,10 @@ std::error_code WalletService::sendDelayedTransaction(const std::string& transac
     logger(Logging::WARNING) << "Error while sending delayed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while sending delayed transaction hashes: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while sending delayed transaction hashes: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1129,9 +1139,10 @@ std::error_code WalletService::bindDaemon(const std::string& daemonIP, const std
     logger(Logging::WARNING) << "Error while switching to new daemon: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while switching to new daemon: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while switching to new daemon: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1156,9 +1167,10 @@ std::error_code WalletService::getUnconfirmedTransactionHashes(const std::vector
     logger(Logging::WARNING) << "Error while getting unconfirmed transaction hashes: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting unconfirmed transaction hashes: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting unconfirmed transaction hashes: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1179,9 +1191,10 @@ std::error_code WalletService::getStatus(uint32_t& blockCount, uint32_t& knownBl
     logger(Logging::WARNING) << "Error while getting status: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING) << "Error while getting status: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while getting status: ";
+    ermsg += x.what();
+    logger(Logging::WARNING) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1205,9 +1218,10 @@ std::error_code WalletService::sendFusionTransaction(uint64_t threshold, uint32_
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while sending fusion transaction: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Error while sending fusion transaction: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Error while sending fusion transaction: ";
+    ermsg += x.what();
+    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();
@@ -1227,9 +1241,10 @@ std::error_code WalletService::estimateFusion(uint64_t threshold, const std::vec
     logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Failed to estimate number of fusion outputs: " << x.what();
     return x.code();
   } catch (std::exception& x) {
-    std::cout << x.what() << std::endl;
-    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << "Failed to estimate number of fusion outputs: " << x.what();
-    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR);
+    std::string ermsg = "Failed to estimate number of fusion outputs: ";
+    ermsg += x.what();
+    logger(Logging::WARNING, Logging::BRIGHT_YELLOW) << ermsg;
+    return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
 
   return std::error_code();

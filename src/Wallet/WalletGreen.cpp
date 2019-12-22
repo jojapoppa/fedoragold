@@ -2485,7 +2485,7 @@ std::vector<TransactionsInBlockInfo> WalletGreen::getTransactionsInBlocks(uint32
 
   for (uint32_t height = blockIndex; height < stopIndex; ++height) {
     TransactionsInBlockInfo info;
-    info.blockHash = m_blockchain[height];
+    info.blockHash = m_blockchain[height]; //jojapoppa
 
     auto lowerBound = blockHeightIndex.lower_bound(height);
     auto upperBound = blockHeightIndex.upper_bound(height);
