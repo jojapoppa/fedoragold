@@ -322,7 +322,6 @@ logger(logger, "Blockchain"),
 m_currency(currency),
 m_tx_pool(tx_pool),
 m_current_block_cumul_sz_limit(0),
-m_is_in_checkpoint_zone(false),
 m_checkpoints(logger) {
 
   m_outputs.set_deleted_key(0);
@@ -351,7 +350,7 @@ bool Blockchain::checkTransactionInputs(const CryptoNote::Transaction& tx, Block
   if (maxUsedBlock.empty()) {
     //not checked, lets try to check
     if (!lastFailed.empty() && getCurrentBlockchainHeight() > lastFailed.height && getBlockIdByHeight(lastFailed.height) == lastFailed.id) {
-      return false; //we already sure that this tx is broken for this height
+      return false; // we already know that this tx is broken for this height
     }
 
     if (!checkTransactionInputs(tx, maxUsedBlock.height, maxUsedBlock.id, &tail)) {
@@ -512,6 +511,12 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
         "network.";
       return false;
     }
+  }
+
+  uint32_t lastValidCheckpointHeight = 0;
+  if (!checkCheckpoints(lastValidCheckpointHeight)) {
+    logger(WARNING, BRIGHT_YELLOW) << "Invalid checkpoint! Rollback blockchain to height=" << lastValidCheckpointHeight;
+    rollbackBlockchainTo(lastValidCheckpointHeight);
   }
 
   update_next_comulative_size_limit();
@@ -1097,7 +1102,6 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
     }
 
     // Always check PoW for alternative blocks
-    m_is_in_checkpoint_zone = false;
     difficulty_type current_diff = get_next_difficulty_for_alternative_chain(alt_chain, bei);
     if (!(current_diff)) { logger(ERROR, BRIGHT_RED) << "!!!!!!! DIFFICULTY OVERHEAD !!!!!!!"; return false; }
     Crypto::Hash proof_of_work = NULL_HASH;
@@ -1507,23 +1511,27 @@ bool Blockchain::checkTransactionInputs(const Transaction& tx, const Crypto::Has
       if (!(!in_to_key.outputIndexes.empty())) { logger(ERROR, BRIGHT_RED) << "empty in_to_key.outputIndexes in transaction with id " << getObjectHash(tx); return false; }
 
       if (have_tx_keyimg_as_spent(in_to_key.keyImage)) {
-        logger(DEBUGGING) <<
+        logger(INFO, BRIGHT_WHITE) <<
           "Key image already spent in blockchain: " << Common::podToHex(in_to_key.keyImage);
         return false;
       }
 
-      if (!check_tx_input(in_to_key, tx_prefix_hash, tx.signatures[inputIndex], pmax_used_block_height)) {
-        logger(DEBUGGING, BRIGHT_WHITE) <<
-          "Failed to check ring signature for tx " << transactionHash;
-        return false;
+      if (!isInCheckpointZone(getCurrentBlockchainHeight())) {
+        if (!check_tx_input(in_to_key, tx_prefix_hash, tx.signatures[inputIndex], pmax_used_block_height)) {
+          logger(INFO, BRIGHT_WHITE) <<
+            "Failed to check input in transaction " << transactionHash;
+          return false;
+        }
       }
 
       ++inputIndex;
     } else if (txin.type() == typeid(MultisignatureInput)) {
-      if (!validateInput(::boost::get<MultisignatureInput>(txin), transactionHash, tx_prefix_hash, tx.signatures[inputIndex])) {
-        return false;
+      if (!isInCheckpointZone(getCurrentBlockchainHeight())) {
+        if (!validateInput(::boost::get<MultisignatureInput>(txin), transactionHash, tx_prefix_hash, tx.signatures[inputIndex])) {
+          logger(INFO, BRIGHT_WHITE) << "Transactioni: " << transactionHash << " has invalide multisig inputs.";
+          return false;
+        }
       }
-
       ++inputIndex;
     } else {
       logger(INFO, BRIGHT_WHITE) <<
@@ -1620,7 +1628,7 @@ bool Blockchain::check_tx_input(const KeyInput& txin, const Crypto::Hash& tx_pre
     return false; 
   }
 
-  if (m_is_in_checkpoint_zone) {
+  if (isInCheckpointZone(getCurrentBlockchainHeight())) {
     return true;
   }
 
@@ -2207,6 +2215,49 @@ bool Blockchain::validateInput(const MultisignatureInput& input, const Crypto::H
   return true;
 }
 
+bool Blockchain::checkCheckpoints(uint32_t& lastValidCheckpointHeight) {
+  std::vector<uint32_t> checkpointHeights = m_checkpoints.getCheckpointHeights();
+  for (const auto& checkpointHeight : checkpointHeights) {
+    if (m_blocks.size() <= checkpointHeight) {
+      return true;
+    }
+
+    if(m_checkpoints.check_block(checkpointHeight, getBlockIdByHeight(checkpointHeight))) {
+      lastValidCheckpointHeight = checkpointHeight;
+    } else {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void Blockchain::rollbackBlockchainTo(uint32_t height) {
+  while (height + 1 < m_blocks.size()) {
+    removeLastBlock();
+  }
+}
+
+void Blockchain::removeLastBlock() {
+  if (m_blocks.empty()) {
+    logger(ERROR, BRIGHT_RED) <<
+      "Attempt to pop block from empty blockchain.";
+    return;
+  }
+
+  logger(DEBUGGING) << "Removing last block with height " << m_blocks.back().height;
+  popTransactions(m_blocks.back(), getObjectHash(m_blocks.back().bl.baseTransaction));
+
+  Crypto::Hash blockHash = getBlockIdByHeight(m_blocks.back().height);
+  m_timestampIndex.remove(m_blocks.back().bl.timestamp, blockHash);
+  m_generatedTransactionsIndex.remove(m_blocks.back().bl);
+
+  m_blocks.pop_back();
+  m_blockIndex.pop();
+
+  assert(m_blockIndex.size() == m_blocks.size());
+}
+
 bool Blockchain::getLowerBound(uint64_t timestamp, uint64_t startOffset, uint32_t& height) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
@@ -2414,6 +2465,10 @@ void Blockchain::sendMessage(const BlockchainMessage& message) {
 
 bool Blockchain::isBlockInMainChain(const Crypto::Hash& blockId) {
   return m_blockIndex.hasBlock(blockId);
+}
+
+bool Blockchain::isInCheckpointZone(const uint32_t height) {
+  return m_checkpoints.is_in_checkpoint_zone(height);
 }
 
 }

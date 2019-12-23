@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "Checkpoints.h"
+#include "../CryptoNoteConfig.h"
 #include "Common/StringTools.h"
 
 using namespace Logging;
@@ -61,6 +62,14 @@ bool Checkpoints::is_alternative_block_allowed(uint32_t  blockchain_height,
   if (0 == block_height)
     return false;
 
+  if (block_height < blockchain_height - parameters::CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW
+    && !is_in_checkpoint_zone(block_height)) {
+    logger(Logging::WARNING, Logging::WHITE) << "An attempt of too deep reorganization: "
+      << blockchain_height - block_height << ", BLOCK REJECTED";
+
+    return false;
+  }
+
   auto it = m_points.upper_bound(blockchain_height);
   // Is blockchain_height before the first checkpoint?
   if (it == m_points.begin())
@@ -69,5 +78,15 @@ bool Checkpoints::is_alternative_block_allowed(uint32_t  blockchain_height,
   --it;
   uint32_t  checkpoint_height = it->first;
   return checkpoint_height < block_height;
+}
+
+std::vector<uint32_t> Checkpoints::getCheckpointHeights() const {
+  std::vector<uint32_t> checkpointHeights;
+  checkpointHeights.reserve(m_points.size());
+  for (const auto& it : m_points) {
+    checkpointHeights.push_back(it.first);
+  }
+
+  return checkpointHeights;
 }
 }
