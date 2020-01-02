@@ -1455,12 +1455,7 @@ namespace CryptoNote
       } catch (System::InterruptedException&) {
         logger(DEBUGGING) << ctx << "connectionHandler() inner context is interrupted";
       } catch (std::exception& e) {
-        // Don't show this error on Windows, it's expected behavior...
-	const std::string swhat = e.what();
-        std::string::size_type idx = swhat.find("10054", 0);
-        if (idx == std::string::npos) {
-          logger(WARNING) << ctx << "Exception in connectionHandler: " << e.what();
-	}
+        // Don't show this error, it's expected behavior... network errors do happen...
       }
 
       ctx.interruptP2p();
