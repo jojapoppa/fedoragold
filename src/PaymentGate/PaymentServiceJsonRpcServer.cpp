@@ -48,20 +48,20 @@ PaymentServiceJsonRpcServer::PaymentServiceJsonRpcServer(System::Dispatcher& sys
 void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue& req, Common::JsonValue& resp) {
   try {
     prepareJsonResponse(req, resp);
+    std::string method = req("method").getString();
 
     if (!req.contains("method")) {
       logger(Logging::WARNING) << "Field \"method\" is not found in json request: " << req;
-      makeGenericErrorReponse(resp, "Invalid Request", -3600);
+      makeGenericErrorReponse(resp, "Invalid Request: no method", -3600);
       return;
     }
 
     if (!req("method").isString()) {
       logger(Logging::WARNING) << "Field \"method\" is not a string type: " << req;
-      makeGenericErrorReponse(resp, "Invalid Request", -3600);
+      std::string ermsg = "Invalid Request, method not a string: "+method;
+      makeGenericErrorReponse(resp, ermsg.c_str(), -3600);
       return;
     }
-
-    std::string method = req("method").getString();
 
     auto it = handlers.find(method);
     if (it == handlers.end()) {
