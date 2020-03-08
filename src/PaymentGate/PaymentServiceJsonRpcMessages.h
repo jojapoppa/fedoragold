@@ -12,7 +12,7 @@
 
 namespace PaymentService {
 
-const uint32_t DEFAULT_ANONYMITY_LEVEL = 6;
+const uint32_t DEFAULT_ANONYMITY_LEVEL = 3;
 
 class RequestSerializationError: public std::exception {
 public:

@@ -21,6 +21,7 @@ enum WalletErrorCodes {
   BAD_ADDRESS,
   TRANSACTION_SIZE_TOO_BIG,
   WRONG_AMOUNT,
+  WRONG_AMOUNT_NEEDED,
   SUM_OVERFLOW,
   ZERO_DESTINATION,
   TX_CANCEL_IMPOSSIBLE,
@@ -75,6 +76,8 @@ public:
     case TRANSACTION_SIZE_TOO_BIG: ss=m_msg+"Transaction size is too big";
     break;
     case WRONG_AMOUNT:             ss=m_msg+"Wrong amount";
+    break;
+    case WRONG_AMOUNT_NEEDED:      ss=m_msg+"Wrong amount needed";
     break;
     case SUM_OVERFLOW:             ss=m_msg+"Sum overflow";
     break;

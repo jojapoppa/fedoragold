@@ -70,7 +70,7 @@ void validateOrders(const std::vector<WalletOrder>& orders, const CryptoNote::Cu
 
     if (order.amount >= static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
       throw std::system_error(make_error_code(CryptoNote::error::WRONG_AMOUNT),
-        "Order amount must not exceed " + std::to_string(std::numeric_limits<int64_t>::max()));
+        "For validation, order amount must not exceed " + std::to_string(std::numeric_limits<int64_t>::max()));
     }
   }
 }
