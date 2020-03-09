@@ -164,7 +164,7 @@ std::vector<WalletTransfer> convertOrdersToTransfers(const std::vector<WalletOrd
     WalletTransfer transfer;
 
     if (order.amount > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
-      throw std::system_error(make_error_code(CryptoNote::error::WRONG_AMOUNT),
+      throw std::system_error(make_error_code(CryptoNote::error::WRONG_AMOUNT_ORDER_TOO_BIG),
         "Order amount must not exceed " + std::to_string(std::numeric_limits<decltype(transfer.amount)>::max()));
     }
 
@@ -201,7 +201,7 @@ uint64_t pushDonationTransferIfPossible(const DonationSettings& donation, uint64
   uint64_t donationAmount = 0;
   if (!donation.address.empty() && donation.threshold != 0) {
     if (donation.threshold > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
-      throw std::system_error(make_error_code(error::WRONG_AMOUNT),
+      throw std::system_error(make_error_code(error::WRONG_AMOUNT_THRESHOLD_TOO_BIG),
         "Donation threshold must not exceed " + std::to_string(std::numeric_limits<int64_t>::max()));
     }
 
@@ -792,7 +792,7 @@ void WalletGreen::prepareTransaction(std::vector<WalletOuts>&& wallets,
   uint64_t foundMoney = selectTransfers(preparedTransaction.neededMoney, mixIn == 0, m_currency.defaultDustThreshold(), std::move(wallets), selectedTransfers);
 
   if (foundMoney < preparedTransaction.neededMoney) {
-    throw std::system_error(make_error_code(error::WRONG_AMOUNT), "Not enough money");
+    throw std::system_error(make_error_code(error::WRONG_AMOUNT_NOT_ENOUGH), "Not enough money");
   }
 
   typedef CryptoNote::COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::outs_for_amount outs_for_amount;

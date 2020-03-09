@@ -26,7 +26,7 @@ uint64_t countNeededMoney(uint64_t fee, const std::vector<WalletLegacyTransfer>&
   uint64_t needed_money = fee;
   for (auto& transfer: transfers) {
     throwIf(transfer.amount == 0, error::ZERO_DESTINATION);
-    throwIf(transfer.amount < 0, error::WRONG_AMOUNT);
+    throwIf(transfer.amount < 0, error::WRONG_AMOUNT_NEGATIVE);
 
     needed_money += transfer.amount;
     throwIf(static_cast<int64_t>(needed_money) < transfer.amount, error::SUM_OVERFLOW);
