@@ -32,11 +32,31 @@
 #include "CryptoNoteCore/TransactionApi.h"
 #include "CryptoNoteCore/CryptoNoteBasicImpl.h"
 #include "crypto/crypto.h"
+#include "crypto/random.h"
 #include "Transfers/TransfersContainer.h"
 #include "WalletSerialization.h"
 #include "WalletSerializationV5.h"
 #include "WalletErrors.h"
 #include "WalletUtils.h"
+
+#include <random>
+namespace Random
+{
+    /* Used to obtain a random seed */
+    static thread_local std::random_device device;
+
+    /* Generator, seeded with the random device */
+    static thread_local std::mt19937 gen(device());
+
+    /**
+     * Obtain the generator used internally. Helpful for passing to functions
+     * like std::shuffle.
+     */
+    inline std::mt19937 generator()
+    {
+        return gen;
+    }
+}
 
 using namespace Common;
 using namespace Crypto;
@@ -46,12 +66,6 @@ namespace {
 
 void asyncRequestCompletion(System::Event& requestFinished) {
   requestFinished.set();
-}
-
-void parseAddressString(const std::string& string, const CryptoNote::Currency& currency, CryptoNote::AccountPublicAddress& address) {
-  if (!currency.parseAccountAddressString(string, address)) {
-    throw std::system_error(make_error_code(CryptoNote::error::BAD_ADDRESS));
-  }
 }
 
 void validateAddresses(const std::vector<std::string>& addresses, const CryptoNote::Currency& currency) {
@@ -212,16 +226,6 @@ uint64_t pushDonationTransferIfPossible(const DonationSettings& donation, uint64
   }
 
   return donationAmount;
-}
-
-CryptoNote::AccountPublicAddress parseAccountAddressStr(const std::string& addressString, const CryptoNote::Currency& currency) {
-  CryptoNote::AccountPublicAddress address;
-
-  if (!currency.parseAccountAddressString(addressString, address)) {
-    throw std::system_error(make_error_code(CryptoNote::error::BAD_ADDRESS));
-  }
-
-  return address;
 }
 
 }
@@ -529,7 +533,7 @@ KeyPair WalletGreen::getAddressSpendKey(const std::string& address) const {
   throwIfNotInitialized();
   throwIfStopped();
 
-  CryptoNote::AccountPublicAddress pubAddr = parseAddress(address);
+  CryptoNote::AccountPublicAddress pubAddr = parseAccountAddressString(address);
 
   auto it = m_walletsContainer.get<KeysIndex>().find(pubAddr.spendPublicKey);
   if (it == m_walletsContainer.get<KeysIndex>().end()) {
@@ -649,7 +653,7 @@ void WalletGreen::deleteAddress(const std::string& address) {
   throwIfNotInitialized();
   throwIfStopped();
 
-  CryptoNote::AccountPublicAddress pubAddr = parseAddress(address);
+  CryptoNote::AccountPublicAddress pubAddr = parseAccountAddressString(address);
 
   auto it = m_walletsContainer.get<KeysIndex>().find(pubAddr.spendPublicKey);
   if (it == m_walletsContainer.get<KeysIndex>().end()) {
@@ -821,6 +825,16 @@ void WalletGreen::prepareTransaction(std::vector<WalletOuts>&& wallets,
   }
 
   preparedTransaction.transaction = makeTransaction(decomposedOutputs, keysInfo, extra, unlockTimestamp);
+}
+
+CryptoNote::AccountPublicAddress WalletGreen::parseAccountAddressString(const std::string& addressString) const {
+  CryptoNote::AccountPublicAddress address;
+
+  if (!m_currency.parseAccountAddressString(addressString, address)) {
+    throw std::system_error(make_error_code(CryptoNote::error::BAD_ADDRESS));
+  }
+
+  return address;
 }
 
 void WalletGreen::validateTransactionParameters(const TransactionParameters& transactionParameters) {
@@ -1317,7 +1331,8 @@ std::unique_ptr<CryptoNote::ITransaction> WalletGreen::makeTransaction(const std
     }
   }
 
-  std::shuffle(amountsToAddresses.begin(), amountsToAddresses.end(), std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+  std::shuffle(amountsToAddresses.begin(), amountsToAddresses.end(), Random::generator());
+    //std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
   std::sort(amountsToAddresses.begin(), amountsToAddresses.end(), [] (const AmountToAddress& left, const AmountToAddress& right) {
     return left.second < right.second;
   });
@@ -1551,9 +1566,8 @@ std::vector<CryptoNote::WalletGreen::ReceiverAmounts> WalletGreen::splitDestinat
 
   std::vector<ReceiverAmounts> decomposedOutputs;
   for (const auto& destination: destinations) {
-    AccountPublicAddress address;
-    parseAddressString(destination.address, currency, address);
-    decomposedOutputs.push_back(splitAmount(destination.amount, address, dustThreshold));
+    AccountPublicAddress address = parseAccountAddressString(destination.address);
+    decomposedOutputs.push_back(splitAmount(destination.amount, address, 0));
   }
 
   return decomposedOutputs;
@@ -2071,7 +2085,7 @@ const WalletRecord& WalletGreen::getWalletRecord(const PublicKey& key) const {
 }
 
 const WalletRecord& WalletGreen::getWalletRecord(const std::string& address) const {
-  CryptoNote::AccountPublicAddress pubAddr = parseAddress(address);
+  CryptoNote::AccountPublicAddress pubAddr = parseAccountAddressString(address);
   return getWalletRecord(pubAddr.spendPublicKey);
 }
 
@@ -2082,16 +2096,6 @@ const WalletRecord& WalletGreen::getWalletRecord(CryptoNote::ITransfersContainer
   }
 
   return *it;
-}
-
-CryptoNote::AccountPublicAddress WalletGreen::parseAddress(const std::string& address) const {
-  CryptoNote::AccountPublicAddress pubAddr;
-
-  if (!m_currency.parseAccountAddressString(address, pubAddr)) {
-    throw std::system_error(make_error_code(error::BAD_ADDRESS));
-  }
-
-  return pubAddr;
 }
 
 void WalletGreen::throwIfStopped() const {
@@ -2416,8 +2420,8 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(
   //now, pick the bucket
   std::vector<uint8_t> bucketNumbers(bucketSizes.size());
   std::iota(bucketNumbers.begin(), bucketNumbers.end(), 0);
-  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), 
-    std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), Random::generator());
+    //std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
   size_t bucketNumberIndex = 0;
   for (; bucketNumberIndex < bucketNumbers.size(); ++bucketNumberIndex) {
     if (bucketSizes[bucketNumbers[bucketNumberIndex]] >= minInputCount) {
@@ -2561,7 +2565,7 @@ void WalletGreen::getViewKeyKnownBlocks(const Crypto::PublicKey& viewPublicKey) 
 ///pre: source address belongs to current container
 CryptoNote::AccountPublicAddress WalletGreen::getChangeDestination(const std::string& changeDestinationAddress, const std::vector<std::string>& sourceAddresses) const {
   if (!changeDestinationAddress.empty()) {
-    return parseAccountAddressStr(changeDestinationAddress, m_currency);
+    return parseAccountAddressString(changeDestinationAddress);
   }
 
   if (m_walletsContainer.size() == 1) {
@@ -2569,11 +2573,11 @@ CryptoNote::AccountPublicAddress WalletGreen::getChangeDestination(const std::st
   }
 
   assert(sourceAddresses.size() == 1 && isMyAddress(sourceAddresses[0]));
-  return parseAccountAddressStr(sourceAddresses[0], m_currency);
+  return parseAccountAddressString(sourceAddresses[0]);
 }
 
 bool WalletGreen::isMyAddress(const std::string& addressString) const {
-  CryptoNote::AccountPublicAddress address = parseAccountAddressStr(addressString, m_currency);
+  CryptoNote::AccountPublicAddress address = parseAccountAddressString(addressString);
   return m_viewPublicKey == address.viewPublicKey && m_walletsContainer.get<KeysIndex>().count(address.spendPublicKey) != 0;
 }
 

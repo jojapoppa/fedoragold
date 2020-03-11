@@ -181,7 +181,6 @@ protected:
   const WalletRecord& getWalletRecord(const std::string& address) const;
   const WalletRecord& getWalletRecord(CryptoNote::ITransfersContainer* container) const;
 
-  CryptoNote::AccountPublicAddress parseAddress(const std::string& address) const;
   std::string addWallet(const Crypto::PublicKey& spendPublicKey, const Crypto::SecretKey& spendSecretKey, uint64_t creationTimestamp);
   AccountKeys makeAccountKeys(const WalletRecord& wallet) const;
   size_t getTransactionId(const Crypto::Hash& transactionHash) const;
@@ -222,6 +221,8 @@ protected:
     uint64_t dustThreshold,
     std::vector<WalletOuts>&& wallets,
     std::vector<OutputToTransfer>& selectedTransfers);
+
+  CryptoNote::AccountPublicAddress parseAccountAddressString(const std::string& addressString) const;
 
   std::vector<ReceiverAmounts> splitDestinations(const std::vector<WalletTransfer>& destinations,
     uint64_t dustThreshold, const Currency& currency);

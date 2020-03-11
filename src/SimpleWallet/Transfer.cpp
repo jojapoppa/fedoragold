@@ -516,7 +516,7 @@ void fusionTX(CryptoNote::WalletGreen &wallet, CryptoNote::TransactionParameters
 
         /* The internal node error I believe is caused by the same issue as
            the mixin error. Rocksteady explained this as not enough traffic
-           having occured on the network to allow your to mixin with.
+           having occured on the network to allow you to mixin with.
            Hopefully, this will only occur on the testnet and not the main
            network. It seems sending multiple smaller transactions will
            provide the network with more change to allow tx's to go through.
@@ -754,7 +754,7 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t f
             }
             /* The internal node error I believe is caused by the same issue as
                the mixin error. Rocksteady explained this as not enough traffic
-               having occured on the network to allow your to mixin with.
+               having occured on the network to allow you to mixin with.
                Hopefully, this will only occur on the testnet and not the main
                network. It seems sending multiple smaller transactiosn will
                provide the network with more change to allow tx's to go through.
