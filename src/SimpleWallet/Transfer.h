@@ -66,7 +66,7 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount,
                 uint64_t fee, std::string extra,
                 std::shared_ptr<WalletInfo> walletInfo);
 
-void fusionTX(CryptoNote::WalletGreen &wallet, 
+bool fusionTX(CryptoNote::WalletGreen &wallet, 
               CryptoNote::TransactionParameters p);
 
 void sendMultipleTransactions(CryptoNote::WalletGreen &wallet,

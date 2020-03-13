@@ -74,7 +74,7 @@ struct IWalletBaseStub : public CryptoNote::IWallet {
   virtual std::vector<WalletTransactionWithTransfers> getUnconfirmedTransactions() const override { return {}; }
   virtual std::vector<size_t> getDelayedTransactionIds() const override { return {}; }
 
-  virtual size_t transfer(const TransactionParameters& sendingTransaction) override { return 0; }
+  virtual size_t transfer(const TransactionParameters& sendingTransaction, Crypto::SecretKey &txSecretKey) override { return 0; }
 
   virtual size_t makeTransaction(const TransactionParameters& sendingTransaction) override { return 0; }
   virtual void commitTransaction(size_t transactionId) override { }

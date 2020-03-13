@@ -208,6 +208,8 @@ bool Currency::constructMinerTx(uint32_t height, size_t medianSize, uint64_t alr
 }
 
 bool Currency::isFusionTransaction(const std::vector<uint64_t>& inputsAmounts, const std::vector<uint64_t>& outputsAmounts, size_t size) const {
+
+  //jojapoppa, see version dependent branching (Karbo is good example) in event of any future fork
   if (size > fusionTxMaxSize()) {
     return false;
   }

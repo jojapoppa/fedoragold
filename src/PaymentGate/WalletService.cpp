@@ -987,7 +987,8 @@ std::error_code WalletService::sendTransaction(const SendTransaction::Request& r
     sendParams.unlockTimestamp = request.unlockTime;
     sendParams.changeDestination = request.changeAddress;
 
-    size_t transactionId = wallet.transfer(sendParams);
+    Crypto::SecretKey tx_key;
+    size_t transactionId = wallet.transfer(sendParams, tx_key);
     transactionHash = Common::podToHex(wallet.getTransaction(transactionId).hash);
 
     logger(Logging::DEBUGGING) << "Transaction " << transactionHash << " has been sent";

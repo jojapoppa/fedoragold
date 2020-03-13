@@ -148,13 +148,14 @@ void sendMultipleTransactions(CryptoNote::WalletGreen &wallet,
                       << " of " << InformationMsg(std::to_string(numTxs))
                       << std::endl;
 
+            Crypto::SecretKey txSecretKey;
             wallet.updateInternalCache();
 
             uint64_t neededBalance = tx.destinations[0].amount + tx.fee;
 
             if (neededBalance < wallet.getActualBalance())
             {
-                size_t id = wallet.transfer(tx);
+                size_t id = wallet.transfer(tx, txSecretKey);
 
                 CryptoNote::WalletTransaction sentTx 
                     = wallet.getTransaction(id);
@@ -178,10 +179,10 @@ void sendMultipleTransactions(CryptoNote::WalletGreen &wallet,
                       << formatAmount(wallet.getActualBalance())
                       << std::endl << "Locked balance: "
                       << formatAmount(wallet.getPendingBalance())
-                      << std::endl << "Will try again in 15 seconds..."
+                      << std::endl << "Will try again in 5 seconds..."
                       << std::endl << std::endl;
 
-            std::this_thread::sleep_for(std::chrono::seconds(15));
+            std::this_thread::sleep_for(std::chrono::seconds(5));
         }
 
         currentTx++;
@@ -458,9 +459,9 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
             //}
             
             //std::cout << std::endl
-            //          << SuccessMsg("Will try again in 15 seconds...")
+            //          << SuccessMsg("Will try again in 1 minute...")
             //          << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(15));
+            std::this_thread::sleep_for(std::chrono::minutes(1));
 
             wallet.updateInternalCache();
         } else {
@@ -473,7 +474,7 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
     return true;
 }
 
-void fusionTX(CryptoNote::WalletGreen &wallet, CryptoNote::TransactionParameters p) {
+bool fusionTX(CryptoNote::WalletGreen &wallet, CryptoNote::TransactionParameters p) {
     std::cout << WarningMsg("Your transaction is too large to be accepted by the network!") << std::endl 
               << "We're attempting to optimize your wallet, which hopefully will make the transaction small enough to fit in a block." << std::endl 
               << "Please wait, this will take some time..." << std::endl 
@@ -485,26 +486,27 @@ void fusionTX(CryptoNote::WalletGreen &wallet, CryptoNote::TransactionParameters
     optimize(wallet, p.destinations[0].amount + p.fee);
 
     auto startTime = std::chrono::system_clock::now();
+    Crypto::SecretKey txSecretKey;
 
     while (wallet.getActualBalance() < p.destinations[0].amount + p.fee) {
         /* Break after a minute just in case something has gone wrong */
-        if ((std::chrono::system_clock::now() - startTime) > std::chrono::minutes(1)) {
+        if ((std::chrono::system_clock::now() - startTime) > std::chrono::minutes(5)) {
             std::cout << WarningMsg("Fusion transactions have completed, however available balance is less than transfer amount specified.") << std::endl
                       << WarningMsg("Transfer aborted, please review and start a new transfer.") << std::endl;
-            return;
+            return false;
         }
 
         std::cout << WarningMsg("Optimization completed, but balance is not fully unlocked yet!") << std::endl
                   << SuccessMsg("Will try again in 15 seconds...") << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(15));
+        std::this_thread::sleep_for(std::chrono::seconds(5));
     }
 
     try {
         if (wallet.txIsTooLarge(p)) {
             splitTx(wallet, p);
         } else {   
-            size_t id = wallet.transfer(p);
+            size_t id = wallet.transfer(p, txSecretKey);
             CryptoNote::WalletTransaction tx = wallet.getTransaction(id);
 
             std::cout << SuccessMsg("Transaction has been sent!") << std::endl
@@ -532,7 +534,11 @@ void fusionTX(CryptoNote::WalletGreen &wallet, CryptoNote::TransactionParameters
             std::cout << WarningMsg("Failed to send transaction!") << std::endl 
                       << "Error message: " << errMsg << std::endl;
         }
+
+        return false;
     }
+
+  return true;
 }
 
 void transfer(std::shared_ptr<WalletInfo> walletInfo, std::vector<std::string> args) {
@@ -668,10 +674,13 @@ void transfer(std::shared_ptr<WalletInfo> walletInfo) {
     doTransfer(mixin, address, amount, fee, extra, walletInfo);
 }
 
+//jojapoppa, Karbo has had lots of enhancements to this section ... please compare
 void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t fee, std::string extra, std::shared_ptr<WalletInfo> walletInfo) {
+    Crypto::SecretKey txSecretKey;
     uint64_t balance = walletInfo->wallet.getActualBalance();
     uint64_t remote_node_fee = 0;
-    if (!remote_fee_address.empty()) {
+    if (!remote_fee_address.empty()) { 
+        //jojapoppa - node fee code is here... good for VPN model
         // Remote node fee is between 0.01 and 1.00 FED depending on transfer amount
         remote_node_fee = std::min(UINT64_C(1), std::max(static_cast<uint64_t>(amount * 0.000025), UINT64_C(100)));
     }
@@ -711,7 +720,7 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t f
         return;
     }
 
-    bool txIsTooLarge;
+    bool txIsTooLarge = false;
     bool retried = false;
 
     while (true) {
@@ -719,9 +728,15 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t f
             txIsTooLarge = walletInfo->wallet.txIsTooLarge(p);
 
             if (txIsTooLarge) {
-                fusionTX(walletInfo->wallet, p);
+                if (!fusionTX(walletInfo->wallet, p)) {
+                  return;
+                }
+                if (walletInfo->wallet.txIsTooLarge(p))
+                {
+                    splitTx(walletInfo->wallet, p);
+                }
             } else {
-                size_t id = walletInfo->wallet.transfer(p);
+                size_t id = walletInfo->wallet.transfer(p, txSecretKey);
                 
                 CryptoNote::WalletTransaction tx 
                     = walletInfo->wallet.getTransaction(id);
