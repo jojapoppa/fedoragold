@@ -163,6 +163,7 @@ std::error_code InProcessNode::doGetNewBlocks(std::vector<Crypto::Hash>&& knownB
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetNewBlocks: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
 
@@ -213,6 +214,7 @@ std::error_code InProcessNode::doGetTransactionOutsGlobalIndices(const Crypto::H
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetTransactionOutsGlobalIndices: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
 
@@ -270,6 +272,7 @@ std::error_code InProcessNode::doGetRandomOutsByAmounts(std::vector<uint64_t>&& 
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetRandomOutsByAmounts: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
 
@@ -331,6 +334,7 @@ std::error_code InProcessNode::doRelayTransaction(const CryptoNote::Transaction&
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doRelayTransaction: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
 
@@ -416,6 +420,7 @@ uint64_t InProcessNode::getLastLocalBlockTimestamp() const {
 
   CryptoNote::Block block;
   if (!core.getBlockByHash(hash, block)) {
+    std::cout << "\nInProcessNode::getLastLocalBlockTimestamp: INTERNAL_NODE_ERROR\n";
     throw std::system_error(make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR));
   }
 
@@ -478,6 +483,7 @@ std::error_code InProcessNode::doQueryBlocksLite(std::vector<Crypto::Hash>&& kno
   std::vector<CryptoNote::BlockShortInfo> entries;
 
   if (!core.queryBlocksLite(knownBlockIds, timestamp, startHeight, currentHeight, fullOffset, entries)) {
+    std::cout << "\nInProcessNode::doQueryBlocksLite: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
 
@@ -621,10 +627,12 @@ std::error_code InProcessNode::doGetBlocks(const std::vector<uint32_t>& blockHei
       Crypto::Hash hash = core.getBlockIdByHeight(height);
       Block block;
       if (!core.getBlockByHash(hash, block)) {
+        std::cout << "\nInProcessNode::doGetBlocks 1: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       BlockDetails blockDetails;
       if (!blockchainExplorerDataBuilder.fillBlockDetails(block, blockDetails)) {
+        std::cout << "\nInProcessNode::doGetBlocks 2: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       std::vector<BlockDetails> blocksOnSameHeight;
@@ -636,6 +644,7 @@ std::error_code InProcessNode::doGetBlocks(const std::vector<uint32_t>& blockHei
       for (const Block& orphanBlock : orphanBlocks) {
         BlockDetails orphanBlockDetails;
         if (!blockchainExplorerDataBuilder.fillBlockDetails(orphanBlock, orphanBlockDetails)) {
+          std::cout << "\nInProcessNode::doGetBlocks 3: INTERNAL_NODE_ERROR\n";
           return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
         }
         blocksOnSameHeight.push_back(std::move(orphanBlockDetails));
@@ -645,6 +654,7 @@ std::error_code InProcessNode::doGetBlocks(const std::vector<uint32_t>& blockHei
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetBlocks 4: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
 
@@ -702,6 +712,7 @@ std::error_code InProcessNode::doGetBlocks(const std::vector<Crypto::Hash>& bloc
       }
       BlockDetails blockDetails;
       if (!blockchainExplorerDataBuilder.fillBlockDetails(block, blockDetails)) {
+        std::cout << "\nInProcessNode::doGetBlocks A: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       blocks.push_back(std::move(blockDetails));
@@ -709,6 +720,7 @@ std::error_code InProcessNode::doGetBlocks(const std::vector<Crypto::Hash>& bloc
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetBlocks B: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
   return std::error_code();
@@ -778,6 +790,7 @@ std::error_code InProcessNode::doGetBlocks(uint64_t timestampBegin, uint64_t tim
     for (const Block& rawBlock : rawBlocks) {
       BlockDetails block;
       if (!blockchainExplorerDataBuilder.fillBlockDetails(rawBlock, block)) {
+        std::cout << "\nInProcessNode::doGetBlocks i: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       blocks.push_back(std::move(block));
@@ -785,6 +798,7 @@ std::error_code InProcessNode::doGetBlocks(uint64_t timestampBegin, uint64_t tim
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetBlocks ii: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
   return std::error_code();
@@ -843,6 +857,7 @@ std::error_code InProcessNode::doGetTransactions(const std::vector<Crypto::Hash>
     for (const Transaction& tx : txs) {
       TransactionDetails transactionDetails;
       if (!blockchainExplorerDataBuilder.fillTransactionDetails(tx, transactionDetails)) {
+        std::cout << "\nInProcessNode::doGetTransactions 1: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       transactions.push_back(std::move(transactionDetails));
@@ -850,6 +865,7 @@ std::error_code InProcessNode::doGetTransactions(const std::vector<Crypto::Hash>
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetTransactions 1: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
   return std::error_code();
@@ -902,6 +918,7 @@ std::error_code InProcessNode::doGetPoolTransactions(uint64_t timestampBegin, ui
     for (const Transaction& rawTransaction : rawTransactions) {
       TransactionDetails transactionDetails;
       if (!blockchainExplorerDataBuilder.fillTransactionDetails(rawTransaction, transactionDetails)) {
+        std::cout << "\nInProcessNode::doGetPoolTransactions 1: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       transactions.push_back(std::move(transactionDetails));
@@ -909,6 +926,7 @@ std::error_code InProcessNode::doGetPoolTransactions(uint64_t timestampBegin, ui
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetPoolTransactions 2: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
   return std::error_code();
@@ -955,6 +973,7 @@ std::error_code InProcessNode::doGetTransactionsByPaymentId(const Crypto::Hash& 
     for (const Transaction& rawTransaction : rawTransactions) {
       TransactionDetails transactionDetails;
       if (!blockchainExplorerDataBuilder.fillTransactionDetails(rawTransaction, transactionDetails)) {
+        std::cout << "\nInProcessNode::doGetTransactionsByPaymentId 1: INTERNAL_NODE_ERROR\n";
         return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
       }
       transactions.push_back(std::move(transactionDetails));
@@ -962,6 +981,7 @@ std::error_code InProcessNode::doGetTransactionsByPaymentId(const Crypto::Hash& 
   } catch (std::system_error& e) {
     return e.code();
   } catch (std::exception&) {
+    std::cout << "\nInProcessNode::doGetTransactionsByPaymentId 2: INTERNAL_NODE_ERROR\n";
     return make_error_code(CryptoNote::error::INTERNAL_NODE_ERROR);
   }
   return std::error_code();

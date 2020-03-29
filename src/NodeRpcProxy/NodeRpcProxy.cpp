@@ -6,6 +6,7 @@
 #include "NodeErrors.h"
 
 #include <atomic>
+#include <iostream>
 #include <system_error>
 #include <thread>
 
@@ -41,6 +42,7 @@ std::error_code interpretResponseStatus(const std::string& status) {
   if (CORE_RPC_STATUS_BUSY == status) {
     return make_error_code(error::NODE_BUSY);
   } else if (CORE_RPC_STATUS_OK != status) {
+    std::cout << "\nNodeRpcProxy.cpp::interpretResponseStatus: INTERNAL_NODE_ERROR\n";
     return make_error_code(error::INTERNAL_NODE_ERROR);
   }
   return std::error_code();
@@ -671,6 +673,7 @@ std::error_code NodeRpcProxy::jsonCommand(const std::string& url, const Request&
 
 template <typename Request, typename Response>
 std::error_code NodeRpcProxy::jsonRpcCommand(const std::string& method, const Request& req, Response& res) {
+
   std::error_code ec = make_error_code(error::INTERNAL_NODE_ERROR);
 
   try {
