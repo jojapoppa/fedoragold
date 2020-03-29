@@ -1,26 +1,26 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-set(VERSION "0.2")
+set(VERSION "0.1")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
-enable_language(C CXX ASM)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
-set(BOOST_HAS_THREADS ON)
-set(BOOST_HAS_PTHREADS ON) 
-
+if(APPLE)
+#increase default OSX stack size to 256 MB
+#set(CMAKE_EXE_LINKER_FLAGS "-Wl,-stack_size,0x10000000,-stack_addr,0xc0000000")
+else()
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -Wl,-Bstatic -Llibc.a")
+endif()
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
-set(STATIC ON CACHE BOOL "Link libraries statically")
-add_library(c STATIC IMPORTED)
-add_library(m STATIC IMPORTED)
-
-#-Wl,-v
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v -static-libgcc -static-libstdc++ -Wl,-Bdynamic -Llibc.a -Wl,-Bdynamic -Llibm.a -Wl,-Bdynamic -lpthread")
-
+set(BOOST_DEBUG ON)
+set(BOOST_HAS_THREADS ON)
+set(BOOST_HAS_PTHREADS ON)
 set(BUILD_SHARED_LIBS OFF)
+set(STATIC ON CACHE BOOL "Link libraries statically")
+set(BOOST_THREAD_LIBRARY boost_thread)
+#set(BOOST_THREAD_LIBRARY libpthread.a)
+#add_library(c STATIC IMPORTED)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
@@ -30,16 +30,15 @@ set(CMAKE_SKIP_INSTALL_RULES ON)
 set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_SUPPRESS_REGENERATION ON)
 enable_testing()
-
 # copy CTestCustom.cmake to build dir to disable long running tests in 'make test'
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR})
 
 project(CryptoNote)
 
 include_directories(include src external "${CMAKE_BINARY_DIR}/version")
-
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
+  enable_language(ASM)
 endif()
 
 if(MSVC)
@@ -48,8 +47,9 @@ elseif(APPLE)
 include_directories(src/Platform/OSX)
 else()
 include_directories(src/Platform/Linux)
-include_directories(SYSTEM /usr/include)
 endif()
+
+# set(STATIC ${MSVC} CACHE BOOL "Link libraries statically")
 
 if(MSVC)
   add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
@@ -86,17 +86,27 @@ else()
     set(MINGW_FLAG "")
   endif()
   if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 5.1))
-    set(WARNINGS "${WARNINGS} -Wno-error=odr -Wno-unused-function -Wno-enum-compare -Wunused-but-set-variable")
+    set(WARNINGS "${WARNINGS} -Wno-error=odr")
   endif()
   set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
   set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes") 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
+  if(NOT APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  endif()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 ${MINGW_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${ARCH_FLAG} -maes")
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
   endif()
-  set(DEBUG_FLAGS "-g3 -ggdb -rdynamic -Og")
-  set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
+  if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.8))
+    set(DEBUG_FLAGS "-g3 -Og")
+  else()
+    set(DEBUG_FLAGS "-g3 -O0")
+  endif()
+
+  #set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
+  set(RELEASE_FLAGS "-O3 -Wno-unused-variable")
+
   if(NOT APPLE)
     # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux" 
@@ -107,18 +117,23 @@ else()
     endif()
     set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
   endif()
+  #if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
+  #  set(RELEASE_FLAGS "${RELEASE_FLAGS} -fno-fat-lto-objects")
+  #endif()
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${RELEASE_FLAGS}")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${RELEASE_FLAGS}")
-
+  if(STATIC AND NOT APPLE)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+  endif()
 endif()
 
 if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
+find_package(Boost 1.55 REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 if(MINGW)
   set(Boost_LIBRARIES "${Boost_LIBRARIES};ws2_32;mswsock")

@@ -22,17 +22,23 @@
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
-# may need brew install cmake on mac...
-#export MACOSX_DEPLOYMENT_TARGET=10.11
-#export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
-
 if python -m platform | grep debian > /dev/null 
 then
-  echo debian linux platform...
+  echo debian linux build platform...
   export CC=gcc-6
   export CXX=g++-6
   export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
+elif python -m platform | grep Darwin > /dev/null
+then
+  echo Mac OSX linux build platform...
+  export MACOSX_DEPLOYMENT_TARGET=10.11
+  #export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
+  export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
+  make clean
+  cp CMakeListsMac.txt CMakeLists.txt
+  make build-release
+  exit
 else
   echo non-debian platform...
   export CC=gcc-8
