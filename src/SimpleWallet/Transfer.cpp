@@ -308,7 +308,9 @@ size_t makeFusionTransaction(CryptoNote::WalletGreen &wallet,
        it and assume we can't fusion anymore */
     try
     {
-        return wallet.createFusionTransaction(bestThreshold, 0); // CryptoNote::parameters::DEFAULT_MIXIN is zero
+        // CryptoNote::parameters::DEFAULT_MIXIN is zero
+        std::vector<std::string> sourceAddresses = {wallet.getAddress(0)};
+        return wallet.createFusionTransaction(bestThreshold, 0, sourceAddresses, wallet.getAddress(0));
     }
     catch (...)
     {
@@ -452,6 +454,8 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
         if (!fusionCompleted) {
             ++retryCounter;
             std::cout << WarningMsg("\rWait... ") << InformationMsg(std::to_string(fusionTransactionHashes.size())) << (fusionTransactionHashes.size() == 1 ? WarningMsg(" fusion transaction still to be confirmed...") : WarningMsg(" fusion transactions still to be confirmed.")) << SuccessMsg(" Attempt ") << InformationMsg(std::to_string(retryCounter)) << SuccessMsg("... Retrying in 15 seconds") << std::flush;
+
+            /* More grammar... */
             //if (fusionTransactionHashes.size() == 1) {
             //    std::cout << WarningMsg(" fusion transaction still to be confirmed.");
             //} else {
@@ -461,6 +465,7 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
             //std::cout << std::endl
             //          << SuccessMsg("Will try again in 1 minute...")
             //          << std::endl;
+
             std::this_thread::sleep_for(std::chrono::minutes(1));
 
             wallet.updateInternalCache();
@@ -675,7 +680,7 @@ void transfer(std::shared_ptr<WalletInfo> walletInfo) {
 }
 
 //jojapoppa, Karbo has had lots of enhancements to this section ... please compare
-void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t fee, std::string extra, std::shared_ptr<WalletInfo> walletInfo) {
+void doTransfer(uint16_t mixin, std::string dest_address, uint64_t amount, uint64_t fee, std::string extra, std::shared_ptr<WalletInfo> walletInfo) {
     Crypto::SecretKey txSecretKey;
     uint64_t balance = walletInfo->wallet.getActualBalance();
     uint64_t remote_node_fee = 0;
@@ -698,7 +703,7 @@ void doTransfer(uint16_t mixin, std::string address, uint64_t amount, uint64_t f
     d.address = "";
 
     CryptoNote::WalletOrder w;
-    w.address = address;
+    w.address = dest_address;
     w.amount = amount;
     transfers.push_back(w);
 

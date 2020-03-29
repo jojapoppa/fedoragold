@@ -11,6 +11,7 @@
 #include "CryptoNoteCore/ICore.h"
 #include "CryptoNoteCore/ICoreObserver.h"
 #include "CryptoNoteProtocol/CryptoNoteProtocolDefinitions.h"
+#include "CryptoNoteCore/VerificationContext.h"
 #include "Rpc/CoreRpcServerCommandsDefinitions.h"
 
 class ICoreStub: public CryptoNote::ICore {
@@ -39,6 +40,9 @@ public:
     uint32_t& start_height, uint32_t& current_height, uint32_t& full_offset, std::vector<CryptoNote::BlockFullInfo>& entries) override;
   virtual bool queryBlocksLite(const std::vector<Crypto::Hash>& block_ids, uint64_t timestamp,
     uint32_t& start_height, uint32_t& current_height, uint32_t& full_offset, std::vector<CryptoNote::BlockShortInfo>& entries) override;
+
+  virtual uint32_t get_current_blockchain_height() override;
+  virtual bool check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, CryptoNote::tx_verification_context& tvc) override;
 
   virtual bool have_block(const Crypto::Hash& id) override;
   std::vector<Crypto::Hash> buildSparseChain() override;

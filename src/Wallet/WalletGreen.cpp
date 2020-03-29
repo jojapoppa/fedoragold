@@ -426,8 +426,6 @@ void WalletGreen::load(std::istream& source, const std::string& password) {
       "Failed to read wallet version");
   }
 
-std::cout << "We are on wallet format version: " << version;
-
   if (version < (int)WalletSerializer::SERIALIZATION_VERSION) {
     convertAndLoadWalletFile(source, password);
   } else {
@@ -464,8 +462,6 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
   );
 
   m_logger(Logging::INFO) << "calling WalletSerializer.load";
-
-  std::cout << "  calling WalletSerializer now...";
 
   StdInputStream inputStream(source);
   s.load(password, inputStream, m_logger);
@@ -1382,6 +1378,7 @@ void WalletGreen::sendTransaction(const CryptoNote::Transaction& cryptoNoteTrans
   std::error_code ec;
 
   throwIfStopped();
+
   m_node.relayTransaction(cryptoNoteTransaction, [&ec, &completion, this](std::error_code error) {
     ec = error;
     this->m_dispatcher.remoteSpawn(std::bind(asyncRequestCompletion, std::ref(completion)));
@@ -2223,7 +2220,7 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
   for (const auto &piece : sourceAddresses) sAddr += piece;
   m_logger(Logging::INFO) << "createFusionTransaction" <<
     ", from " << sAddr <<
-    ", to '" << destinationAddress << '\'' <<
+    ", to " << destinationAddress <<
     ", threshold " << m_currency.formatAmount(threshold) <<
     ", mixin " << mixin;
 
@@ -2261,6 +2258,7 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
 
   std::vector<OutputToTransfer> fusionInputs = pickRandomFusionInputs(sourceAddresses, 
     threshold, m_currency.fusionTxMinInputCount(), estimatedFusionInputsCount);
+
   if (fusionInputs.size() < m_currency.fusionTxMinInputCount()) {
     //nothing to optimize
     m_logger(Logging::WARNING) << "Fusion transaction not created: nothing to optimize" <<
@@ -2452,15 +2450,17 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(
   //now, pick the bucket
   std::vector<uint8_t> bucketNumbers(bucketSizes.size());
   std::iota(bucketNumbers.begin(), bucketNumbers.end(), 0);
-  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), Random::generator());
-    //std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+
+  //Random::generator()
+  std::shuffle(bucketNumbers.begin(), bucketNumbers.end(), std::default_random_engine{Crypto::rand<std::default_random_engine::result_type>()});
+
   size_t bucketNumberIndex = 0;
   for (; bucketNumberIndex < bucketNumbers.size(); ++bucketNumberIndex) {
     if (bucketSizes[bucketNumbers[bucketNumberIndex]] >= minInputCount) {
       break;
     }
   }
-  
+ 
   if (bucketNumberIndex == bucketNumbers.size()) {
     return {};
   }
@@ -2472,7 +2472,7 @@ std::vector<WalletGreen::OutputToTransfer> WalletGreen::pickRandomFusionInputs(
   for (size_t i = 0; i < selectedBucket; ++i) {
     lowerBound *= 10;
   }
-   
+
   uint64_t upperBound = selectedBucket == std::numeric_limits<uint64_t>::digits10 ? 
     UINT64_MAX : lowerBound * 10;
   std::vector<WalletGreen::OutputToTransfer> selectedOuts;

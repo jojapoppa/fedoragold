@@ -8,6 +8,7 @@
 
 #include <future>
 #include <unordered_map>
+#include <iostream>
 
 // CryptoNote
 #include "Common/StringTools.h"
@@ -179,9 +180,58 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
   return true;
 }
 
+//jojapoppa, add later for VPN charges, see Karbo code
+//bool RpcServer::setFeeAddress(const std::string& fee_address, const AccountPublicAddress& fee_acc) {
+//  m_fee_address = fee_address;
+//  m_fee_acc = fee_acc;
+//  return true;
+//}
+
 bool RpcServer::isCoreReady() {
   return m_core.currency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
 }
+
+bool RpcServer::checkIncomingTransactionForFee(const BinaryArray& tx_blob) {
+        Crypto::Hash tx_hash = NULL_HASH;
+        Crypto::Hash tx_prefixt_hash = NULL_HASH;
+        Transaction tx;
+        if (!parseAndValidateTransactionFromBinaryArray(tx_blob, tx, tx_hash, tx_prefixt_hash)) {
+                logger(Logging::INFO) << "Could not parse tx from blob";
+                return false;
+        }
+
+        // always relay fusion transactions
+        uint64_t inputs_amount = 0;
+        get_inputs_money_amount(tx, inputs_amount);
+        uint64_t outputs_amount = get_outs_money_amount(tx);
+
+        const uint64_t fee = inputs_amount - outputs_amount;
+        if (fee == 0 && m_core.currency().isFusionTransaction(tx, tx_blob.size())) {
+                logger(Logging::DEBUGGING) << "Masternode received fusion transaction, relaying with no fee check";
+                return true;
+        }
+
+        CryptoNote::TransactionPrefix transaction = *static_cast<const TransactionPrefix*>(&tx);
+
+        std::vector<uint32_t> out;
+        uint64_t amount=0;
+
+        //jojapoppa, add later to support VPN charges (see Karbo code)
+        //if (!CryptoNote::findOutputsToAccount(transaction, m_fee_acc, m_view_key, out, amount)) {
+        //        logger(Logging::INFO) << "Could not find outputs to masternode fee address";
+        //        return false;
+        //}
+
+        if (amount != 0) {
+                logger(Logging::INFO) << "Masternode received relayed transaction fee: " << m_core.currency().formatAmount(amount) << " KRB";
+                return true;
+        }
+        return false;
+}
+
+//
+// Binary handlers
+//
 
 bool RpcServer::on_get_blocks_bin(const COMMAND_RPC_GET_BLOCKS_FAST::request& req, COMMAND_RPC_GET_BLOCKS_FAST::response& res) {
   // TODO code duplication see InProcessNode::doGetNewBlocks()
@@ -514,6 +564,9 @@ bool RpcServer::on_send_raw_tx(const COMMAND_RPC_SEND_RAW_TX::request& req, COMM
     return true;
   }
 
+  Crypto::Hash transactionHash = Crypto::cn_fast_hash(tx_blob.data(), tx_blob.size());
+  logger(Logging::DEBUGGING) << "transaction " << transactionHash << " came in on_send_raw_tx";
+
   tx_verification_context tvc = boost::value_initialized<tx_verification_context>();
   if (!m_core.handle_incoming_tx(tx_blob, tvc, false))
   {
@@ -536,9 +589,16 @@ bool RpcServer::on_send_raw_tx(const COMMAND_RPC_SEND_RAW_TX::request& req, COMM
     return true;
   }
 
+  if (!checkIncomingTransactionForFee(tx_blob)) {
+    logger(Logging::INFO) << "Transaction not relayed due to lack of node fee";
+    res.status = "Not relayed due to lack of node fee";
+    return true;
+  }
+
   NOTIFY_NEW_TRANSACTIONS::request r;
   r.txs.push_back(asString(tx_blob));
   m_core.get_protocol()->relay_transactions(r);
+  //std::cout << "called m_core.get_procol()->relay_transaction(r)\n";
   //TODO: make sure that tx has reached other nodes here, probably wait to receive reflections from other nodes
   res.status = CORE_RPC_STATUS_OK;
   return true;

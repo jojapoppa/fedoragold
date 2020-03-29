@@ -35,7 +35,12 @@ private:
 
   virtual void processRequest(const HttpRequest& request, HttpResponse& response) override;
   bool processJsonRpcRequest(const HttpRequest& request, HttpResponse& response);
+
+  //jojapoppa, add later to support VPN charges, see Karbo code
+  bool setFeeAddress(const std::string& fee_address, const AccountPublicAddress& fee_acc);
+
   bool isCoreReady();
+  bool checkIncomingTransactionForFee(const BinaryArray& tx_blob);
 
   // binary handlers
   bool on_get_blocks_bin(const COMMAND_RPC_GET_BLOCKS_FAST::request& req, COMMAND_RPC_GET_BLOCKS_FAST::response& res);
@@ -76,6 +81,10 @@ private:
   core& m_core;
   NodeServer& m_p2p;
   const ICryptoNoteProtocolQuery& m_protocolQuery;
+
+  //jojapoppa, add later to support VPN charges, see Karbo code
+  //std::string m_fee_address;
+  //CryptoNote::AccountPublicAddress m_fee_acc;
 };
 
 }

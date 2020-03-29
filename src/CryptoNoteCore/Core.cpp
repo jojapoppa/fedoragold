@@ -51,11 +51,11 @@ private:
   friend class core;
 };
 
-core::core(const Currency& currency, i_cryptonote_protocol* pprotocol, Logging::ILogger& logger) :
+core::core(const Currency& currency, i_cryptonote_protocol* pprotocol, Logging::ILogger& logger, bool blockchainIndexesEnabled) :
 m_currency(currency),
 logger(logger, "core"),
-m_mempool(currency, m_blockchain, m_timeProvider, logger),
-m_blockchain(currency, m_mempool, logger),
+m_mempool(currency, m_blockchain, *this, m_timeProvider, logger, blockchainIndexesEnabled),
+m_blockchain(currency, m_mempool, logger, blockchainIndexesEnabled),
 m_miner(new miner(currency, *this, logger)),
 m_starter_message_showed(false) {
   set_cryptonote_protocol(pprotocol);
@@ -81,10 +81,10 @@ void core::set_checkpoints(Checkpoints&& chk_pts) {
 void core::init_options(boost::program_options::options_description& /*desc*/) {
 }
 
-bool core::handle_command_line(const boost::program_options::variables_map& vm) {
-  m_config_folder = command_line::get_arg(vm, command_line::arg_data_dir);
-  return true;
-}
+//bool core::handle_command_line(const boost::program_options::variables_map& vm) {
+//  m_config_folder = command_line::get_arg(vm, command_line::arg_data_dir);
+//  return true;
+//}
 
 uint32_t core::get_current_blockchain_height() {
   return m_blockchain.getCurrentBlockchainHeight();
@@ -223,6 +223,75 @@ bool core::get_stat_info(core_stat_info& st_inf) {
   return true;
 }
 
+//jojapoppa, new check added by Karbo (eval later)
+//bool Core::check_tx_mixin(const Transaction& tx) {
+//  size_t inputIndex = 0;
+//  for (const auto& txin : tx.inputs) {
+//    assert(inputIndex < tx.signatures.size());
+//    if (txin.type() == typeid(KeyInput)) {
+//      uint64_t txMixin = boost::get<KeyInput>(txin).outputIndexes.size();
+//      if (txMixin > CryptoNote::parameters::MAX_TX_MIXIN_SIZE) {
+//        logger(ERROR) << "Transaction " << getObjectHash(tx) << " has too large mixIn count, rejected";
+//        return false;
+//      }
+//      if (txMixin < m_currency.minMixin() && txMixin != 1) {
+//        logger(ERROR) << "Transaction " << getObjectHash(tx) << " has mixIn count below the required minimum, rejected";
+//        return false;
+//      }
+//      ++inputIndex;
+//    }
+//  }
+//  return true;
+//}
+
+bool core::check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_verification_context& tvc) {
+  uint64_t inputs_amount = 0;
+  if (!get_inputs_money_amount(tx, inputs_amount)) {
+    tvc.m_verifivation_failed = true;
+    return false;
+  }
+
+  uint64_t outputs_amount = get_outs_money_amount(tx);
+
+  if (outputs_amount > inputs_amount) {
+    logger(DEBUGGING) << "transaction use more money then it has: use " << m_currency.formatAmount(outputs_amount) <<
+      ", have " << m_currency.formatAmount(inputs_amount);
+    tvc.m_verifivation_failed = true;
+    return false;
+  }
+
+  Crypto::Hash h = NULL_HASH;
+  getObjectHash(tx, h, blobSize);
+  const uint64_t fee = inputs_amount - outputs_amount;
+  bool isFusionTransaction = fee == 0 && m_currency.isFusionTransaction(tx, blobSize);
+ 
+  //check for minimal fee (is this needed?) 
+  //bool enough = true;
+  //if (!isFusionTransaction && !m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
+    //uint64_t min = m_blockchain.getMinimalFee(height);
+    //if (fee < (min - min * 20 / 100)) {
+    //  logger(INFO) << "[Core] Transaction fee is not enough: " << m_currency.formatAmount(fee) << ", minimum fee: " << m_currency.formatAmount(min);
+    //  enough = false;
+    //}
+    //if (!enough) {
+    //  tvc.m_verifivation_failed = true;
+    //  tvc.m_tx_fee_too_small = true;
+    //  return false;
+    //}
+  //}
+
+  return true;
+}
+
+//bool Core::check_tx_unmixable(const Transaction& tx) {
+//  for (const auto& out : tx.outputs) {
+//    if (!is_valid_decomposed_amount(out.amount)) {
+//      logger(ERROR) << "Invalid decomposed output amount " << out.amount << " for tx id= " << getObjectHash(tx);
+//      return false;
+//    }
+//  }
+//  return true;
+//}
 
 bool core::check_tx_semantic(const Transaction& tx, bool keeped_by_block) {
   if (!tx.inputs.size()) {
@@ -269,7 +338,7 @@ bool core::check_tx_semantic(const Transaction& tx, bool keeped_by_block) {
   return true;
 }
 
-//jojapoppa, fix for the famous Monero coin exploit
+//jojapoppa, fix for the famous Monero coin exploit (see Karbo code)
 //bool core::check_tx_inputs_keyimages_diff(const Transaction& tx) {
 //  std::unordered_set<Crypto::KeyImage> ki;
 //  for (const auto& in : tx.inputs) {
@@ -983,6 +1052,32 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
     logger(INFO) << "WRONG TRANSACTION BLOB, Failed to check tx " << txHash << " syntax, rejected";
     tvc.m_verifivation_failed = true;
     return false;
+  }
+
+  // is not in checkpoint zone
+  if (!m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
+    if (blobSize > m_currency.maxTxSize()) {
+      logger(INFO) << "Transaction verification failed: too big size " << blobSize << " of transaction " << txHash << ", rejected";
+      tvc.m_verifivation_failed = true;
+      return false;
+    }
+
+    if (!check_tx_fee(tx, blobSize, tvc)) {
+      tvc.m_verifivation_failed = true;
+      return false;
+    }
+
+    //jojapoppa, Karbo added these additional checks... eval this later (is this needed?)
+    //if (!check_tx_mixin(tx)) {
+    //  logger(INFO) << "Transaction verification failed: mixin count for transaction " << txHash << " is too large, rejected";
+    //  tvc.m_verifivation_failed = true;
+    //  return false;
+    //}
+    //if (!check_tx_unmixable(tx)) {
+    //  logger(ERROR) << "Transaction verification failed: unmixable output for transaction " << txHash << ", rejected";
+    //  tvc.m_verifivation_failed = true;
+    //  return false;
+    //}
   }
 
   if (!check_tx_semantic(tx, keptByBlock)) {

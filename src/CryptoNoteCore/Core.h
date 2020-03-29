@@ -33,7 +33,7 @@ namespace CryptoNote {
 
   class core : public ICore, public IMinerHandler, public IBlockchainStorageObserver, public ITxPoolObserver {
    public:
-     core(const Currency& currency, i_cryptonote_protocol* pprotocol, Logging::ILogger& logger);
+     core(const Currency& currency, i_cryptonote_protocol* pprotocol, Logging::ILogger& logger, bool blockchainIndexesEnabled);
      ~core();
 
      bool on_idle() override;
@@ -152,6 +152,15 @@ namespace CryptoNote {
      bool handle_incoming_block(const Block& b, block_verification_context& bvc, bool control_miner, bool relay_block);
 
      bool check_tx_syntax(const Transaction& tx);
+
+     // new checks added by Karbo
+     //check if tx already in memory pool or in main blockchain
+     //bool check_tx_mixin(const Transaction& tx);
+     //check if the mixin is not too large
+     virtual bool check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_verification_context& tvc) override;
+     //check if tx is not sending unmixable outputs
+     //bool check_tx_unmixable(const Transaction& tx);
+
      //check correct values, amounts and all lightweight checks not related with database
      bool check_tx_semantic(const Transaction& tx, bool keeped_by_block);
      //check if tx already in memory pool or in main blockchain
@@ -161,7 +170,7 @@ namespace CryptoNote {
      bool check_tx_ring_signature(const KeyInput& tx, const Crypto::Hash& tx_prefix_hash, const std::vector<Crypto::Signature>& sig);
      bool is_tx_spendtime_unlocked(uint64_t unlock_time);
      bool update_miner_block_template();
-     bool handle_command_line(const boost::program_options::variables_map& vm);
+     //bool handle_command_line(const boost::program_options::variables_map& vm);
      bool on_update_blocktemplate_interval();
      bool check_tx_inputs_keyimages_diff(const Transaction& tx);
      virtual void blockchainUpdated() override;

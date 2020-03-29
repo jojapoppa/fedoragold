@@ -317,12 +317,17 @@ private:
 };
 
 
-Blockchain::Blockchain(const Currency& currency, tx_memory_pool& tx_pool, ILogger& logger) :
+Blockchain::Blockchain(const Currency& currency, tx_memory_pool& tx_pool, ILogger& logger, bool blockchainIndexesEnabled) :
 logger(logger, "Blockchain"),
 m_currency(currency),
 m_tx_pool(tx_pool),
 m_current_block_cumul_sz_limit(0),
-m_checkpoints(logger) {
+m_checkpoints(logger),
+m_paymentIdIndex(blockchainIndexesEnabled),
+m_timestampIndex(blockchainIndexesEnabled),
+m_generatedTransactionsIndex(blockchainIndexesEnabled),
+m_orphanBlocksIndex(blockchainIndexesEnabled),
+m_blockchainIndexesEnabled(blockchainIndexesEnabled) {
 
   m_outputs.set_deleted_key(0);
   Crypto::KeyImage nullImage = boost::value_initialized<decltype(nullImage)>();
@@ -428,7 +433,9 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
       }
     }
 
-    loadBlockchainIndices();
+    if (m_blockchainIndexesEnabled) {
+      loadBlockchainIndices();
+    }
   } else {
       m_blocks.clear();
   }
@@ -468,7 +475,9 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     loader.load(cachePath);
 
     if (loader.loaded()) {
-      loadBlockchainIndices();
+      if (m_blockchainIndexesEnabled) {
+        loadBlockchainIndices();
+      }
     } else {
       logger(INFO) << "Block cache not loaded from: " + cachePath;
       if (! loadIndexes(config_folder, load_existing)) {
@@ -600,7 +609,9 @@ bool Blockchain::storeCache() {
 
 bool Blockchain::deinit() {
   storeCache();
-  storeBlockchainIndices();
+  if (m_blockchainIndexesEnabled) {
+    storeBlockchainIndices();
+  }
   assert(m_messageQueueList.empty());
   return true;
 }
@@ -618,7 +629,7 @@ bool Blockchain::resetAndSetGenesisBlock(const Block& b) {
   m_paymentIdIndex.clear();
   m_timestampIndex.clear();
   m_generatedTransactionsIndex.clear();
-  m_orthanBlocksIndex.clear();
+  m_orphanBlocksIndex.clear();
 
   block_verification_context bvc = boost::value_initialized<block_verification_context>();
   addNewBlock(b, bvc);
@@ -816,12 +827,12 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::
       rollback_blockchain_switching(disconnected_chain, split_height);
       add_block_as_invalid(ch_ent->second, get_block_hash(ch_ent->second.bl));
       logger(INFO, BRIGHT_WHITE) << "The block was inserted as invalid while connecting new alternative chain,  block_id: " << get_block_hash(ch_ent->second.bl);
-      m_orthanBlocksIndex.remove(ch_ent->second.bl);
+      m_orphanBlocksIndex.remove(ch_ent->second.bl);
       m_alternative_chains.erase(ch_ent);
 
       for (auto alt_ch_to_orph_iter = ++alt_ch_iter; alt_ch_to_orph_iter != alt_chain.end(); alt_ch_to_orph_iter++) {
         add_block_as_invalid((*alt_ch_iter)->second, (*alt_ch_iter)->first);
-        m_orthanBlocksIndex.remove((*alt_ch_to_orph_iter)->second.bl);
+        m_orphanBlocksIndex.remove((*alt_ch_to_orph_iter)->second.bl);
         m_alternative_chains.erase(*alt_ch_to_orph_iter);
       }
 
@@ -849,7 +860,7 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::
   //removing all_chain entries from alternative chain
   for (auto ch_ent : alt_chain) {
     blocksFromCommonRoot.push_back(get_block_hash(ch_ent->second.bl));
-    m_orthanBlocksIndex.remove(ch_ent->second.bl);
+    m_orphanBlocksIndex.remove(ch_ent->second.bl);
     m_alternative_chains.erase(ch_ent);
   }
 
@@ -1131,7 +1142,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
     auto i_res = m_alternative_chains.insert(blocks_ext_by_hash::value_type(id, bei));
     if (!(i_res.second)) { logger(ERROR, BRIGHT_RED) << "insertion of new alternative block returned as it already exist"; return false; }
 
-    m_orthanBlocksIndex.add(bei.bl);
+    m_orphanBlocksIndex.add(bei.bl);
 
     alt_chain.push_back(i_res.first);
 
@@ -2407,7 +2418,7 @@ bool Blockchain::getGeneratedTransactionsNumber(uint32_t height, uint64_t& gener
 
 bool Blockchain::getOrphanBlockIdsByHeight(uint32_t height, std::vector<Crypto::Hash>& blockHashes) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
-  return m_orthanBlocksIndex.find(height, blockHashes);
+  return m_orphanBlocksIndex.find(height, blockHashes);
 }
 
 bool Blockchain::getBlockIdsByTimestamp(uint64_t timestampBegin, uint64_t timestampEnd, uint32_t blocksNumberLimit, std::vector<Crypto::Hash>& hashes, uint32_t& blocksNumberWithinTimestamps) {

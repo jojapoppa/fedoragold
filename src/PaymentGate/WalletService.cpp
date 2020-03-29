@@ -1211,6 +1211,8 @@ std::error_code WalletService::sendFusionTransaction(uint64_t threshold, uint32_
       validateAddresses({ destinationAddress }, currency, logger);
     }
 
+    std::cout << "call createFusionTransaction from PaymentGate/WalletService.cpp with dest: " << destinationAddress << "\n";
+
     size_t transactionId = fusionManager.createFusionTransaction(threshold, anonymity, addresses, destinationAddress);
     transactionHash = Common::podToHex(wallet.getTransaction(transactionId).hash);
 

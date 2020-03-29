@@ -332,6 +332,12 @@ bool ICoreStub::handleIncomingTransaction(const CryptoNote::Transaction& tx, con
   return poolTxVerificationResult;
 }
 
+uint32_t ICoreStub::get_current_blockchain_height() { return 0; }
+
+bool ICoreStub::check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, CryptoNote::tx_verification_context& tvc) {
+  return true;
+}
+
 bool ICoreStub::have_block(const Crypto::Hash& id) {
   return blocks.count(id) > 0;
 }

@@ -10,6 +10,7 @@
 
 #include <IWallet.h>
 
+#include "crypto/crypto.h"
 #include "CryptoNoteCore/Currency.h"
 #include "Logging/LoggerGroup.h"
 #include "Logging/ConsoleLogger.h"
@@ -42,6 +43,8 @@ struct IWalletBaseStub : public CryptoNote::IWallet {
   virtual void initializeWithViewKey(const Crypto::SecretKey& viewSecretKey, const std::string& password) override { }
   virtual void load(std::istream& source, const std::string& password) override { }
   virtual void shutdown() override { }
+
+  virtual Crypto::SecretKey getTransactionSecretKey() const override { return m_key; }
 
   virtual void changePassword(const std::string& oldPassword, const std::string& newPassword) override { }
   virtual void save(std::ostream& destination, bool saveDetails = true, bool saveCache = true) override { }
@@ -111,6 +114,7 @@ protected:
     }
   }
 
+  Crypto::SecretKey m_key;
   bool m_stopped = false;
   System::Event m_eventOccurred;
   std::queue<WalletEvent> m_events;
@@ -745,7 +749,7 @@ struct WalletTransferStub : public IWalletBaseStub {
   WalletTransferStub(System::Dispatcher& dispatcher, const Crypto::Hash& hash) : IWalletBaseStub(dispatcher), hash(hash) {
   }
 
-  virtual size_t transfer(const TransactionParameters& sendingTransaction) override {
+  virtual size_t transfer(const TransactionParameters& sendingTransaction, Crypto::SecretKey &txSecretKey) override {
     params = sendingTransaction;
     return 0;
   }

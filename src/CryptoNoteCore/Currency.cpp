@@ -209,7 +209,6 @@ bool Currency::constructMinerTx(uint32_t height, size_t medianSize, uint64_t alr
 
 bool Currency::isFusionTransaction(const std::vector<uint64_t>& inputsAmounts, const std::vector<uint64_t>& outputsAmounts, size_t size) const {
 
-  //jojapoppa, see version dependent branching (Karbo is good example) in event of any future fork
   if (size > fusionTxMaxSize()) {
     return false;
   }
@@ -224,19 +223,27 @@ bool Currency::isFusionTransaction(const std::vector<uint64_t>& inputsAmounts, c
 
   uint64_t inputAmount = 0;
   for (auto amount: inputsAmounts) {
-    if (amount < defaultDustThreshold()) {
-      return false;
-    }
+
+    // not used
+    //if (amount < defaultDustThreshold()) {
+    //  return false;
+    //}
 
     inputAmount += amount;
   }
 
   std::vector<uint64_t> expectedOutputsAmounts;
   expectedOutputsAmounts.reserve(outputsAmounts.size());
-  decomposeAmount(inputAmount, defaultDustThreshold(), expectedOutputsAmounts);
+  decomposeAmount(inputAmount, UINT64_C(0), expectedOutputsAmounts);
   std::sort(expectedOutputsAmounts.begin(), expectedOutputsAmounts.end());
 
-  return expectedOutputsAmounts == outputsAmounts;
+  bool decompose = expectedOutputsAmounts == outputsAmounts;
+  if (!decompose) {
+    logger(ERROR) << "Fusion transaction verification failed: decomposed output amounts don't match expected.";
+    return false;
+  }
+
+  return true;
 }
 
 bool Currency::isFusionTransaction(const Transaction& transaction, size_t size) const {

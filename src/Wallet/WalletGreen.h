@@ -82,8 +82,9 @@ public:
   void validateSourceAddresses(const std::vector<std::string>& sourceAddresses) const;
 
   virtual size_t createFusionTransaction(uint64_t threshold, uint64_t mixin,
-    const std::vector<std::string>& sourceAddresses = {}, 
+    const std::vector<std::string>& sourceAddresses = {},
     const std::string& destinationAddress = "") override;
+
   virtual bool isFusionTransaction(size_t transactionId) const override;
   virtual IFusionManager::EstimateResult estimate(uint64_t threshold, 
     const std::vector<std::string>& sourceAddresses = {}) const override;

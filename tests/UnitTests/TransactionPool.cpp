@@ -14,6 +14,8 @@
 #include "CryptoNoteCore/Currency.h"
 #include "CryptoNoteCore/TransactionExtra.h"
 #include "CryptoNoteCore/TransactionPool.h"
+#include "CryptoNoteProtocol/CryptoNoteProtocolHandlerCommon.h"
+#include "CryptoNoteCore/Core.h"
 
 #include <Logging/ConsoleLogger.h>
 #include <Logging/LoggerGroup.h>
@@ -165,9 +167,8 @@ namespace
 
     Validator validator;
     TimeProvider timeProvider;
-
-    TestPool(const CryptoNote::Currency& currency, Logging::ILogger& logger) :
-      tx_memory_pool(currency, validator, timeProvider, logger) {}
+    TestPool(const CryptoNote::Currency& currency, core &mycore, Logging::ILogger& logger, bool bIndex) :
+      tx_memory_pool(currency, validator, mycore, timeProvider, logger, bIndex) {}
   };
 
   class TxTestBase {
@@ -175,7 +176,8 @@ namespace
     TxTestBase(size_t ringSize) :
       m_currency(CryptoNote::CurrencyBuilder(m_logger).currency()),
       txGenerator(m_currency, ringSize),
-      pool(m_currency, validator, m_time, m_logger)
+      m_core(m_currency, nullptr, m_logger, false),
+      pool(m_currency, validator, m_core, m_time, m_logger, false)
     {
       txGenerator.createSources();
     }
@@ -184,6 +186,7 @@ namespace
       txGenerator.construct(txGenerator.m_source_amount, fee, outputs, tx);
     }
 
+    core m_core;
     Logging::ConsoleLogger m_logger;
     CryptoNote::Currency m_currency;
     CryptoNote::RealTimeProvider m_time;
@@ -261,7 +264,8 @@ TEST_F(tx_pool, double_spend_tx)
 
 TEST_F(tx_pool, fillblock_same_fee)
 {
-  TestPool<TransactionValidator, RealTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, RealTimeProvider> pool(currency, mycore, logger, false);
   uint64_t fee = currency.minimumFee();
 
   std::unordered_map<Crypto::Hash, std::unique_ptr<Transaction>> transactions;
@@ -315,7 +319,8 @@ TEST_F(tx_pool, fillblock_same_fee)
 
 TEST_F(tx_pool, fillblock_same_size)
 {
-  TestPool<TransactionValidator, RealTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, RealTimeProvider> pool(currency, mycore, logger, false);
 
   const uint64_t fee = currency.minimumFee();
   const size_t totalTransactions = 50;
@@ -374,7 +379,8 @@ TEST_F(tx_pool, fillblock_same_size)
 
 TEST_F(tx_pool, cleanup_stale_tx)
 {
-  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, mycore, logger, false);
   const uint64_t fee = currency.minimumFee();
 
   time_t startTime = pool.timeProvider.now();
@@ -417,7 +423,8 @@ TEST_F(tx_pool, cleanup_stale_tx)
 
 TEST_F(tx_pool, add_tx_after_cleanup)
 {
-  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, mycore, logger, false);
   const uint64_t fee = currency.minimumFee();
 
   time_t startTime = pool.timeProvider.now();
@@ -447,7 +454,8 @@ TEST_F(tx_pool, add_tx_after_cleanup)
 }
 
 TEST_F(tx_pool, RecentlyDeletedTransactionCannotBeAddedToTxPoolAgain) {
-  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, mycore, logger, false);
 
   uint64_t startTime = pool.timeProvider.now();
 
@@ -474,7 +482,8 @@ TEST_F(tx_pool, RecentlyDeletedTransactionCannotBeAddedToTxPoolAgain) {
 }
 
 TEST_F(tx_pool, RecentlyDeletedTransactionCanBeAddedAgainAfterSomeTime) {
-  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, mycore, logger, false);
 
   uint64_t startTime = pool.timeProvider.now();
 
@@ -505,7 +514,8 @@ TEST_F(tx_pool, RecentlyDeletedTransactionCanBeAddedAgainAfterSomeTime) {
 }
 
 TEST_F(tx_pool, RecentlyDeletedTransactionCanBeAddedToTxPoolIfItIsReceivedInBlock) {
-  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, logger);
+  CryptoNote::core mycore(currency, nullptr, logger, false);
+  TestPool<TransactionValidator, FakeTimeProvider> pool(currency, mycore, logger, false);
 
   uint64_t startTime = pool.timeProvider.now();
 
@@ -534,7 +544,8 @@ TEST_F(tx_pool, RecentlyDeletedTransactionCanBeAddedToTxPoolIfItIsReceivedInBloc
 TEST_F(tx_pool, OldTransactionIsDeletedDuringTxPoolInitialization) {
   TransactionValidator validator;
   FakeTimeProvider timeProvider;
-  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, timeProvider, logger));
+  core mycore(currency, nullptr, logger, false);
+  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   uint64_t startTime = timeProvider.now();
@@ -552,7 +563,7 @@ TEST_F(tx_pool, OldTransactionIsDeletedDuringTxPoolInitialization) {
   uint64_t deleteTime = startTime + currency.mempoolTxLiveTime() + 1;
   timeProvider.timeNow = deleteTime;
 
-  pool.reset(new tx_memory_pool(currency, validator, timeProvider, logger));
+  pool.reset(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
   ASSERT_EQ(0, pool->get_transactions_count());
 }
@@ -560,7 +571,8 @@ TEST_F(tx_pool, OldTransactionIsDeletedDuringTxPoolInitialization) {
 TEST_F(tx_pool, TransactionThatWasDeletedLongAgoIsForgottenDuringTxPoolInitialization) {
   TransactionValidator validator;
   FakeTimeProvider timeProvider;
-  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, timeProvider, logger));
+  core mycore(currency, nullptr, logger, false);
+  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   uint64_t startTime = timeProvider.now();
@@ -583,7 +595,7 @@ TEST_F(tx_pool, TransactionThatWasDeletedLongAgoIsForgottenDuringTxPoolInitializ
   uint64_t forgetDeletedTxTime = deleteTime + currency.numberOfPeriodsToForgetTxDeletedFromPool() * currency.mempoolTxLiveTime() + 1;
   timeProvider.timeNow = forgetDeletedTxTime;
 
-  pool.reset(new tx_memory_pool(currency, validator, timeProvider, logger));
+  pool.reset(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   // Try to add tx again
@@ -599,7 +611,8 @@ TEST_F(tx_pool, TransactionThatWasDeletedLongAgoIsForgottenDuringTxPoolInitializ
 TEST_F(tx_pool, RecentlyDeletedTxInfoIsSerializedAndDeserialized) {
   TransactionValidator validator;
   FakeTimeProvider timeProvider;
-  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, timeProvider, logger));
+  core mycore(currency, nullptr, logger, false);
+  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   uint64_t startTime = timeProvider.now();
@@ -618,7 +631,7 @@ TEST_F(tx_pool, RecentlyDeletedTxInfoIsSerializedAndDeserialized) {
 
   ASSERT_TRUE(pool->deinit());
 
-  pool.reset(new tx_memory_pool(currency, validator, timeProvider, logger));
+  pool.reset(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   uint64_t timeBeforeCleanupDeletedTx = deleteTime + currency.numberOfPeriodsToForgetTxDeletedFromPool() * currency.mempoolTxLiveTime();
@@ -649,7 +662,8 @@ TEST_F(tx_pool, RecentlyDeletedTxInfoIsSerializedAndDeserialized) {
 TEST_F(tx_pool, TxPoolAcceptsValidFusionTransaction) {
   TransactionValidator validator;
   FakeTimeProvider timeProvider;
-  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, timeProvider, logger));
+  core mycore(currency, nullptr, logger, false);
+  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   FusionTransactionBuilder builder(currency, 10 * currency.defaultDustThreshold());
@@ -666,7 +680,8 @@ TEST_F(tx_pool, TxPoolAcceptsValidFusionTransaction) {
 TEST_F(tx_pool, TxPoolDoesNotAcceptInvalidFusionTransaction) {
   TransactionValidator validator;
   FakeTimeProvider timeProvider;
-  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, timeProvider, logger));
+  core mycore(currency, nullptr, logger, false);
+  std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
   ASSERT_TRUE(pool->init(m_configDir.string()));
 
   FusionTransactionBuilder builder(currency, 10 * currency.defaultDustThreshold());
@@ -734,7 +749,8 @@ public:
   void doTest(size_t poolOrdinaryTxCount, size_t poolFusionTxCount, size_t expectedBlockOrdinaryTxCount, size_t expectedBlockFusionTxCount) {
     TransactionValidator validator;
     FakeTimeProvider timeProvider;
-    std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, timeProvider, logger));
+    core mycore(currency, nullptr, logger, false);
+    std::unique_ptr<tx_memory_pool> pool(new tx_memory_pool(currency, validator, mycore, timeProvider, logger, false));
     ASSERT_TRUE(pool->init(m_configDir.string()));
 
     std::unordered_map<Crypto::Hash, Transaction> ordinaryTxs;

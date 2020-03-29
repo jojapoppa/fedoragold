@@ -8,6 +8,7 @@
 
 #include <boost/range/combine.hpp>
 
+#include "CryptoNote.h"
 #include "EventWaiter.h"
 #include "ICoreStub.h"
 #include "ICryptoNoteProtocolQueryStub.h"
@@ -25,8 +26,8 @@ using namespace Crypto;
 using namespace CryptoNote;
 
 namespace {
-Transaction createTx(ITransactionReader& tx) {
-  Transaction outTx;
+CryptoNote::Transaction createTx(ITransactionReader& tx) {
+  CryptoNote::Transaction outTx;
   fromBinaryArray(outTx, tx.getTransactionData());
   return outTx;
 }
