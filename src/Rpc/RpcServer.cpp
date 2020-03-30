@@ -207,25 +207,29 @@ bool RpcServer::checkIncomingTransactionForFee(const BinaryArray& tx_blob) {
 
         const uint64_t fee = inputs_amount - outputs_amount;
         if (fee == 0 && m_core.currency().isFusionTransaction(tx, tx_blob.size())) {
-                logger(Logging::DEBUGGING) << "Masternode received fusion transaction, relaying with no fee check";
-                return true;
+          logger(Logging::DEBUGGING) << "Masternode received fusion transaction, relaying with no fee check";
+          return true;
         }
 
         CryptoNote::TransactionPrefix transaction = *static_cast<const TransactionPrefix*>(&tx);
-
         std::vector<uint32_t> out;
-        uint64_t amount=0;
 
+        // This is for sending fees to a masternode - use this to pay for VPN service later...
+        //uint64_t amount=0;
         //jojapoppa, add later to support VPN charges (see Karbo code)
         //if (!CryptoNote::findOutputsToAccount(transaction, m_fee_acc, m_view_key, out, amount)) {
-        //        logger(Logging::INFO) << "Could not find outputs to masternode fee address";
-        //        return false;
+        //  if (amount < m_fee_amout)
+        //  {
+        //    logger(Logging::INFO) << "Could not find outputs to masternode fee address";
+        //    return false;
+        //  }
         //}
 
-        if (amount != 0) {
-                logger(Logging::INFO) << "Masternode received relayed transaction fee: " << m_core.currency().formatAmount(amount) << " KRB";
-                return true;
+        if (fee > 0) {
+          logger(Logging::INFO) << "Relayed transaction fee: " << m_core.currency().formatAmount(fee) << " FED";
+          return true;
         }
+
         return false;
 }
 
