@@ -856,7 +856,7 @@ Maybe<uint64_t> getFee() {
         std::string stringAmount;
         std::cout << std::endl 
                   << InformationMsg("What fee do you want to use?") << std::endl
-                  << "Hit enter for the default fee of 0.000001 FED: ";
+                  << "Hit enter for the default fee of 0.01000000 FED: ";
 
         std::getline(std::cin, stringAmount);
 
