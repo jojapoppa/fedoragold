@@ -124,7 +124,7 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-                throw std::runtime_error("readVarint, value overflow");
+                throw std::runtime_error("readVarint uint16_t, value overflow");
             }
 
             temp |= static_cast<uint64_t>(piece & 0x7f) << shift;
@@ -151,7 +151,7 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-                throw std::runtime_error("readVarint, value overflow");
+                throw std::runtime_error("readVarint uint32_t, value overflow");
             }
 
             temp |= static_cast<uint64_t>(piece & 0x7f) << shift;
@@ -178,7 +178,7 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-                throw std::runtime_error("readVarint, value overflow");
+                throw std::runtime_error("readVarint uint64_t, value overflow");
             }
 
             temp |= static_cast<uint64_t>(piece & 0x7f) << shift;
