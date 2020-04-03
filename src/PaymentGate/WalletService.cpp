@@ -575,7 +575,7 @@ std::error_code WalletService::saveWalletNoThrow() {
 void WalletService::loadWallet() {
   std::ifstream inputWalletFile;
   logger(Logging::INFO) << "WalletService loadWallet()";
-  inputWalletFile.open(config.walletFile.c_str(), std::fstream::in | std::fstream::binary);
+  inputWalletFile.open(config.walletFile.c_str(), std::ios_base::binary); //std::fstream::in | std::fstream::binary);
   if (!inputWalletFile) {
     logger(Logging::INFO) << "Could not open wallet file: " << config.walletFile.c_str();
     throw std::runtime_error("Couldn't open wallet file");
