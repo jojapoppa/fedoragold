@@ -527,10 +527,14 @@ std::cout << "loadTransactions, loadTransfers...\n";
     loadTransfers(source, cryptoContext, version);
   }
 
+std::cout << "updateTransfersSign...\n";
+
   if (version < 5) {
     updateTransfersSign();
     cache = false;
   }
+
+std::cout << "loadBalances...\n";
 
   if (cache) {
     loadBalances(source, cryptoContext);
@@ -539,26 +543,40 @@ std::cout << "loadTransactions, loadTransfers...\n";
       loadObsoleteSpentOutputs(source, cryptoContext);
     }
 
+std::cout << "loadUnlockTransactionsJobs...\n";
+
     loadUnlockTransactionsJobs(source, cryptoContext);
 
     if (version < 5) {
       loadObsoleteChange(source, cryptoContext);
     }
 
+std::cout << "loadUncommitedTransactions...\n";
+
     if (version > 3) {
       loadUncommitedTransactions(source, cryptoContext);
+
+std::cout << "initTransactionPool...\n";
 
       if (version >= 5) {
         initTransactionPool();
       }
     }
   } else {
+
+std::cout << "resetCachedBalance...\n";
+
     resetCachedBalance();
   }
+
+
+std::cout << "updateTransactionsBaseStatus...\n";
 
   if (details && cache) {
     updateTransactionsBaseStatus();
   }
+
+std::cout << "done with load...\n";
 }
 
 void WalletSerializer::loadWalletV1(Common::IInputStream& source, const std::string& password) {
