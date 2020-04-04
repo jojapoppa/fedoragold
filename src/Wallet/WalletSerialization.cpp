@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <type_traits>
+#include <iostream>
 
 #include "Common/MemoryInputStream.h"
 #include "Common/StdInputStream.h"
@@ -500,16 +501,26 @@ void WalletSerializer::loadWallet(Common::IInputStream& source, const std::strin
   bool details = false;
   bool cache = false;
 
+std::cout << "loadWallet...generateKey\n";
+
   loadIv(source, cryptoContext.iv);
   generateKey(password, cryptoContext.key);
+
+std::cout << "loadKeys...\n";
 
   loadKeys(source, cryptoContext);
   checkKeys();
 
+std::cout << "loadWallets...\n";
+
   loadWallets(source, cryptoContext);
   subscribeWallets();
 
+std::cout << "loadFlags...\n";
+
   loadFlags(details, cache, source, cryptoContext);
+
+std::cout << "loadTransactions, loadTransfers...\n";
 
   if (details) {
     loadTransactions(source, cryptoContext);

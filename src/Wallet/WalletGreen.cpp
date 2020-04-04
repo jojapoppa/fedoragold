@@ -466,6 +466,8 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
   StdInputStream inputStream(source);
   s.load(password, inputStream, m_logger);
 
+  m_logger(Logging::INFO) << "loaded...";
+
   m_password = password;
   m_blockchainSynchronizer.addObserver(this);
 }
