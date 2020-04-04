@@ -475,8 +475,8 @@ void WalletSerializer::saveTransfers(Common::IOutputStream& destination, CryptoC
 void WalletSerializer::load(const std::string& password, Common::IInputStream& source, Logging::LoggerRef logger) {
   logger(Logging::INFO) << "WalletSerializer load";
 
-  CryptoNote::BinaryInputStreamSerializer s(source);
-  s.beginObject("wallet");
+//  CryptoNote::BinaryInputStreamSerializer s(source);
+//  s.beginObject("wallet");
 
   uint32_t version = loadVersion(source);
 
@@ -491,7 +491,7 @@ void WalletSerializer::load(const std::string& password, Common::IInputStream& s
     loadWallet(source, password, version);
   }
 
-  s.endObject();
+//  s.endObject();
 }
 
 void WalletSerializer::loadWallet(Common::IInputStream& source, const std::string& password, uint32_t version) {
