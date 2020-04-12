@@ -474,14 +474,10 @@ void WalletSerializer::saveTransfers(Common::IOutputStream& destination, CryptoC
 }
 
 void WalletSerializer::load(const std::string& password, Common::IInputStream& source, Logging::LoggerRef logger) {
-  logger(Logging::INFO) << "WalletSerializer load";
-
 //  CryptoNote::BinaryInputStreamSerializer s(source);
 //  s.beginObject("wallet");
 
   uint32_t version = loadVersion(source);
-
-  logger(Logging::INFO) << "wallet version detected: " << version; 
 
   if (version > SERIALIZATION_VERSION) {
     logger(Logging::INFO) << "exceeded supported version number defined in SERIALIZATION_VERSION";
@@ -501,49 +497,34 @@ void WalletSerializer::loadWallet(Common::IInputStream& source, const std::strin
   bool details = false;
   bool cache = false;
 
-std::cout << "loadWallet...generateKey\n";
-
   loadIv(source, cryptoContext.iv);
   generateKey(password, cryptoContext.key);
-
-std::cout << "loadKeys...\n";
 
   loadKeys(source, cryptoContext);
   checkKeys();
 
-std::cout << "loadWallets...\n";
-
   loadWallets(source, cryptoContext);
   subscribeWallets();
 
-std::cout << "loadFlags...\n";
-
   loadFlags(details, cache, source, cryptoContext);
-
-std::cout << "loadTransactions, loadTransfers...\n";
 
   if (details) {
     loadTransactions(source, cryptoContext);
     loadTransfers(source, cryptoContext, version);
   }
 
-std::cout << "updateTransfersSign...\n";
-
   if (version < 5) {
     updateTransfersSign();
     cache = false;
   }
 
-std::cout << "loadBalances...\n";
-
   if (cache) {
     loadBalances(source, cryptoContext);
     loadTransfersSynchronizer(source, cryptoContext);
+
     if (version < 5) {
       loadObsoleteSpentOutputs(source, cryptoContext);
     }
-
-std::cout << "loadUnlockTransactionsJobs...\n";
 
     loadUnlockTransactionsJobs(source, cryptoContext);
 
@@ -551,32 +532,20 @@ std::cout << "loadUnlockTransactionsJobs...\n";
       loadObsoleteChange(source, cryptoContext);
     }
 
-std::cout << "loadUncommitedTransactions...\n";
-
     if (version > 3) {
       loadUncommitedTransactions(source, cryptoContext);
-
-std::cout << "initTransactionPool...\n";
 
       if (version >= 5) {
         initTransactionPool();
       }
     }
   } else {
-
-std::cout << "resetCachedBalance...\n";
-
     resetCachedBalance();
   }
-
-
-std::cout << "updateTransactionsBaseStatus...\n";
 
   if (details && cache) {
     updateTransactionsBaseStatus();
   }
-
-std::cout << "done with load...\n";
 }
 
 void WalletSerializer::loadWalletV1(Common::IInputStream& source, const std::string& password) {
@@ -795,7 +764,10 @@ void WalletSerializer::loadUnlockTransactionsJobs(Common::IInputStream& source, 
     deserializeEncrypted(dto, "", cryptoContext, source);
     cryptoContext.incIv();
 
-    assert(dto.walletIndex < walletsSize);
+    //assert(dto.walletIndex < walletsSize);
+    if (dto.walletIndex > (walletsSize-1)) {
+      dto.walletIndex = walletsSize-1;
+    } 
 
     UnlockTransactionJob job;
     job.blockHeight = dto.blockHeight;

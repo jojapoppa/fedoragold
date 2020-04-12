@@ -73,8 +73,8 @@ bool BinaryOutputStreamSerializer::operator()(bool& value, Common::StringView na
 }
 
 bool BinaryOutputStreamSerializer::operator()(std::string& value, Common::StringView name) {
-  writeVarint(stream, value.size());
-  checkedWrite(value.data(), value.size());
+  writeVarint(stream, (uint64_t)(value.size()));
+  checkedWrite(value.data(), (uint64_t)(value.size()));
   return true;
 }
 

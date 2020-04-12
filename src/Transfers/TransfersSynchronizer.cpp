@@ -2,6 +2,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <iostream>
 #include "TransfersSynchronizer.h"
 #include "TransfersConsumer.h"
 
@@ -203,6 +204,7 @@ void setObjectState(IStreamSerializable& obj, const std::string& state) {
 }
 
 void TransfersSyncronizer::load(std::istream& is) {
+
   m_sync.load(is);
 
   StdInputStream inputStream(is);

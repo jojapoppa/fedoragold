@@ -243,14 +243,18 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
 
   std::unique_ptr<PaymentService::WalletService> serviceGuard(service);
   try {
+    std::cout << "\nservice->init()\n";
     service->init();
+    std::cout << "service->init() done.\n";
   } catch (std::exception& e) {
     Logging::LoggerRef(logger, "run")(Logging::ERROR, Logging::BRIGHT_RED) << "Failed to init walletService reason: " << e.what();
     return;
   }
 
+  std::cout << "check printAddresses\n";
   if (config.gateConfiguration.printAddresses) {
     // print addresses and exit
+    std::cout << "getAddresses\n";
     std::vector<std::string> addresses;
     service->getAddresses(addresses);
     for (const auto& address: addresses) {
