@@ -39,6 +39,23 @@ then
   cp CMakeListsMac.txt CMakeLists.txt
   make build-release
   exit
+elif python -m platform | grep Windows > /dev/null
+then
+  echo Windows build platform...
+  echo   TO USE TYPE: bash ..then.. source ./makefedora.sh
+  rm -r build
+  set CC=CL.exe
+  set CXX=CL.exe
+  set BOOST_ROOT=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win
+  set BOOST_LIBRARYDIR=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win/lib
+  rm CMakeCache.txt
+  cp CMakeListsWindows.txt CMakeLists.txt
+  mkdir build
+  cd build
+  cmake -G "Visual Studio 15 2017 Win64" -DBoost_INCLUDE_DIR=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win/include ..
+  cmake --build . --config Release
+  cd ..
+  exit
 else
   echo non-debian platform...
   export CC=gcc-8

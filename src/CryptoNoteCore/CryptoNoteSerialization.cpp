@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 #include <boost/variant/static_visitor.hpp>
 #include <boost/variant/apply_visitor.hpp>
@@ -64,45 +65,50 @@ struct VariantSerializer : boost::static_visitor<> {
 
 void getVariantValue(CryptoNote::ISerializer& serializer, uint8_t tag, CryptoNote::TransactionInput& in) {
   switch(tag) {
-  case 0xff: {
-    CryptoNote::BaseInput v;
-    serializer(v, "value");
-    in = v;
-    break;
-  }
-  case 0x2: {
-    CryptoNote::KeyInput v;
-    serializer(v, "value");
-    in = v;
-    break;
-  }
-  case 0x3: {
-    CryptoNote::MultisignatureInput v;
-    serializer(v, "value");
-    in = v;
-    break;
-  }
-  default:
-    throw std::runtime_error("Unknown variant tag");
+    case 0xff: {
+      CryptoNote::BaseInput v;
+      serializer(v, "value");
+      in = v;
+      break;
+    }
+    case 0x2: {
+      CryptoNote::KeyInput v;
+      serializer(v, "value");
+      in = v;
+      break;
+    }
+    case 0x3: {
+      CryptoNote::MultisignatureInput v;
+      serializer(v, "value");
+      in = v;
+      break;
+    }
+    default: {
+      // Sometimes input tags blank (loops on transaction inputs for example)
+      CryptoNote::BaseInput v;
+      serializer(v, "value");
+      in = v;
+    }
   }
 }
 
 void getVariantValue(CryptoNote::ISerializer& serializer, uint8_t tag, CryptoNote::TransactionOutputTarget& out) {
   switch(tag) {
-  case 0x2: {
-    CryptoNote::KeyOutput v;
-    serializer(v, "data");
-    out = v;
-    break;
-  }
-  case 0x3: {
-    CryptoNote::MultisignatureOutput v;
-    serializer(v, "data");
-    out = v;
-    break;
-  }
-  default:
-    throw std::runtime_error("Unknown variant tag");
+    case 0x2: {
+      CryptoNote::KeyOutput v;
+      serializer(v, "data");
+      out = v;
+      break;
+    }
+    case 0x3: {
+      CryptoNote::MultisignatureOutput v;
+      serializer(v, "data");
+      out = v;
+      break;
+    }
+    default: {
+      // tags can be blank sometimes (not always named) - skip those
+    } 
   }
 }
 
@@ -173,7 +179,9 @@ void serialize(TransactionPrefix& txP, ISerializer& serializer) {
   serializer(txP.version, "version");
 
   if (CURRENT_TRANSACTION_VERSION < txP.version) {
-    throw std::runtime_error("Wrong transaction version");
+    char tmsg[500];
+    sprintf(tmsg, "Warning: Wrong transaction version, CURRENT_TRANSACTION_VERSION: %d serialzed version: %d\n", CURRENT_TRANSACTION_VERSION, txP.version);
+    std::cout << tmsg;
   }
 
   serializer(txP.unlockTime, "unlock_time");

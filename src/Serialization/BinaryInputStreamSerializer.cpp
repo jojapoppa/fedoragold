@@ -4,6 +4,7 @@
 
 #include "BinaryInputStreamSerializer.h"
 
+#include <iostream>
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
@@ -84,6 +85,7 @@ bool BinaryInputStreamSerializer::operator()(bool& value, Common::StringView nam
 
 bool BinaryInputStreamSerializer::operator()(std::string& value, Common::StringView name) {
   uint64_t size;
+
   readVarint(stream, size);
 
   if (size > 0) {
