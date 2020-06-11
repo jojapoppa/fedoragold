@@ -2399,7 +2399,8 @@ bool Blockchain::loadBlockchainIndices() {
   BlockchainIndicesSerializer indiceloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
 
   if (!indiceloader.loaded()) {
-    loadFromBinaryFile(indiceloader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
+    BlockchainIndicesSerializer::m_indiceloaded =
+      loadFromBinaryFile(indiceloader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
   }
 
   if (!indiceloader.loaded()) {
