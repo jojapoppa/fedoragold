@@ -95,7 +95,7 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-		// don't throw exception here... allow it to attempt recovery and resync
+		// don't throw ... allow it to attempt recovery and resync
 		value = 0;
 		return;
             }
@@ -105,7 +105,7 @@ namespace Common
             {
                 if (piece == 0 && shift != 0)
                 {
-                    throw std::runtime_error("readVarint, invalid value representation");
+                    temp = 0;
                 }
 
                 break;
@@ -124,7 +124,9 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-                throw std::runtime_error("readVarint, value overflow");
+                // don't throw ... allow it to attempt recovery and resync 
+                value = 0;
+		return;
             }
 
             temp |= static_cast<uint64_t>(piece & 0x7f) << shift;
@@ -132,7 +134,7 @@ namespace Common
             {
                 if (piece == 0 && shift != 0)
                 {
-                    throw std::runtime_error("readVarint, invalid value representation");
+                    temp = 0;
                 }
 
                 break;
@@ -151,7 +153,9 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-                throw std::runtime_error("readVarint, value overflow");
+                // don't throw ... allow it to attempt recovery and resync 
+		value = 0;
+		return;
             }
 
             temp |= static_cast<uint64_t>(piece & 0x7f) << shift;
@@ -159,7 +163,7 @@ namespace Common
             {
                 if (piece == 0 && shift != 0)
                 {
-                    throw std::runtime_error("readVarint, invalid value representation");
+                    temp = 0;
                 }
 
                 break;
@@ -178,7 +182,9 @@ namespace Common
             read(in, piece);
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
-                throw std::runtime_error("readVarint, value overflow");
+                // don't throw ... allow it to attempt recovery and resync 
+                value = 0;
+		return;
             }
 
             temp |= static_cast<uint64_t>(piece & 0x7f) << shift;
@@ -186,7 +192,7 @@ namespace Common
             {
                 if (piece == 0 && shift != 0)
                 {
-                    throw std::runtime_error("readVarint, invalid value representation");
+                    temp = 0;
                 }
 
                 break;

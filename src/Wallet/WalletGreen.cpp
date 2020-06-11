@@ -410,7 +410,6 @@ void WalletGreen::unsafeSave(std::ostream& destination, bool saveDetails, bool s
 }
 
 void WalletGreen::load(std::istream& source, const std::string& password) {
-  m_logger(Logging::INFO) << "WalletGreen load";
   if (m_state != WalletState::NOT_INITIALIZED) {
     m_logger(Logging::INFO) << "Error in wallet m_state";
     throw std::system_error(make_error_code(error::WRONG_STATE));
@@ -461,9 +460,8 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
     m_uncommitedTransactions
   );
 
-  m_logger(Logging::INFO) << "calling WalletSerializer.load";
-
   StdInputStream inputStream(source);
+
   s.load(password, inputStream, m_logger);
 
   m_password = password;

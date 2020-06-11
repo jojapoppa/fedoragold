@@ -1454,7 +1454,7 @@ namespace CryptoNote
         }
       } catch (System::InterruptedException&) {
         logger(DEBUGGING) << ctx << "connectionHandler() inner context is interrupted";
-      } catch (std::exception& e) {
+      } catch (std::exception& ) {
         // Don't show this error, it's expected behavior... network errors do happen...
       }
 

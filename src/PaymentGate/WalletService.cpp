@@ -533,12 +533,10 @@ WalletService::~WalletService() {
 }
 
 void WalletService::init() {
-  logger(Logging::INFO) << "WalletService init";
   loadWallet();
   loadTransactionIdIndex();
 
   refreshContext.spawn([this] { refresh(); });
-
   inited = true;
 }
 
@@ -574,17 +572,16 @@ std::error_code WalletService::saveWalletNoThrow() {
 
 void WalletService::loadWallet() {
   std::ifstream inputWalletFile;
-  logger(Logging::INFO) << "WalletService loadWallet()";
-  inputWalletFile.open(config.walletFile.c_str(), std::fstream::in | std::fstream::binary);
-  if (!inputWalletFile) {
+  logger(Logging::INFO) << "Open wallet: " << config.walletFile.c_str();
+  inputWalletFile.open(config.walletFile.c_str(), std::ios_base::binary);
+   
+  if (!inputWalletFile.good()) {
     logger(Logging::INFO) << "Could not open wallet file: " << config.walletFile.c_str();
     throw std::runtime_error("Couldn't open wallet file");
   }
 
   logger(Logging::INFO) << "Loading wallet";
-
   wallet.load(inputWalletFile, config.walletPassword);
-
   logger(Logging::INFO) << "Wallet loading is finished.";
 }
 
@@ -1210,8 +1207,6 @@ std::error_code WalletService::sendFusionTransaction(uint64_t threshold, uint32_
     if (!destinationAddress.empty()) {
       validateAddresses({ destinationAddress }, currency, logger);
     }
-
-    std::cout << "call createFusionTransaction from PaymentGate/WalletService.cpp with dest: " << destinationAddress << "\n";
 
     size_t transactionId = fusionManager.createFusionTransaction(threshold, anonymity, addresses, destinationAddress);
     transactionHash = Common::podToHex(wallet.getTransaction(transactionId).hash);

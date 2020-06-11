@@ -7,6 +7,7 @@
 #include <string>
 #include <sstream>
 #include <type_traits>
+#include <iostream>
 
 #include "Common/MemoryInputStream.h"
 #include "Common/StdInputStream.h"
@@ -473,14 +474,10 @@ void WalletSerializer::saveTransfers(Common::IOutputStream& destination, CryptoC
 }
 
 void WalletSerializer::load(const std::string& password, Common::IInputStream& source, Logging::LoggerRef logger) {
-  logger(Logging::INFO) << "WalletSerializer load";
-
-  CryptoNote::BinaryInputStreamSerializer s(source);
-  s.beginObject("wallet");
+//  CryptoNote::BinaryInputStreamSerializer s(source);
+//  s.beginObject("wallet");
 
   uint32_t version = loadVersion(source);
-
-  logger(Logging::INFO) << "wallet version detected: " << version; 
 
   if (version > SERIALIZATION_VERSION) {
     logger(Logging::INFO) << "exceeded supported version number defined in SERIALIZATION_VERSION";
@@ -491,7 +488,7 @@ void WalletSerializer::load(const std::string& password, Common::IInputStream& s
     loadWallet(source, password, version);
   }
 
-  s.endObject();
+//  s.endObject();
 }
 
 void WalletSerializer::loadWallet(Common::IInputStream& source, const std::string& password, uint32_t version) {
@@ -524,6 +521,7 @@ void WalletSerializer::loadWallet(Common::IInputStream& source, const std::strin
   if (cache) {
     loadBalances(source, cryptoContext);
     loadTransfersSynchronizer(source, cryptoContext);
+
     if (version < 5) {
       loadObsoleteSpentOutputs(source, cryptoContext);
     }
@@ -766,7 +764,10 @@ void WalletSerializer::loadUnlockTransactionsJobs(Common::IInputStream& source, 
     deserializeEncrypted(dto, "", cryptoContext, source);
     cryptoContext.incIv();
 
-    assert(dto.walletIndex < walletsSize);
+    //assert(dto.walletIndex < walletsSize);
+    if (dto.walletIndex > (walletsSize-1)) {
+      dto.walletIndex = walletsSize-1;
+    } 
 
     UnlockTransactionJob job;
     job.blockHeight = dto.blockHeight;
