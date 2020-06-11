@@ -123,10 +123,15 @@ class BlockCacheSerializer {
 
 public:
   BlockCacheSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), m_loaded(false), logger(logger, "BlockCacheSerializer") {
+    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockCacheSerializer") {
   }
 
   void load(const std::string& filename) {
+
+    if (m_cacheloaded) {
+      return;
+    }
+
     try {
       std::ifstream stdStream(filename, std::ios::binary);
       if (!stdStream) {
@@ -209,17 +214,20 @@ public:
 
     logger(INFO) << "Serialization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
 
-    m_loaded = true;
+    m_cacheloaded = true;
   }
 
-  bool loaded() const {
-    return m_loaded;
+  static bool m_cacheloaded;
+  static bool loaded() {
+    return m_cacheloaded;
   }
+  static void reset() {
+    m_cacheloaded = false;
+  } 
 
 private:
 
   LoggerRef logger;
-  bool m_loaded;
   Blockchain& m_bs;
   Crypto::Hash m_lastBlockHash;
 };
@@ -228,7 +236,7 @@ class BlockchainIndicesSerializer {
 
 public:
   BlockchainIndicesSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), m_loaded(false), logger(logger, "BlockchainIndicesSerializer") {
+    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockchainIndicesSerializer") {
   }
 
   void serialize(ISerializer& s) {
@@ -268,7 +276,7 @@ public:
     logger(INFO) << operation << "generated transactions index...";
     s(m_bs.m_generatedTransactionsIndex, "generatedTransactionsIndex");
 
-    m_loaded = true;
+    m_indiceloaded = true;
   }
 
   template<class Archive> void serialize(Archive& ar, unsigned int version) {
@@ -301,21 +309,27 @@ public:
     logger(INFO) << operation << "generated transactions index...";
     ar & m_bs.m_generatedTransactionsIndex;
 
-    m_loaded = true;
+    m_indiceloaded = true;
   }
 
+  static bool m_indiceloaded;
   bool loaded() const {
-    return m_loaded;
+    return m_indiceloaded;
+  }
+  static void reset() {
+    m_indiceloaded = false;
   }
 
 private:
 
   LoggerRef logger;
-  bool m_loaded;
   Blockchain& m_bs;
   Crypto::Hash m_lastBlockHash;
 };
 
+// static data initialization
+bool BlockCacheSerializer::m_cacheloaded = false;
+bool BlockchainIndicesSerializer::m_indiceloaded = false;
 
 Blockchain::Blockchain(const Currency& currency, tx_memory_pool& tx_pool, ILogger& logger, bool blockchainIndexesEnabled) :
 logger(logger, "Blockchain"),
@@ -422,10 +436,10 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
   bool results = true;
   if (load_existing && !m_blocks.empty()) {
     logger(INFO, BRIGHT_WHITE) << "Loading blockchain...";
-    BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
-    loader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
+    BlockCacheSerializer cacheloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
+    cacheloader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
 
-    if (!loader.loaded()) {
+    if (!cacheloader.loaded()) {
       logger(INFO, BRIGHT_YELLOW) << "No recent blockchain cache found, rebuilding internal structures...";
       if (!rebuildCache()) {
         logger(DEBUGGING) << "Rebuild of cache failed.";
@@ -458,7 +472,9 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     logger(ERROR, BRIGHT_RED) << "Failed to open the block file " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
 
     remove(blockFilePath.c_str());
+    BlockCacheSerializer::reset();
     remove(indexesPath.c_str());
+    BlockchainIndicesSerializer::reset();
     if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
       logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
       return false;
@@ -470,11 +486,11 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   std::string cachePath = "";
   if (load_existing && !m_blocks.empty()) {
     logger(INFO) << "Loading blockchain...";
-    BlockCacheSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger()); 
+    BlockCacheSerializer cacheloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger()); 
     cachePath = appendPath(config_folder, m_currency.blocksCacheFileName());
-    loader.load(cachePath);
+    cacheloader.load(cachePath);
 
-    if (loader.loaded()) {
+    if (cacheloader.loaded()) {
       if (m_blockchainIndexesEnabled) {
         loadBlockchainIndices();
       }
@@ -2380,11 +2396,14 @@ bool Blockchain::loadBlockchainIndices() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
   logger(INFO, BRIGHT_WHITE) << "Loading blockchain indices for BlockchainExplorer...";
-  BlockchainIndicesSerializer loader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
+  BlockchainIndicesSerializer indiceloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
 
-  loadFromBinaryFile(loader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
+  if (!indiceloader.loaded()) {
+    loadFromBinaryFile(indiceloader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
+  }
 
-  if (!loader.loaded()) {
+  if (!indiceloader.loaded()) {
+
     logger(WARNING, BRIGHT_YELLOW) << "No actual blockchain indices for BlockchainExplorer found, rebuilding...";
     std::chrono::steady_clock::time_point timePoint = std::chrono::steady_clock::now();
 

@@ -3,29 +3,24 @@ cmake_minimum_required(VERSION 2.8.6)
 set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
-set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS "-Wl,-Bdynamic")
-set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS "-Wl,-Bdynamic")
-set(CMAKE_SHARED_LIBRARY_C_FLAGS, "-std=c11 -fPIC")
-set(CMAKE_SHARED_LIBRARY_CXX_FLAGS "-std=c++11 -fPIC")
-set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "-rdynamic")
-set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "-rdynamic")
-
 enable_language(C CXX ASM)
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
-find_package(Threads)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME ON)
-set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
-
 set(BOOST_HAS_THREADS ON)
 set(BOOST_HAS_PTHREADS ON) 
-set(BUILD_SHARED_LIBS OFF)
+
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 set(STATIC ON CACHE BOOL "Link libraries statically")
-set(BOOST_THREAD_LIBRARY libboost_thread.a)
 add_library(c STATIC IMPORTED)
+add_library(m STATIC IMPORTED)
+
+#-Wl,-v
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v -static-libgcc -static-libstdc++ -Wl,-Bdynamic -Llibc.a -Wl,-Bdynamic -Llibm.a -Wl,-Bdynamic -lpthread")
+
+set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
