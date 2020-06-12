@@ -147,11 +147,15 @@ public:
       logger(WARNING) << "loading failed: " << e.what();
       return;
     }
-
-    //m_cacheloaded = true;
   }
 
   bool save(const std::string& filename) {
+
+    if (! m_cacheloaded) {
+      logger(INFO) << "save operations are skipped until cache is fully loaded...";
+      return false;
+    }
+
     try {
       std::ofstream file(filename, std::ios::binary);
       if (!file) {
