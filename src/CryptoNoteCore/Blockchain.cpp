@@ -145,7 +145,10 @@ public:
       CryptoNote::serialize(*this, s);
     } catch (std::exception& e) {
       logger(WARNING) << "loading failed: " << e.what();
+      return;
     }
+
+    m_cacheloaded = true;
   }
 
   bool save(const std::string& filename) {
@@ -180,8 +183,10 @@ public:
     }
 
     std::string operation;
+
     if (s.type() == ISerializer::INPUT) {
       operation = "- loading ";
+
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
 
@@ -246,8 +251,10 @@ public:
     KV_MEMBER(version);
 
     // ignore old versions, do rebuild
-    if (version != CURRENT_BLOCKCHAININDICES_STORAGE_ARCHIVE_VER)
+    if (version != CURRENT_BLOCKCHAININDICES_STORAGE_ARCHIVE_VER) {
+      logger(INFO) << "this is an old version... rebuild block cache...";
       return;
+    }
 
     std::string operation;
 
