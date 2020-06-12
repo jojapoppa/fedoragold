@@ -148,7 +148,7 @@ public:
       return;
     }
 
-    m_cacheloaded = true;
+    //m_cacheloaded = true;
   }
 
   bool save(const std::string& filename) {
@@ -252,7 +252,7 @@ public:
 
     // ignore old versions, do rebuild
     if (version != CURRENT_BLOCKCHAININDICES_STORAGE_ARCHIVE_VER) {
-      logger(INFO) << "this is an old version... rebuild block cache...";
+      logger(INFO) << "this is an old version... rebuild block cache indices...";
       return;
     }
 
