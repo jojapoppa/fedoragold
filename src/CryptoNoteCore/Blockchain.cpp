@@ -153,7 +153,7 @@ public:
 
     if (! m_cacheloaded) {
       logger(INFO) << "save operations are skipped until cache is fully loaded...";
-      return false;
+      return true; // not a fatal error, normal...
     }
 
     try {
