@@ -171,6 +171,8 @@ public:
       return false;
     }
 
+    logger(INFO) << "********** Save operation completed to : %s\n", filename);
+
     return true;
   }
 
@@ -221,7 +223,8 @@ public:
 
     auto dur = std::chrono::steady_clock::now() - start;
 
-    logger(INFO) << "Serialization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
+    logger(INFO) << "Serialization time: " << 
+      std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
 
     m_cacheloaded = true;
   }
@@ -510,12 +513,12 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
       if (! loadIndexes(config_folder, load_existing)) {
         logger(INFO) << "Failed to load indexes, resetting indexes file now...";
         // force resync now
-        //remove(blockFilePath.c_str());
+        remove(blockFilePath.c_str());
         remove(indexesPath.c_str());
-        //if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
-        //  logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
-        //  return false;
-        //}
+        if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
+          logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
+          return false;
+        }
 
         loadIndexes(config_folder, false);
       }
