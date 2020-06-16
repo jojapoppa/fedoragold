@@ -171,8 +171,6 @@ public:
       return false;
     }
 
-    logger(INFO) << "********** Save operation completed to : %s\n", filename);
-
     return true;
   }
 
@@ -198,6 +196,8 @@ public:
 
       if (blockHash != m_lastBlockHash) {
         logger(INFO) << "last block does not match... rebuild block cache...";
+        logger(INFO) << "  stored last_block: " << m_lastBlockHash;
+        logger(INFO) << "  last_block in current chain: " << blockHash;
         return;
       }
 
@@ -459,6 +459,7 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
         logger(DEBUGGING) << "Rebuild of cache failed.";
         results = false;
       }
+      cacheloader.m_cacheloaded = true;
     }
 
     if (m_blockchainIndexesEnabled) {
@@ -552,14 +553,15 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     }
   }
 
+  logger(INFO, BRIGHT_WHITE) << "verifying checkpoints...";
   uint32_t lastValidCheckpointHeight = 0;
   if (!checkCheckpoints(lastValidCheckpointHeight)) {
     logger(WARNING, BRIGHT_YELLOW) << "Invalid checkpoint! Rollback blockchain to height=" << lastValidCheckpointHeight;
     rollbackBlockchainTo(lastValidCheckpointHeight);
   }
 
+  logger(INFO, BRIGHT_GREEN) << "size limit update...";
   update_next_comulative_size_limit();
-  logger(INFO, BRIGHT_GREEN) << "size limit updated...";
 
   logger(INFO, BRIGHT_GREEN)
     << "Initialized, block: " << m_blocks.size() - 1 << ", "
