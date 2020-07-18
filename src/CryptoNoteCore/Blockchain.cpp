@@ -327,7 +327,7 @@ public:
   }
 
   static bool m_indiceloaded;
-  bool loaded() const {
+  bool indice_loaded() const {
     return m_indiceloaded;
   }
   static void reset() {
@@ -490,6 +490,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     BlockCacheSerializer::reset();
     remove(indexesPath.c_str());
     BlockchainIndicesSerializer::reset();
+
     if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
       logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
       return false;
@@ -2414,12 +2415,12 @@ bool Blockchain::loadBlockchainIndices() {
   logger(INFO, BRIGHT_WHITE) << "Loading blockchain indices for BlockchainExplorer...";
   BlockchainIndicesSerializer indiceloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
 
-  if (!indiceloader.loaded()) {
+  if (!indiceloader.indice_loaded()) {
     BlockchainIndicesSerializer::m_indiceloaded =
       loadFromBinaryFile(indiceloader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
   }
 
-  if (!indiceloader.loaded()) {
+  if (!indiceloader.indice_loaded()) {
 
     logger(WARNING, BRIGHT_YELLOW) << "No actual blockchain indices for BlockchainExplorer found, rebuilding...";
     std::chrono::steady_clock::time_point timePoint = std::chrono::steady_clock::now();
