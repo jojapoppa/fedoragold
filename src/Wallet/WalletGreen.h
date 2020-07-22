@@ -66,6 +66,7 @@ public:
   virtual std::vector<WalletTransactionWithTransfers> getUnconfirmedTransactions() const override;
   virtual std::vector<size_t> getDelayedTransactionIds() const override;
 
+  size_t transferWithMixin(const TransactionParameters& sendingTransaction, Crypto::SecretKey& txSecretKey, uint64_t mixit);
   virtual size_t transfer(const TransactionParameters& sendingTransaction, Crypto::SecretKey& txSecretKey) override;
 
   virtual size_t makeTransaction(const TransactionParameters& sendingTransaction) override;
@@ -207,6 +208,7 @@ protected:
     Crypto::SecretKey& txSecretKey);
 
   void validateTransactionParameters(const TransactionParameters& transactionParameters);
+  size_t doTransferWithMixin(const TransactionParameters& transactionParameters, Crypto::SecretKey& txSecretKey, uint64_t mixit);
   size_t doTransfer(const TransactionParameters& transactionParameters, Crypto::SecretKey& txSecretKey);
 
   void requestMixinOuts(const std::vector<OutputToTransfer>& selectedTransfers,
