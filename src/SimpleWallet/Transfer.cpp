@@ -153,9 +153,9 @@ void sendMultipleTransactions(CryptoNote::WalletGreen &wallet,
 
             uint64_t neededBalance = tx.destinations[0].amount + tx.fee;
 
-            if (neededBalance < wallet.getActualBalance())
+            if (neededBalance <= wallet.getActualBalance())
             {
-                size_t id = wallet.transfer(tx, txSecretKey);
+                size_t id = wallet.transferWithMixin(tx, txSecretKey, 0);
 
                 CryptoNote::WalletTransaction sentTx 
                     = wallet.getTransaction(id);
@@ -270,8 +270,7 @@ void splitTx(CryptoNote::WalletGreen &wallet,
                transactions into smaller pieces */
             if (wallet.txIsTooLarge(tx))
             {
-                std::cout << "Split up transactions are still too large! "
-                          << "Splitting up into smaller chunks." << std::endl;
+                std::cout << "Splitting up into smaller chunks..." << std::endl;
                 continue;
             }
         }

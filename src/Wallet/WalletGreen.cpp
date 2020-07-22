@@ -785,6 +785,20 @@ size_t WalletGreen::transfer(const TransactionParameters& transactionParameters,
   return doTransfer(transactionParameters, txSecretKey);
 }
 
+size_t WalletGreen::transferWithMixin(const TransactionParameters& transactionParameters, Crypto::SecretKey &txSecretKey, uint64_t mixit) {
+  Tools::ScopeExit releaseContext([this] {
+    m_dispatcher.yield();
+  });
+
+  System::EventLock lk(m_readyEvent);
+
+  throwIfNotInitialized();
+  throwIfTrackingMode();
+  throwIfStopped();
+
+  return doTransferWithMixin(transactionParameters, txSecretKey, mixit);
+}
+
 void WalletGreen::prepareTransaction(std::vector<WalletOuts>&& wallets,
   const std::vector<WalletOrder>& orders,
   uint64_t fee,
@@ -883,6 +897,33 @@ void WalletGreen::validateTransactionParameters(const TransactionParameters& tra
       throw std::system_error(make_error_code(error::CHANGE_ADDRESS_NOT_FOUND), "Change destination address not found in current container");
     }
   }
+}
+
+size_t WalletGreen::doTransferWithMixin(const TransactionParameters& transactionParameters, Crypto::SecretKey &txSecretKey, uint64_t mixit) {
+  validateTransactionParameters(transactionParameters);
+  CryptoNote::AccountPublicAddress changeDestination = getChangeDestination(transactionParameters.changeDestination, transactionParameters.sourceAddresses);
+  
+  std::vector<WalletOuts> wallets;
+  if (!transactionParameters.sourceAddresses.empty()) {
+    wallets = pickWallets(transactionParameters.sourceAddresses);
+  } else {
+    wallets = pickWalletsWithMoney();
+  }
+  
+  PreparedTransaction preparedTransaction;
+  prepareTransaction(std::move(wallets),
+    transactionParameters.destinations,
+    transactionParameters.fee,
+    mixit,
+    transactionParameters.extra,
+    transactionParameters.unlockTimestamp,
+    transactionParameters.donation,
+    changeDestination,
+    preparedTransaction,
+    txSecretKey);
+
+  return validateSaveAndSendTransaction(*preparedTransaction.transaction, preparedTransaction.destinations,
+    false, true);
 }
 
 size_t WalletGreen::doTransfer(const TransactionParameters& transactionParameters, Crypto::SecretKey &txSecretKey) {
