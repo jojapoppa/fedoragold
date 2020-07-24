@@ -10,7 +10,7 @@
 #include <emmintrin.h>
 #include <wmmintrin.h>
 #else
-#include <arm.h>
+//#include <arm_neon.h>
 #endif
 
 #if defined(_MSC_VER)
