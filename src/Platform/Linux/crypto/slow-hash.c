@@ -12,16 +12,7 @@
 #else
 #include <arm_neon.h>
 
-typedef __m128i int8x16_t;
-typedef __m128i int16x8_t;
-typedef __m128i int32x4_t;
-typedef __m128i int64x2_t;
-typedef __m128i uint8x16_t;
-typedef __m128i uint16x8_t;
-typedef __m128i uint32x4_t;
-typedef __m128i uint64x2_t;
-typedef __m128i poly8x16_t;
-typedef __m128i poly16x8_t;
+typedef uint8x16_t __m128i;
 
 //static const uint8_t gK8[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 //const __m128i K8 = _mm_loadu_si128((__m128i *)gK8);
