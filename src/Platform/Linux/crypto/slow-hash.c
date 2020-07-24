@@ -6,10 +6,12 @@
 #include <stdint.h>
 #include <string.h>
 
+#if !defined(__arm__)
 #include <emmintrin.h>
 #include <wmmintrin.h>
+#endif
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) or defined(__arm__)
 #include <intrin.h>
 #else
 #include <cpuid.h>
