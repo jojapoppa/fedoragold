@@ -63,12 +63,12 @@ then
   set CC=clang-10
   set CXX=clang-10
   set BOOST_ROOT=/home/boostfedora
-  set BOOST_INCLUDE_DIR=/home/boostfedora/include
+  set Boost_INCLUDE_DIR=/home/boostfedora/include
   rm CMakeCache.txt
   cp CMakeListsArm.txt CMakeLists.txt
   mkdir build
   cd build
-  make build-release
+  make
   exit
 else
   echo non-debian platform...
