@@ -16,7 +16,11 @@
 #if defined(_MSC_VER)
 #include <intrin.h>
 #else
+
+#if !defined (__arm__)
 #include <cpuid.h>
+#endif
+
 #endif
 
 #include "crypto/aesb.h"
