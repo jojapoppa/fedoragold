@@ -89,6 +89,9 @@ export EMSCRIPTEN_PATH=/home/jojapoppa/emsdk/upstream/emscripten
 # emscripten does this...
 USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora_emscripten --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
+# for native arm build...
+./b2 -d+2 cxxflags="-fPIC" cflags="-fPIC" toolset=clang address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+
 THEN for emscripten... when you're done run:
 /home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_*.a
 (replacing * with the name of each of your linked boost archives, they need to be run 1-at-a-time...)
