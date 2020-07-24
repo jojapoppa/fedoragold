@@ -11,7 +11,7 @@
 #include <wmmintrin.h>
 #endif
 
-#if defined(_MSC_VER) or defined(__arm__)
+#if defined(_MSC_VER) || defined(__arm__)
 #include <intrin.h>
 #else
 #include <cpuid.h>
