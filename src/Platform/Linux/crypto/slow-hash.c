@@ -10,6 +10,7 @@
 #include <emmintrin.h>
 #include <wmmintrin.h>
 #else
+#define __GNUC__ 1
 #include <arm_neon.h>
 //static const uint8_t gK8[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 //const __m128i K8 = _mm_loadu_si128((__m128i *)gK8);
