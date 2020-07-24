@@ -11,11 +11,24 @@
 #include <wmmintrin.h>
 #else
 #include <arm_neon.h>
-
 typedef uint8x16_t __m128i;
+INLINE __m128i _mm_shuffle_epi32 (__m128i a, int imm)
+{
+	switch (imm)
+	{
+		case 0 : 
+			return vdupq_n_s32(vgetq_lane_s32(a, 0)); 
+			break;
+		default: 
 
-//static const uint8_t gK8[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-//const __m128i K8 = _mm_loadu_si128((__m128i *)gK8);
+			__m128i ret;
+			ret[0] = a[imm & 0x3];
+			ret[1] = a[(imm >> 2) & 0x3];
+			ret[2] = a[(imm >> 4) & 0x03];
+			ret[3] = a[(imm >> 6) & 0x03];
+			return ret;
+	}
+}
 #endif
 
 #if defined(_MSC_VER)
