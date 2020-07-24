@@ -66,9 +66,7 @@ then
   set Boost_INCLUDE_DIR=/home/boostfedora/include
   rm CMakeCache.txt
   cp CMakeListsArm.txt CMakeLists.txt
-  mkdir build
-  cd build
-  make
+  make build-release
   exit
 else
   echo non-debian platform...
