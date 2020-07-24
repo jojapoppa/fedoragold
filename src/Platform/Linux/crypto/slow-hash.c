@@ -9,9 +9,11 @@
 #if !defined(__arm__)
 #include <emmintrin.h>
 #include <wmmintrin.h>
+#else
+#include <arm_sve.h>
 #endif
 
-#if defined(_MSC_VER) || defined(__arm__)
+#if defined(_MSC_VER)
 #include <intrin.h>
 #else
 #include <cpuid.h>
