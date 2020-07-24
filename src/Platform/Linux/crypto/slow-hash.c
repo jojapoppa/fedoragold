@@ -12,7 +12,7 @@
 #else
 #include <arm_neon.h>
 typedef uint8x16_t __m128i;
-INLINE __m128i _mm_shuffle_epi32 (__m128i a, int imm)
+inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
 {
 	switch (imm)
 	{
