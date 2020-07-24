@@ -64,6 +64,7 @@ then
   set CXX=clang-10
   set BOOST_ROOT=/home/boostfedora
   set Boost_INCLUDE_DIR=/home/boostfedora/include
+  set BOOST_LIBRARYDIR=/home/boostfedora/lib
   rm CMakeCache.txt
   cp CMakeListsArm.txt CMakeLists.txt
   make build-release
