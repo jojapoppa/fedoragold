@@ -25,6 +25,22 @@ inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
   ret[3] = a[(imm >> 6) & 0x03];
   return ret;
 }
+// Shifts the 128-bit value in a left by imm bytes while shifting in zeros. imm must be an immediate.
+//FORCE_INLINE __m128i _mm_slli_si128(__m128i a, __constrange(0,255) int imm)
+#define _mm_slli_si128(a, imm) \
+({ \
+  __m128i ret; \
+  if ((imm) <= 0) { \
+    ret = a; \
+  } \
+  else if ((imm) > 15) { \
+    ret = _mm_setzero_si128(); \
+  } \
+  else { \
+    ret = vreinterpretq_m128i_s8(vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a), 16 - (imm))); \
+  } \
+  ret; \
+})
 #endif
 
 #if defined(_MSC_VER)
