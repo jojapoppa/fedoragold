@@ -53,9 +53,10 @@ private:
   pthread_mutex_t& mutex;
 };
 
-static std::string mutsizemsg;
-sprintf(mutsizemsg,"invalid pthread mutex size: %d",sizeof(pthread_mutex_t));
-static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), mutsizemsg);
+static std::string etmsg;
+sprintf(etmsg,"invalid pthread mutex size: %d",sizeof(pthread_mutex_t));
+throw std::runtime_error("mutex size: "+etmsg);
+static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
 
 const size_t STACK_SIZE = 64 * 1024;
 
