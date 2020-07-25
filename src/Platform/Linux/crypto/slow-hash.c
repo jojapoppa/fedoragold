@@ -14,18 +14,16 @@
 typedef uint8x16_t __m128i;
 inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
 {
-  switch (imm) {
-      case 0:
-        return vdupq_n_s32(vgetq_lane_s32(a, 0)); 
-        //break;
-      default: 
-        __m128i ret;
-        ret[0] = a[imm & 0x3];
-        ret[1] = a[(imm >> 2) & 0x3];
-        ret[2] = a[(imm >> 4) & 0x03];
-        ret[3] = a[(imm >> 6) & 0x03];
-        return ret;
+  if (imm == 0) {
+    return vdupq_n_s32(vgetq_lane_s32(a, 0)); 
   }
+
+  __m128i ret;
+  ret[0] = a[imm & 0x3];
+  ret[1] = a[(imm >> 2) & 0x3];
+  ret[2] = a[(imm >> 4) & 0x03];
+  ret[3] = a[(imm >> 6) & 0x03];
+  return ret;
 }
 #endif
 
