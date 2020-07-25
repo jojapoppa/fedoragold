@@ -12,7 +12,6 @@
 #else
 #include <sys/mman.h>
 #include <arm_neon.h>
-#include <cpuid.h>
 typedef uint8x16_t __m128i;
 inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
 {
