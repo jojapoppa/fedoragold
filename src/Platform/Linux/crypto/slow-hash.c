@@ -46,6 +46,10 @@ inline __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
 	int32_t __attribute__((aligned(16))) data[4] = { i0, i1, i2, i3 };
 	return vreinterpretq_m128i_s32(vld1q_s32(data));
 }
+inline __m128i _mm_load_si128(const __m128i *pp)
+{
+	return vreinterpretq_m128i_s32(vld1q_s32((int32_t *)pp));
+}
 #define _mm_slli_si128(a1, im) \
 ({ \
   __m128i retn; \
