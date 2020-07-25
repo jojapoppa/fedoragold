@@ -26,6 +26,10 @@
 #include <bits/reg.h>
 #endif
 
+#if defined(__arm__)
+#include <pthread.h>
+#endif
+
 namespace System {
 
 struct NativeContextGroup;
