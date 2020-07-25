@@ -18,6 +18,7 @@
 #include "Dispatcher.h"
 #include <cassert>
 
+#include <stdio.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <sys/timerfd.h>
