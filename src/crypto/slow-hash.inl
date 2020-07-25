@@ -2,6 +2,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(__arm__)
+inline void _mm_store_si128(__m128i *p, __m128i a) { vst1q_s32((int32_t*) p, vreinterpretq_s32_m128i(a)); }
+#endif
+
 static void
 #if defined(AESNI)
 cn_slow_hash_aesni
