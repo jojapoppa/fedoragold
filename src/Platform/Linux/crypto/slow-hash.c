@@ -37,6 +37,10 @@ inline __m128i _mm_setzero_si128()
 {
 	return vreinterpretq_m128i_s32(vdupq_n_s32(0));
 }
+inline int _mm_cvtsi128_si32(__m128i aa)
+{
+	return vgetq_lane_s32(vreinterpretq_s32_m128i(aa), 0);
+}
 #define _mm_slli_si128(a1, im) \
 ({ \
   __m128i retn; \
