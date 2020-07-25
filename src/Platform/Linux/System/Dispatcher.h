@@ -97,7 +97,7 @@ public:
 #elif defined(__arm__)
 static const int SIZEOF_PTHREAD_MUTEX_T = 4;
 #elif defined(__aarch64__)
-static const int SIZEOF_PTHREAD_MUTEX_T = 48;
+static const int SIZEOF_PTHREAD_MUTEX_T = 4;  //48;
 #else
 static const int SIZEOF_PTHREAD_MUTEX_T = 24;
 #endif
