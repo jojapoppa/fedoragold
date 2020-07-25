@@ -296,5 +296,10 @@ INITIALIZER(detect_aes) {
   int a, b, d;
   __cpuid(1, a, b, ecx, d);
 #endif
+
+#if defined(__arm__)
+  cn_slow_hash_fp = &cn_slow_hash_noaesni;
+#else
   cn_slow_hash_fp = (ecx & (1 << 25)) ? &cn_slow_hash_aesni : &cn_slow_hash_noaesni;
+#endif
 }
