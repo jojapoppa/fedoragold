@@ -3,12 +3,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(__arm__)
-static inline __attribute__((always_inline))
-__m128i _mm_aesenc_si128( __m128i v, __m128i rkey )
-{
-    const __attribute__((aligned(16))) __m128i zero = {0};
-    return veorq_u8( vaesmcq_u8( vaeseq_u8(v, zero) ), rkey );
-}
+//static inline __attribute__((always_inline))
+//__m128i _mm_aesenc_si128( __m128i v, __m128i rkey )
+//{
+//    const __attribute__((aligned(16))) __m128i zero = {0};
+//    return veorq_u8( vaesmcq_u8( vaeseq_u8(v, zero) ), rkey );
+//}
 #endif
 
 static void
