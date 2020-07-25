@@ -72,14 +72,11 @@ else()
     # Since glibc 2.20 _BSD_SOURCE is deprecated, this macro is recomended instead
     add_definitions("-D_DEFAULT_SOURCE -D_GNU_SOURCE")
   endif()
-  set(ARCH native CACHE STRING "CPU to build for: -march value or default")
-  set(ARCH_FLAG "-march=armv8-a -mfpu=neon -mfloat-abi=softfp")
 
-  #if("${ARCH}" STREQUAL "default")
-  #  set(ARCH_FLAG "")
-  #else()
-  #  set(ARCH_FLAG "-march=${ARCH}")
-  #endif()
+  # https://gcc.gnu.org/onlinedocs/gcc-8.1.0/gcc/AArch64-Options.html
+  set(ARCH native CACHE STRING "CPU to build for: -march value or default")
+  set(ARCH_FLAG "-march=armv8-a+crypto -mfpu=neon -mfloat-abi=softfp")
+
   set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
   if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function")
