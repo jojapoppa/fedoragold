@@ -25,13 +25,13 @@ inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
   ret[3] = a[(imm >> 6) & 0x03];
   return ret;
 }
+#define vreinterpretq_s8_m128i(x) vreinterpretq_s8_s32(x)
+#define vreinterpretq_m128i_s8(x) vreinterpretq_s32_s8(x)
+#define vreinterpretq_m128i_s32(x) (x)
 inline __m128i _mm_xor_si128(__m128i aa, __m128i bb)
 {
 	return vreinterpretq_m128i_s32( veorq_s32(vreinterpretq_s32_m128i(aa), vreinterpretq_s32_m128i(bb)) );
 }
-#define vreinterpretq_s8_m128i(x) vreinterpretq_s8_s32(x)
-#define vreinterpretq_m128i_s8(x) vreinterpretq_s32_s8(x)
-#define vreinterpretq_m128i_s32(x) (x)
 inline __m128i _mm_setzero_si128()
 {
 	return vreinterpretq_m128i_s32(vdupq_n_s32(0));
