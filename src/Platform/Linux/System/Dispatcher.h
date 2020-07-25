@@ -22,7 +22,7 @@
 #include <stack>
 #include <ucontext.h>
 #include <functional>
-#ifndef __GLIBC__
+#if !defined(__GLIBC__) && !(defined(__arm__))
 #include <bits/reg.h>
 #endif
 
