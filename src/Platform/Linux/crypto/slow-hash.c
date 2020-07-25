@@ -10,6 +10,7 @@
 #include <emmintrin.h>
 #include <wmmintrin.h>
 #else
+#include <sys/mman.h>
 #include <arm_neon.h>
 typedef uint8x16_t __m128i;
 inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
@@ -29,7 +30,6 @@ inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
 #define vreinterpretq_s8_m128i(x) vreinterpretq_s8_s32(x)
 #define vreinterpretq_m128i_s8(x) vreinterpretq_s32_s8(x)
 #define vreinterpretq_m128i_s32(x) (x)
-//inline __attribute__((always_inline))
 inline __m128i _mm_aesenc_si128( __m128i v, __m128i rkey )
 {
     const __attribute__((aligned(16))) __m128i zero = {0};
