@@ -47,41 +47,46 @@ static const char _NR[] = {
 
 #include <stddef.h>
 #include <time.h>
-#include <sys/time.h>
 
 // Only used by ftime, which was removed from POSIX 2008.
 struct timeb {
   time_t          time;
   unsigned short  millitm;
-  short           timezone;
-  short           dstflag;
+  //short           timezone;
+  //short           dstflag;
 };
 
-#ifdef _MSC_VER
-struct timezone {
-  int  tz_minuteswest; /* minutes W of Greenwich */
-  int  tz_dsttime;     /* type of dst correction */
-};
-#endif
+//#ifdef _MSC_VER
+//struct timezone {
+//  int  tz_minuteswest; /* minutes W of Greenwich */
+//  int  tz_dsttime;     /* type of dst correction */
+//};
+//#endif
 
 // This was removed from POSIX 2008.
 static int ftime(struct timeb* tb) {
   struct timeval  tv;
-  struct timezone tz;
+  //struct timezone tz;
 
-  if (gettimeofday(&tv, &tz) < 0)
+  //if (gettimeofday(&tv, &tz) < 0)
+  //  return -1;
+  //tb->time    = tv.tv_sec;
+  //tb->millitm = (unsigned short) ((tv.tv_usec + 500) / 1000);
+
+  struct timespec now;
+  if (clock_gettime(CLOCK_MONOTONIC, &now) < 0)
     return -1;
 
-  tb->time    = tv.tv_sec;
-  tb->millitm = (unsigned short) ((tv.tv_usec + 500) / 1000);
+  tb->time    = now.tv_sec;
+  tb->millitm = (unsigned short) now.tv_nsec / 1000;
 
   if (tb->millitm == 1000) {
     ++tb->time;
     tb->millitm = 0;
   }
 
-  tb->timezone = tz.tz_minuteswest;
-  tb->dstflag  = tz.tz_dsttime;
+  //tb->timezone = tz.tz_minuteswest;
+  //tb->dstflag  = tz.tz_dsttime;
 
   return 0;
 }
