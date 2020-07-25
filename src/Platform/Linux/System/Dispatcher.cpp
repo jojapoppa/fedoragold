@@ -54,9 +54,15 @@ private:
   pthread_mutex_t& mutex;
 };
 
-//static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
-
-
+static_assert(sizeof(pthread_mutex_t) != 1, "1");
+static_assert(sizeof(pthread_mutex_t) != 2, "2");
+static_assert(sizeof(pthread_mutex_t) != 3, "3");
+static_assert(sizeof(pthread_mutex_t) != 4, "4");
+static_assert(sizeof(pthread_mutex_t) != 5, "5");
+static_assert(sizeof(pthread_mutex_t) != 6, "6");
+static_assert(sizeof(pthread_mutex_t) != 7, "7");
+static_assert(sizeof(pthread_mutex_t) != 8, "8");
+static_assert(sizeof(pthread_mutex_t) != 9, "9");
 static_assert(sizeof(pthread_mutex_t) != 10, "10");
 static_assert(sizeof(pthread_mutex_t) != 11, "11");
 static_assert(sizeof(pthread_mutex_t) != 12, "12");
@@ -197,6 +203,39 @@ static_assert(sizeof(pthread_mutex_t) != 146, "146");
 static_assert(sizeof(pthread_mutex_t) != 147, "147");
 static_assert(sizeof(pthread_mutex_t) != 148, "148");
 static_assert(sizeof(pthread_mutex_t) != 149, "149");
+static_assert(sizeof(pthread_mutex_t) != 150, "150");
+static_assert(sizeof(pthread_mutex_t) != 151, "151");
+static_assert(sizeof(pthread_mutex_t) != 152, "152");
+static_assert(sizeof(pthread_mutex_t) != 153, "153");
+static_assert(sizeof(pthread_mutex_t) != 154, "154");
+static_assert(sizeof(pthread_mutex_t) != 155, "155");
+static_assert(sizeof(pthread_mutex_t) != 156, "156");
+static_assert(sizeof(pthread_mutex_t) != 157, "157");
+static_assert(sizeof(pthread_mutex_t) != 158, "158");
+static_assert(sizeof(pthread_mutex_t) != 159, "159");
+static_assert(sizeof(pthread_mutex_t) != 160, "160");
+static_assert(sizeof(pthread_mutex_t) != 161, "161");
+static_assert(sizeof(pthread_mutex_t) != 162, "162");
+static_assert(sizeof(pthread_mutex_t) != 163, "163");
+static_assert(sizeof(pthread_mutex_t) != 164, "164");
+static_assert(sizeof(pthread_mutex_t) != 165, "165");
+static_assert(sizeof(pthread_mutex_t) != 166, "166");
+static_assert(sizeof(pthread_mutex_t) != 167, "167");
+static_assert(sizeof(pthread_mutex_t) != 168, "168");
+static_assert(sizeof(pthread_mutex_t) != 169, "169");
+static_assert(sizeof(pthread_mutex_t) != 170, "170");
+static_assert(sizeof(pthread_mutex_t) != 171, "171");
+static_assert(sizeof(pthread_mutex_t) != 172, "172");
+static_assert(sizeof(pthread_mutex_t) != 173, "173");
+static_assert(sizeof(pthread_mutex_t) != 174, "174");
+static_assert(sizeof(pthread_mutex_t) != 175, "175");
+static_assert(sizeof(pthread_mutex_t) != 176, "176");
+static_assert(sizeof(pthread_mutex_t) != 177, "177");
+static_assert(sizeof(pthread_mutex_t) != 178, "178");
+static_assert(sizeof(pthread_mutex_t) != 179, "179");
+
+static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
+
 const size_t STACK_SIZE = 64 * 1024;
 
 };
