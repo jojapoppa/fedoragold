@@ -286,7 +286,12 @@ uint32_t extrahashPos(void *ctxdata) {
 }
 
 INITIALIZER(detect_aes) {
-  int ecx;
+int ecx=0;
+
+#if defined(__arm__)
+  cn_slow_hash_fp = &cn_slow_hash_noaesni;
+#else
+
 #if defined(_MSC_VER)
   int cpuinfo[4];
   __cpuid(cpuinfo, 1);
@@ -296,9 +301,6 @@ INITIALIZER(detect_aes) {
   __cpuid(1, a, b, ecx, d);
 #endif
 
-#if defined(__arm__)
-  cn_slow_hash_fp = &cn_slow_hash_noaesni;
-#else
   cn_slow_hash_fp = (ecx & (1 << 25)) ? &cn_slow_hash_aesni : &cn_slow_hash_noaesni;
 #endif
 }
