@@ -8,14 +8,14 @@
 
 #include <System/ErrorMessage.h>
 
+// For some reason these are not defined on arm properly.
+// ... the values are either 11 or 35
+#define EAGAIN 35 
+#define EWOULDBLOCK 11
+
 namespace System {
 
 class Dispatcher;
-
-// For some reason these are not defined on arm properly.
-// ... the values are either 11 or 35
-#define EAGAIN 35
-#define EWOULDBLOCK 35
 
 class Timer {
 public:
