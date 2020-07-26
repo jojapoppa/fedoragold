@@ -18,7 +18,7 @@ namespace System {
 class IpAddress {
 public:
   explicit IpAddress(uint32_t value);
-  explicit IpAddress(struct in6_addr addr6);
+  //explicit IpAddress(struct in6_addr addr6);
   explicit IpAddress(const std::string& dottedDecimal);
   bool operator!=(const IpAddress& other) const;
   bool operator==(const IpAddress& other) const;
