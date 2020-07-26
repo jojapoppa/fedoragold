@@ -19,6 +19,8 @@
 #include <cassert>
 #include <stdexcept>
 
+#include <netinet/in.h>
+
 #include <fcntl.h>
 #include <netdb.h>
 #include <unistd.h>
