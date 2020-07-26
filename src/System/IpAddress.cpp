@@ -20,7 +20,7 @@
 
 namespace System {
 
-#if defined(_WIN32) || defined(__arm__)
+#if defined(_WIN32)
 #include <In6addr.h>
 #endif
 
