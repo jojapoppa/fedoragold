@@ -73,7 +73,7 @@ IpAddress Ipv4Resolver::resolve(const std::string& host) {
   if (isIpv4) { 
     address = new IpAddress(ntohl(reinterpret_cast<sockaddr_in*>(addressInfo->ai_addr)->sin_addr.s_addr));
   } else {
-    address = new IpAddress(reinterpret_cast<sockaddr_in6*>(addressInfo->ai_addr)->sin6_addr);
+    //address = new IpAddress(reinterpret_cast<sockaddr_in6*>(addressInfo->ai_addr)->sin6_addr);
   }
 
   freeaddrinfo(addressInfo);
