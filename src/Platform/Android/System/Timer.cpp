@@ -19,7 +19,7 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <errno.h>
+#include <sys/errno.h>
 extern int errno;
 
 #include <sys/timerfd.h>
