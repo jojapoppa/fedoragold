@@ -24,8 +24,6 @@ namespace System {
 #include <In6addr.h>
 #endif
 
-struct in6_addr;
-
 namespace {
 
 uint8_t readUint8(const std::string& source, size_t& offset) {
