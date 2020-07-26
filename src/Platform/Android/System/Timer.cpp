@@ -104,7 +104,9 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
         if (!timerContext->interrupted) {
           uint64_t value = 0;
           if(::read(timer, &value, sizeof value) == -1 ){
-            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            // For some reason these are not defined on arm properly.
+            // ... the values are either 11 or 35 
+            if(errno == 11 || error == 35) { //EAGAIN || errno == EWOULDBLOCK) {
               timerContext->interrupted = true;
               dispatcher->pushContext(timerContext->context);
             } else {

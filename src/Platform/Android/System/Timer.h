@@ -8,11 +8,6 @@
 
 #include <System/ErrorMessage.h>
 
-// For some reason these are not defined on arm properly.
-// ... the values are either 11 or 35
-#define EAGAIN 35 
-#define EWOULDBLOCK 11
-
 namespace System {
 
 class Dispatcher;
@@ -34,8 +29,10 @@ private:
   int timer;
 
   bool testerrno(int errnm) {
-    if (errnm != EAGAIN) {
-      if (errnm != EWOULDBLOCK) {
+    // For some reason these are not defined on arm properly.
+    // ... the values are either 11 or 35
+    if (errnm != 11) { //EAGAIN) {
+      if (errnm != 35) { //EWOULDBLOCK) {
         return false;
       }
     }
