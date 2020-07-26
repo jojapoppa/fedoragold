@@ -58,7 +58,7 @@ then
   exit
 elif python -m platform | grep arm > /dev/null
 then
-  echo Arm build platform...
+  echo Android/Arm build platform...
   rm -r build
   set CC=clang-10
   set CXX=clang-10
@@ -66,7 +66,7 @@ then
   set Boost_INCLUDE_DIR=/home/boostfedora/include
   set BOOST_LIBRARYDIR=/home/boostfedora/lib
   rm CMakeCache.txt
-  cp CMakeListsArm.txt CMakeLists.txt
+  cp CMakeListsAndroid.txt CMakeLists.txt
   make build-release
   exit
 else

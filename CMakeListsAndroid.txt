@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8.6)
 set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
+ set(ANDROID 1 CACHE BOOL "If true, we are targeting Android (arm) output." FORCE)
+
 enable_language(C CXX ASM)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
