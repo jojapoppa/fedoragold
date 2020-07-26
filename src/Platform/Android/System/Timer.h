@@ -5,6 +5,8 @@
 #pragma once
 
 #include <chrono>
+#include <sys/errno.h>
+extern int errno;
 
 #include <System/ErrorMessage.h>
 
@@ -31,8 +33,8 @@ private:
   bool testerrno(int errnm) {
     // For some reason these are not defined on arm properly.
     // ... the values are either 11 or 35
-    if (errnm != 11) { //EAGAIN) {
-      if (errnm != 35) { //EWOULDBLOCK) {
+    if (errnm != EAGAIN) {
+      if (errnm != EWOULDBLOCK) {
         return false;
       }
     }
