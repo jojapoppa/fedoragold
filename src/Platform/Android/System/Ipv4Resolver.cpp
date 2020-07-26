@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include <netdb.h>
+#include <netinet/in.h>
 
 #include <System/Dispatcher.h>
 #include <System/ErrorMessage.h>
