@@ -24,7 +24,7 @@ namespace System {
 #include <In6addr.h>
 #endif
 
-extern struct in6_addr;
+struct in6_addr;
 
 namespace {
 
