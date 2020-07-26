@@ -5,8 +5,16 @@
 #pragma once
 
 #include <chrono>
-
+#include <errno.h>
 #include <System/ErrorMessage.h>
+
+// for edge case on Android
+#ifndef EAGAIN
+#define EAGAIN 35
+#endif
+#ifndef EWOULDBLOCK
+#define EWOULDBLOCK 11
+#endif
 
 namespace System {
 
