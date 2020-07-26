@@ -20,7 +20,7 @@
 
 namespace System {
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__arm__)
 #include <In6addr.h>
 #endif
 
@@ -61,11 +61,11 @@ uint8_t readUint8(const std::string& source, size_t& offset) {
 IpAddress::IpAddress(uint32_t value) : value(value) {
 }
 
-/*IpAddress::IpAddress(struct in6_addr addr6) {
+IpAddress::IpAddress(struct in6_addr addr6) {
 
 //jojapoppa, need to set value(value) here...
 
-}*/
+}
 
 IpAddress::IpAddress(const std::string& dottedDecimal) {
   size_t offset = 0;
