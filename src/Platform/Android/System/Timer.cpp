@@ -19,8 +19,8 @@
 #include <cassert>
 #include <stdexcept>
 
-//#include <sys/errno.h>
-//extern int errno;
+#include <sys/errno.h>
+extern int errno;
 
 #include <sys/timerfd.h>
 #include <sys/epoll.h>
@@ -107,8 +107,7 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
           if(::read(timer, &value, sizeof value) == -1 ){
             // For some reason these are not defined on arm properly.
             // ... the values are either 11 or 35 
-            //if(errno == 11 || errno == 35) { 
-            if(errno == EAGAIN || errno == EWOULDBLOCK) {
+            if(errno == 11 || errno == 35) { 
               timerContext->interrupted = true;
               dispatcher->pushContext(timerContext->context);
             } else {
