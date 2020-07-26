@@ -5,6 +5,7 @@
 #pragma once
 
 #include <chrono>
+#include <config.h>
 
 #include <System/ErrorMessage.h>
 

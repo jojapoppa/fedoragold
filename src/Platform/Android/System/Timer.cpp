@@ -19,7 +19,6 @@
 #include <cassert>
 #include <stdexcept>
 
-#include <config.h>
 #include <errno.h>
 
 #include <sys/timerfd.h>
