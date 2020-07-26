@@ -93,6 +93,8 @@ public:
     # else
     static const int SIZEOF_PTHREAD_MUTEX_T = 32;
     # endif
+  #elif ANDROID
+    static const int SIZEOF_PTHREAD_MUTEX_T = 4;
   #elif __aarch64__
     static const int SIZEOF_PTHREAD_MUTEX_T = 48;
   #else
