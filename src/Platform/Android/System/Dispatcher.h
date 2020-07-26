@@ -17,16 +17,12 @@
 
 #pragma once
 
-#define __EMSCRIPTEN 1
+#define ANDROID 1
 
 #include <cstddef>
 #include <functional>
 #include <queue>
 #include <stack>
-#ifndef __GLIBC__
-#include <bits/reg.h>
-#endif
-
 #include "Sys.h"
 
 namespace System {
