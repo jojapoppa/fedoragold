@@ -20,6 +20,7 @@
 #include <stdexcept>
 
 #include <errno.h>
+extern int errno;
 
 #include <sys/timerfd.h>
 #include <sys/epoll.h>
