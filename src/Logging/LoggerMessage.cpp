@@ -5,6 +5,10 @@
 #include "LoggerMessage.h"
 #include <streambuf>
 
+#if defined(__arm__)
+#include "iostreamsb.h"
+#endif
+
 namespace Logging {
 
 LoggerMessage::LoggerMessage(ILogger& logger, const std::string& category, Level level, const std::string& color)
