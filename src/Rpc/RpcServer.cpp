@@ -505,7 +505,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.orphan_status = false;
   std::vector<Block> orphanBlocks;
   if (m_core.getOrphanBlocksByHeight(blockHeight, orphanBlocks)) {
-    for (const Block oblk : orphanBlocks) {
+    for (Block oblk : orphanBlocks) {
       if (oblk.timestamp == block.timestamp) {
         res.orphan_status = true;
       }
