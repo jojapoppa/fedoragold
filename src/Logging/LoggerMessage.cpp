@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "LoggerMessage.h"
+#include <bits/basic_ios.h>
 
 namespace Logging {
 
@@ -46,9 +47,7 @@ LoggerMessage::LoggerMessage(LoggerMessage&& other)
   , timestamp(boost::posix_time::microsec_clock::local_time())
   , gotText(false) {
   if (this != &other) {
-#if !defined(__arm__)
     _M_tie = nullptr;
-#endif
     _M_streambuf = nullptr;
 
     //ios_base swap
