@@ -83,14 +83,20 @@ if ! clang-emscripten in [ feature.values <toolset> ]
 
 export EMSCRIPTEN_PATH=/home/jojapoppa/emsdk/upstream/emscripten
 
+#to switch toolchain
+rm project-config.jam
+export CC=arm-linux-gnueabi-gcc
+export CXX=arm-linux-gnueabi-gcc
+./bootstrap
+
 #non emscripten does this... build on old Debian system for full Ubuntu/Deb distro support (Tradebots)
 ./b2 -d+2 cxxflags="-fPIC" cflags="-fPIC" toolset=gcc address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
 # emscripten does this...
 USE_ASM=0 NO_BZIP2=1 ./b2 toolset=clang-emscripten address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora_emscripten --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
-# for native arm build...
-./b2 -d+2 cxxflags="-fPIC" cflags="-fPIC" toolset=clang address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=boostfedora --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
+# for cross compiled arm... (use the project file for arm in folder...)
+./b2 -d+2 cxxflags="-fPIC -std=c11 -std=c++11" cflags="-fPIC -std=c11 -std=c++11" toolset=gcc address-model=64 link=static variant=release runtime-link=static boost.locale.icu=off install --prefix=/home/jojapoppa/fedoragold/boostfedora_android --layout=tagged --threading=multi --without-mpi --without-python --disable-icu filesystem program_options
 
 THEN for emscripten... when you're done run:
 /home/jojapoppa/emsdk/upstream/bin/llvm-ranlib libboost_*.a

@@ -54,7 +54,74 @@ private:
   pthread_mutex_t& mutex;
 };
 
-//static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
+/*
+static_assert(sizeof(pthread_mutex_t) != 1, "1");
+static_assert(sizeof(pthread_mutex_t) != 2, "2");
+static_assert(sizeof(pthread_mutex_t) != 3, "3");
+static_assert(sizeof(pthread_mutex_t) != 4, "4");
+static_assert(sizeof(pthread_mutex_t) != 5, "5");
+static_assert(sizeof(pthread_mutex_t) != 6, "6");
+static_assert(sizeof(pthread_mutex_t) != 7, "7");
+static_assert(sizeof(pthread_mutex_t) != 8, "8");
+static_assert(sizeof(pthread_mutex_t) != 9, "9");
+static_assert(sizeof(pthread_mutex_t) != 10, "10");
+static_assert(sizeof(pthread_mutex_t) != 11, "11");
+static_assert(sizeof(pthread_mutex_t) != 12, "12");
+static_assert(sizeof(pthread_mutex_t) != 13, "13");
+static_assert(sizeof(pthread_mutex_t) != 14, "14");
+static_assert(sizeof(pthread_mutex_t) != 15, "15");
+static_assert(sizeof(pthread_mutex_t) != 16, "16");
+static_assert(sizeof(pthread_mutex_t) != 17, "17");
+static_assert(sizeof(pthread_mutex_t) != 18, "18");
+static_assert(sizeof(pthread_mutex_t) != 19, "19");
+static_assert(sizeof(pthread_mutex_t) != 20, "20");
+static_assert(sizeof(pthread_mutex_t) != 21, "21");
+static_assert(sizeof(pthread_mutex_t) != 22, "22");
+static_assert(sizeof(pthread_mutex_t) != 23, "23");
+static_assert(sizeof(pthread_mutex_t) != 24, "24");
+static_assert(sizeof(pthread_mutex_t) != 25, "25");
+static_assert(sizeof(pthread_mutex_t) != 26, "26");
+static_assert(sizeof(pthread_mutex_t) != 27, "27");
+static_assert(sizeof(pthread_mutex_t) != 28, "28");
+static_assert(sizeof(pthread_mutex_t) != 29, "29");
+static_assert(sizeof(pthread_mutex_t) != 30, "30");
+static_assert(sizeof(pthread_mutex_t) != 31, "31");
+static_assert(sizeof(pthread_mutex_t) != 32, "32");
+static_assert(sizeof(pthread_mutex_t) != 33, "33");
+static_assert(sizeof(pthread_mutex_t) != 34, "34");
+static_assert(sizeof(pthread_mutex_t) != 35, "35");
+static_assert(sizeof(pthread_mutex_t) != 36, "36");
+static_assert(sizeof(pthread_mutex_t) != 37, "37");
+static_assert(sizeof(pthread_mutex_t) != 38, "38");
+static_assert(sizeof(pthread_mutex_t) != 39, "39");
+static_assert(sizeof(pthread_mutex_t) != 40, "40");
+static_assert(sizeof(pthread_mutex_t) != 41, "41");
+static_assert(sizeof(pthread_mutex_t) != 42, "42");
+static_assert(sizeof(pthread_mutex_t) != 43, "43");
+static_assert(sizeof(pthread_mutex_t) != 44, "44");
+static_assert(sizeof(pthread_mutex_t) != 45, "45");
+static_assert(sizeof(pthread_mutex_t) != 46, "46");
+static_assert(sizeof(pthread_mutex_t) != 47, "47");
+static_assert(sizeof(pthread_mutex_t) != 48, "48");
+static_assert(sizeof(pthread_mutex_t) != 49, "49");
+static_assert(sizeof(pthread_mutex_t) != 50, "50");
+static_assert(sizeof(pthread_mutex_t) != 51, "51");
+static_assert(sizeof(pthread_mutex_t) != 52, "52");
+static_assert(sizeof(pthread_mutex_t) != 53, "53");
+static_assert(sizeof(pthread_mutex_t) != 54, "54");
+static_assert(sizeof(pthread_mutex_t) != 55, "55");
+static_assert(sizeof(pthread_mutex_t) != 56, "56");
+static_assert(sizeof(pthread_mutex_t) != 57, "57");
+static_assert(sizeof(pthread_mutex_t) != 58, "58");
+static_assert(sizeof(pthread_mutex_t) != 59, "59");
+static_assert(sizeof(pthread_mutex_t) != 60, "60");
+static_assert(sizeof(pthread_mutex_t) != 61, "61");
+static_assert(sizeof(pthread_mutex_t) != 62, "62");
+static_assert(sizeof(pthread_mutex_t) != 63, "63");
+static_assert(sizeof(pthread_mutex_t) != 64, "64");
+*/
+
+static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
 
 template<size_t A, size_t B> struct TAssertEquality {
   static_assert(A == B, "invalid pthread mutex size");

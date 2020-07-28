@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# option -a (android) or -i (ios)
+options=$(getopt -o ai: -- "$@")
+eval set -- "$options"
+echo $1
+
 #make clean
 
 # for Alpine Linux
@@ -29,6 +34,9 @@ then
   export CXX=g++-6
   export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
+  cp CMakeListsLinux.txt CMakeLists.txt
+  make build-release
+  exit
 elif python -m platform | grep Darwin > /dev/null
 then
   echo Mac OSX linux build platform...
@@ -56,15 +64,14 @@ then
   cmake --build . --config Release
   cd ..
   exit
-elif python -m platform | grep arm > /dev/null
+elif [ $1 = "-a" ];
 then
   echo Android/Arm build platform...
   rm -r build
-  set CC=clang-10
-  set CXX=clang-10
-  set BOOST_ROOT=/home/boostfedora
-  set Boost_INCLUDE_DIR=/home/boostfedora/include
-  set BOOST_LIBRARYDIR=/home/boostfedora/lib
+  export CC=arm-linux-gnueabi-gcc
+  export CXX=arm-linux-gnueabi-g++
+  export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora_android
+  export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora_android/include
   rm CMakeCache.txt
   cp CMakeListsAndroid.txt CMakeLists.txt
   make build-release
@@ -75,6 +82,9 @@ else
   export CXX=g++-8
   export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
+  cp CMakeListsLinux.txt CMakeLists.txt
+  make build-release
+  exit
 fi
 
 # on Windows
@@ -94,12 +104,12 @@ fi
 # cmake -G "Visual Studio 15 2017 Win64" ..
 # cmake --build . --config Release
 
-cp CMakeListsLinux.txt CMakeLists.txt
+#cp CMakeListsLinux.txt CMakeLists.txt
 
 #built with gcc 8 (https://linuxize.com/post/how-to-install-gcc-compiler-on-ubuntu-18-04/)
 
 #make build-debug
 #make test-debug
 #make test-release
-make build-release
+#make build-release
 

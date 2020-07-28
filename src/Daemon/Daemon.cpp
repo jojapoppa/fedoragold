@@ -84,7 +84,6 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   return loggerConfiguration;
 }
 
-
 int main(int argc, char* argv[])
 {
 

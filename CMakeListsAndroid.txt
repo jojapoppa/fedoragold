@@ -4,6 +4,7 @@ set(VERSION "0.2")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
 set(ARMANDROID 1 CACHE BOOL "If true, we are targeting Android (arm) output." FORCE)
+add_definitions(-D__arm__)
 
 enable_language(C CXX ASM)
 
@@ -16,19 +17,19 @@ set(BOOST_HAS_PTHREADS OFF)
 
 find_package(Threads REQUIRED)
 
-SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "/home/boostfedora/include")
-SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "/home/boostfedora/lib")
+SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "/home/boostfedora_android/include")
+SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "/home/boostfedora_android/lib")
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
 set(STATIC ON CACHE BOOL "Link libraries statically")
 add_library(c STATIC IMPORTED)
 add_library(m STATIC IMPORTED)
+set(ENABLE_NEON ON)
 
-#-Wl,-v
-set(CMAKE_EXE_LINKER_FLAGS "-Wl,-v -static-libgcc -static-libstdc++ -Wl,-Bdynamic -Llibc.a -Wl,-Bdynamic -Llibm.a -Wl,-Bdynamic")
-# -lpthread")
+set(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++ -nostartfiles -Wl,-v -L/usr/lib/gcc-cross/arm-linux-gnueabi/9 -lgcc -lgcc_eh -lstdc++ -lstdc++fs -latomic")
 
 set(BUILD_SHARED_LIBS OFF)
+set(BUILD_EXAMPLES OFF)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
@@ -50,14 +51,8 @@ if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
 endif()
 
-if(MSVC)
-include_directories(src/Platform/Windows)
-elseif(APPLE)
-include_directories(src/Platform/OSX)
-else()
-include_directories(src/Platform/Linux)
+include_directories(src/Platform/Android)
 include_directories(SYSTEM /usr/include)
-endif()
 
 if(MSVC)
   add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
@@ -76,8 +71,8 @@ else()
   endif()
 
   # https://gcc.gnu.org/onlinedocs/gcc-8.1.0/gcc/AArch64-Options.html
-  set(ARCH native CACHE STRING "CPU to build for: -march value or default")
-  set(ARCH_FLAG "-march=armv8-a+crypto -mfpu=neon -mfloat-abi=softfp")
+  #set(ARCH native CACHE STRING "CPU to build for: -march value or default")
+  set(ARCH_FLAG "-march=armv8-a+crypto -mfpu=neon -mfloat-abi=softfp -flax-vector-conversions -latomic")
 
   set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
   if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
@@ -109,8 +104,8 @@ else()
     if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux" 
         AND CMAKE_BUILD_TYPE STREQUAL "Release" AND ((CMAKE_C_COMPILER_VERSION VERSION_GREATER 4.9) OR (CMAKE_C_COMPILER_VERSION VERSION_EQUAL 4.9)))
       # On linux, to build in lto mode, check that ld.gold linker is used: 'update-alternatives --install /usr/bin/ld ld /usr/bin/ld.gold HIGHEST_PRIORITY'
-      set(CMAKE_AR gcc-ar)
-      set(CMAKE_RANLIB gcc-ranlib)
+      set(CMAKE_AR arm-linux-gnueabi-ar)
+      set(CMAKE_RANLIB arm-linux-gnueabi-ranlib)
     endif()
     set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
   endif()

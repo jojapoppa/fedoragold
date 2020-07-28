@@ -6,13 +6,12 @@
 #include <stdint.h>
 #include <string.h>
 
-#if !defined(__arm__)
-#include <emmintrin.h>
-#include <wmmintrin.h>
-#else
 #include <sys/mman.h>
 #include <arm_neon.h>
-typedef uint8x16_t __m128i;
+
+
+//typedef uint8x16_t __m128i;
+typedef int32x4_t __m128i;
 inline __m128i _mm_shuffle_epi32 (__m128i a, int imm)
 {
   if (imm == 0) {
@@ -39,7 +38,7 @@ inline __m128i _mm_xor_si128(__m128i aa, __m128i bb)
 {
 	return vreinterpretq_m128i_s32( veorq_s32(vreinterpretq_s32_m128i(aa), vreinterpretq_s32_m128i(bb)) );
 }
-inline __m128i _mm_setzero_si128()
+inline __m128i _mm_setzero_si128(void)
 {
 	return vreinterpretq_m128i_s32(vdupq_n_s32(0));
 }
@@ -96,17 +95,6 @@ __m128i _mm_aeskeygenassist_si128(__m128i key, const int rcon)
     }
     return _mm_set_epi32(((X3 >> 8) | (X3 << 24)) ^ rcon, X3, ((X1 >> 8) | (X1 << 24)) ^ rcon, X1);
 }
-#endif
-
-#if defined(_MSC_VER)
-#include <intrin.h>
-#else
-
-#if !defined (__arm__)
-#include <cpuid.h>
-#endif
-
-#endif
 
 #include "crypto/aesb.h"
 #include "crypto/initializer.h"

@@ -1,3 +1,5 @@
+if (NOT ARMANDROID)
+
 add_definitions(-DSTATICLIB)
 
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ../version)
@@ -107,3 +109,5 @@ endforeach(hash)
 add_test(HashTargetTests hash_target_tests)
 add_test(SystemTests system_tests)
 add_test(UnitTests unit_tests)
+
+endif()

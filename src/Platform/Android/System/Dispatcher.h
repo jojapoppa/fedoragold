@@ -84,23 +84,7 @@ public:
   int getTimer();
   void pushTimer(int timer);
 
-#ifdef __EMSCRIPTEN
-  static const int SIZEOF_PTHREAD_MUTEX_T = 28; 
-#else
-  #ifdef __x86_64__
-    # if __WORDSIZE == 64
-    static const int SIZEOF_PTHREAD_MUTEX_T = 40;
-    # else
-    static const int SIZEOF_PTHREAD_MUTEX_T = 32;
-    # endif
-  #elif ANDROID
-    static const int SIZEOF_PTHREAD_MUTEX_T = 4;
-  #elif __aarch64__
-    static const int SIZEOF_PTHREAD_MUTEX_T = 48;
-  #else
-    static const int SIZEOF_PTHREAD_MUTEX_T = 24;
-  #endif
-#endif
+  static const int SIZEOF_PTHREAD_MUTEX_T = 24;
 
 private:
   Sys sys;
