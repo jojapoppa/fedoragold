@@ -193,6 +193,8 @@ namespace CryptoNote {
 
   private:
 
+    bool m_indexesInitialized = false;
+
     struct MultisignatureOutputUsage {
       TransactionIndex transactionIndex;
       uint16_t outputIndex;

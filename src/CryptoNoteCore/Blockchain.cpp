@@ -472,13 +472,11 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
   return results;
 }
 
-static bool indexesInitialized = false;
-
 bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
   // only allow this to happen once, otherwise mac runs it too often
-  if (indexesInitialized) {
+  if (m_indexesInitialized) {
     return true;
   }
 
@@ -576,7 +574,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     << "Initialized, block: " << m_blocks.size() - 1 << ", "
     << " cur diff: " << getDifficultyForNextBlock();
 
-  indexesInitialized = true;
+  m_indexesInitialized = true;
   return true;
 }
 
