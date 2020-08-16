@@ -472,8 +472,16 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
   return results;
 }
 
+static bool indexesInitialized = false;
+
 bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
+
+  // only allow this to happen once, otherwise mac runs it too often
+  if (indexesInitialized) {
+    return true;
+  }
+
   if (!config_folder.empty() && !Tools::create_directories_if_necessary(config_folder)) {
     logger(ERROR, BRIGHT_RED) << "Failed to create data directory: " << m_config_folder;
     return false;
@@ -567,6 +575,8 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
   logger(INFO, BRIGHT_GREEN)
     << "Initialized, block: " << m_blocks.size() - 1 << ", "
     << " cur diff: " << getDifficultyForNextBlock();
+
+  indexesInitialized = true;
   return true;
 }
 
