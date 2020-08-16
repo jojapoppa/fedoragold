@@ -46,7 +46,7 @@ static const char _NR[] = {
 #endif
 
 #include <stddef.h>
-#include <time.h>
+#include <sys/time.h>
 
 // Only used by ftime, which was removed from POSIX 2008.
 struct timeb {
