@@ -37,6 +37,15 @@ then
   cp CMakeListsLinux.txt CMakeLists.txt
   make build-release
   exit
+elif python -m platform | grep amzn2 > /dev/null
+then
+  echo centos on amazon aws platform...
+  export CC=gcc
+  export CXX=g++
+  export BOOST_ROOT=/home/ec2-user/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=/home/ec2-user/fedoragold/boostfedaora/include
+  cp CMakeListsLinux.txt CMakeLists.txt
+  make build-release
 elif python -m platform | grep Darwin > /dev/null
 then
   echo Mac OSX linux build platform...
