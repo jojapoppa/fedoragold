@@ -367,8 +367,10 @@ namespace CryptoNote {
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::is_transaction_ready_to_go(const Transaction& tx, TransactionCheckInfo& txd) const {
 
-    if (!m_validator.checkTransactionInputs(tx, txd.maxUsedBlock, txd.lastFailedBlock))
+    if (!m_validator.checkTransactionInputs(tx, txd.maxUsedBlock, txd.lastFailedBlock)) {
+      logger(INFO) << "checkTransactionInputs failed...";
       return false;
+    }
 
     //if we here, transaction seems valid, but, anyway, check for key_images collisions with blockchain, just to be sure
     if (m_validator.haveSpentKeyImages(tx))

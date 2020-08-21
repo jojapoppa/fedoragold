@@ -1582,7 +1582,7 @@ bool Blockchain::checkTransactionInputs(const Transaction& tx, const Crypto::Has
     } else if (txin.type() == typeid(MultisignatureInput)) {
       if (!isInCheckpointZone(getCurrentBlockchainHeight())) {
         if (!validateInput(::boost::get<MultisignatureInput>(txin), transactionHash, tx_prefix_hash, tx.signatures[inputIndex])) {
-          logger(INFO, BRIGHT_WHITE) << "Transactioni: " << transactionHash << " has invalide multisig inputs.";
+          logger(INFO, BRIGHT_WHITE) << "Transactioni: " << transactionHash << " has invalid multisig inputs.";
           return false;
         }
       }
