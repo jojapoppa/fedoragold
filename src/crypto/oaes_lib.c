@@ -47,7 +47,23 @@ static const char _NR[] = {
 
 #include <stddef.h>
 #include <time.h>
+
+#if defined(_WIN32)
+#include <Windows.h>
+#include <winsock.h>
+//struct timespec { long tv_sec; long tv_nsec; };    //header part
+int clock_gettime(int unused, struct timespec *spec)      //C-file part
+{
+   __int64 wintime;
+   GetSystemTimeAsFileTime((FILETIME*)&wintime);
+   wintime      -=116444736000000000i64;  //1jan1601 to 1jan1970
+   spec->tv_sec  =wintime / 10000000i64;           //seconds
+   spec->tv_nsec =wintime % 10000000i64 *100;      //nano-seconds
+   return 0;
+}
+#else
 #include <sys/time.h>
+#endif
 
 // Only used by ftime, which was removed from POSIX 2008.
 struct timeb {
@@ -75,8 +91,14 @@ static int ftime(struct timeb* tb) {
   //tb->millitm = (unsigned short) ((tv.tv_usec + 500) / 1000);
 
   struct timespec now;
-  if (clock_gettime(CLOCK_MONOTONIC, &now) < 0)
-    return -1;
+
+  #if defined(_WIN32)
+    if (clock_gettime(0, &now) < 0)
+      return -1;
+  #else
+    if (clock_gettime(CLOCK_MONOTONIC, &now) < 0)
+      return -1;
+  #endif
 
   tb->time    = now.tv_sec;
   tb->millitm = (unsigned short) now.tv_nsec / 1000;
@@ -100,7 +122,7 @@ static int ftime(struct timeb* tb) {
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <process.h>
 #define getpid _getpid
 #else

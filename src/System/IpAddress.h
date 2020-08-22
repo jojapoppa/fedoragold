@@ -7,8 +7,10 @@
 #include <cstdint>
 #include <string>
 
+#if !defined(_WIN32)
 #include <netdb.h>
 #include <netinet/in.h>
+#endif
 
 namespace System {
 
