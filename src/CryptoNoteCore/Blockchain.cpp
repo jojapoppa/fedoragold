@@ -195,9 +195,9 @@ public:
       s(blockHash, "last_block");
 
       if (blockHash != m_lastBlockHash) {
-        logger(INFO) << "last block does not match... rebuild block cache...";
-        logger(INFO) << "  stored last_block: " << m_lastBlockHash;
-        logger(INFO) << "  last_block in current chain: " << blockHash;
+        logger(INFO) << "last block does not match... rebuild block cache..." <<
+          "  stored last_block: " << m_lastBlockHash <<
+          "  last_block in current chain: " << blockHash;
         return;
       }
 
