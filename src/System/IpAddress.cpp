@@ -18,6 +18,10 @@
 #include "IpAddress.h"
 #include <stdexcept>
 
+#if defined(_WIN32)
+#include <winsock2.h>
+#endif
+
 namespace System {
 
 #if defined(_WIN32)
