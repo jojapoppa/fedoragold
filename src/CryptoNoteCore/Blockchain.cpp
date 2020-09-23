@@ -167,7 +167,8 @@ public:
       BinaryOutputStreamSerializer s(stream);
       logger(INFO) << "calling serialize for block cache save...";
       CryptoNote::serialize(*this, s);
-    } catch (std::exception&) {
+    } catch (std::exception& e) {
+      logger(WARNING) << "exception while serializing cache: " << e.what();
       return false;
     }
 
