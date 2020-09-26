@@ -195,11 +195,13 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
 
-      if (blockHash != m_lastBlockHash) {
-        logger(INFO) << "last block does not match... rebuild block cache..." <<
-          "  stored last_block: " << m_lastBlockHash <<
-          "  last_block in current chain: " << blockHash;
-        return;
+      if (m_lastBlockHash != NULL_HASH) {
+        if (blockHash != m_lastBlockHash) {
+          logger(INFO) << "last block does not match... rebuild block cache..." <<
+            "  stored last_block: " << m_lastBlockHash <<
+            "  last_block in current chain: " << blockHash;
+          return;
+        }
       }
 
     } else {
