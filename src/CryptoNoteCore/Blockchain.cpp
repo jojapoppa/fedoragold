@@ -195,7 +195,7 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
 
-      if (m_lastBlockHash != NULL_HASH && m_lastBlockHash != NULL && m_lastBlockHash.toString().length() > 0) {
+      if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH) {
         if (blockHash != m_lastBlockHash) {
           logger(INFO) << "last block does not match... rebuild block cache..." <<
             "  stored last_block: " << m_lastBlockHash <<
