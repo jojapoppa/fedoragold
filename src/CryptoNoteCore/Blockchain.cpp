@@ -274,9 +274,11 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "blockHash");
 
-      if (blockHash != m_lastBlockHash) {
-        logger(INFO) << "last block does not match, reloading block indices...";
-        return;
+      if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH) {
+        if (blockHash != m_lastBlockHash) {
+          logger(INFO) << "last block does not match, reloading block indices...";
+          return;
+        }
       }
 
     } else {
