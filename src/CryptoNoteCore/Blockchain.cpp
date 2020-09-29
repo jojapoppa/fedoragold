@@ -195,7 +195,10 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
 
-      if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH) {
+      std::string lasth(m_lastBlockHash.data, m_lastBlockHash.data + sizeof(m_lastBlockHash.data));
+      std::string thish(blockHash.data, blockHash.data + sizeof(blockHash.data));
+      if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH &&
+        lasth.length() > 0 && thish.length() > 0) {
         if (blockHash != m_lastBlockHash) {
           logger(INFO) << "last block does not match... rebuild block cache..." <<
             "  stored last_block: " << m_lastBlockHash <<
@@ -274,7 +277,10 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "blockHash");
 
-      if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH) {
+      std::string lasth(m_lastBlockHash.data, m_lastBlockHash.data + sizeof(m_lastBlockHash.data));
+      std::string thish(blockHash.data, blockHash.data + sizeof(blockHash.data));
+      if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH && 
+        lasth.length() > 0 && thish.length() > 0) {
         if (blockHash != m_lastBlockHash) {
           logger(INFO) << "last block does not match, reloading block indices...";
           return;
