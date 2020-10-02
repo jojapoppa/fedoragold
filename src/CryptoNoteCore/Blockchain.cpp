@@ -1239,7 +1239,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
   } else {
     //block orphaned
     bvc.m_marked_as_orphaned = true;
-    logger(INFO, BRIGHT_RED) <<
+    logger(DEBUGGING, BRIGHT_BLUE) <<
       "Block recognized as orphaned and rejected, id = " << id;
   }
 
