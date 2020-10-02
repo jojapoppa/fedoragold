@@ -570,7 +570,6 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
       return false;
     }
 
-    logger(INFO) << "calling requestMissingPoolTransactions...";
     requestMissingPoolTransactions(context);
 
     context.m_state = CryptoNoteConnectionContext::state_normal;
