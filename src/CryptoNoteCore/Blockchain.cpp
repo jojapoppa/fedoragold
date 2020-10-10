@@ -200,9 +200,15 @@ public:
       if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH &&
         lasth.length() > 0 && thish.length() > 0) {
         if (blockHash != m_lastBlockHash) {
+
+          std::cout << "last block does not match... rebuild block cache..." <<
+            "  stored last_block: " << lasth <<
+            "  last_block in current chain: " << thish; 
+
           logger(INFO) << "last block does not match... rebuild block cache..." <<
-            "  stored last_block: " << m_lastBlockHash <<
-            "  last_block in current chain: " << blockHash;
+            "  stored last_block: " << lasth <<
+            "  last_block in current chain: " << thish;
+
           return;
         }
       }
