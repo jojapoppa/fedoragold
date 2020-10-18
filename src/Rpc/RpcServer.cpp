@@ -36,6 +36,8 @@ namespace CryptoNote {
 
 namespace {
 
+std::string lastUrl = "";
+
 template <typename Command>
 RpcServer::HandlerFunction binMethod(bool (RpcServer::*handler)(typename Command::request const&, typename Command::response&)) {
   return [handler](RpcServer* obj, const HttpRequest& request, HttpResponse& response) {
@@ -116,9 +118,9 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, core
 }
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
-  auto url = request.getUrl();
+  lastUrl = request.getUrl();
 
-  auto it = s_handlers.find(url);
+  auto it = s_handlers.find(lastUrl);
   if (it == s_handlers.end()) {
     response.setStatus(HttpResponse::STATUS_404);
     return;
@@ -167,6 +169,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       throw JsonRpcError(CORE_RPC_ERROR_CODE_CORE_BUSY, "Core is busy");
     }
 
+    lastUrl = ""; // used to detect localhost requests... not needed here as these are all remote reqs
     it->second.handler(this, jsonRequest, jsonResponse);
 
   } catch (const JsonRpcError& err) {
@@ -634,7 +637,16 @@ bool RpcServer::on_stop_mining(const COMMAND_RPC_STOP_MINING::request& req, COMM
 }
 
 bool RpcServer::on_stop_daemon(const COMMAND_RPC_STOP_DAEMON::request& req, COMMAND_RPC_STOP_DAEMON::response& res) {
-  if (m_core.currency().isTestnet()) {
+
+  bool localRequest = false;
+  if (lastUrl.length() > 0) {
+    localRequest = lastUrl.find("127.0.0.1") != std::string::npos;
+    if (! localRequest) {
+      localRequest = lastUrl.find("localhost") != std::string::npos;
+    }
+  }
+
+  if (localRequest || m_core.currency().isTestnet()) {
     m_p2p.sendStopSignal();
     res.status = CORE_RPC_STATUS_OK;
   } else {
