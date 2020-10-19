@@ -173,7 +173,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       throw JsonRpcError(CORE_RPC_ERROR_CODE_CORE_BUSY, "Core is busy");
     }
 
-    lastUrl = ""; // used to detect localhost requests... not needed here as these are all remote reqs
+    lastUrl = "localhost";
     it->second.handler(this, jsonRequest, jsonResponse);
 
   } catch (const JsonRpcError& err) {
