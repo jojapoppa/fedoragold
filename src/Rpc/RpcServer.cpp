@@ -36,8 +36,6 @@ namespace CryptoNote {
 
 namespace {
 
-std::string lastUrl = "";
-
 template <typename Command>
 RpcServer::HandlerFunction binMethod(bool (RpcServer::*handler)(typename Command::request const&, typename Command::response&)) {
   return [handler](RpcServer* obj, const HttpRequest& request, HttpResponse& response) {
@@ -415,7 +413,9 @@ bool RpcServer::on_get_iscoreready(const COMMAND_RPC_GET_ISCOREREADY::request& r
   return true;
 }
 
-bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request& req, COMMAND_RPC_GET_BLOCK_INDEXES::response& res) {
+bool RpcServer::checkLocal() {
+
+  logger(INFO) << "Checking for local request: " << lastUrl;
 
   bool localRequest = false;
   if (lastUrl.length() > 0) {
@@ -426,6 +426,15 @@ bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request
   }
 
   if (!localRequest) {
+    return false;
+  }
+
+  return true;
+}
+
+bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request& req, COMMAND_RPC_GET_BLOCK_INDEXES::response& res) {
+
+  if (!checkLocal()) {
     logger(INFO) << "on_get_blockindexes only runs from localhost";
     return false;
   }
@@ -558,15 +567,7 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
 
 bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res) {
 
-  bool localRequest = false;
-  if (lastUrl.length() > 0) {
-    localRequest = lastUrl.find("127.0.0.1") != std::string::npos;
-    if (! localRequest) {
-      localRequest = lastUrl.find("localhost") != std::string::npos;
-    }
-  }
-
-  if (!localRequest) {
+  if (!checkLocal()) {
     logger(INFO) << "on_get_transacdtions only runs from localhost";
     return false;
   }
@@ -670,15 +671,7 @@ bool RpcServer::on_stop_mining(const COMMAND_RPC_STOP_MINING::request& req, COMM
 
 bool RpcServer::on_stop_daemon(const COMMAND_RPC_STOP_DAEMON::request& req, COMMAND_RPC_STOP_DAEMON::response& res) {
 
-  bool localRequest = false;
-  if (lastUrl.length() > 0) {
-    localRequest = lastUrl.find("127.0.0.1") != std::string::npos;
-    if (! localRequest) {
-      localRequest = lastUrl.find("localhost") != std::string::npos;
-    }
-  }
-
-  if (localRequest || m_core.currency().isTestnet()) {
+  if (checkLocal() || m_core.currency().isTestnet()) {
     m_p2p.sendStopSignal();
     res.status = CORE_RPC_STATUS_OK;
   } else {

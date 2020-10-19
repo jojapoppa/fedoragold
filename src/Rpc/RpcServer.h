@@ -24,6 +24,9 @@ public:
 
 private:
 
+  std::string lastUrl = "";
+  bool checkLocal();
+
   template <class Handler>
   struct RpcHandler {
     const Handler handler;
