@@ -25,6 +25,7 @@ public:
 private:
 
   std::string lastUrl = "";
+  std::string getHostnm(const HttpRequest& request);
   bool checkLocal();
 
   template <class Handler>

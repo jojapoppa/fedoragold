@@ -117,19 +117,7 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, core
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
 
-  auto M = request.getHeaders();
-  const std::string delimiter = "#";
-  auto logstr = std::accumulate(M.begin(), M.end(), std::string(),
-    [delimiter](const std::string& s, const std::pair<const std::string, std::string>& p) {
-      return s + (s.empty() ? std::string() : delimiter) + p.first;
-    });
-
-  auto search = M.find("host");
-  if (search != M.end()) {
-    lastUrl = search->second;
-  } else {
-    lastUrl = "";
-  }
+  lastUrl = getHostnm(request);
 
   auto url = request.getUrl();
   auto it = s_handlers.find(url);
@@ -145,6 +133,25 @@ void RpcServer::processRequest(const HttpRequest& request, HttpResponse& respons
   }
 
   it->second.handler(this, request, response);
+}
+
+std::string RpcServer::getHostnm(const HttpRequest& request) {
+  std::string urll = "";
+  auto M = request.getHeaders();
+  const std::string delimiter = "#";
+    auto logstr = std::accumulate(M.begin(), M.end(), std::string(),
+      [delimiter](const std::string& s, const std::pair<const std::string, std::string>& p) {
+        return s + (s.empty() ? std::string() : delimiter) + p.first;
+      });
+
+  auto search = M.find("host");
+  if (search != M.end()) {
+    urll = search->second;
+  } else {
+    urll = "";
+  }
+
+  return urll;
 }
 
 bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& response) {
@@ -187,7 +194,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       throw JsonRpcError(CORE_RPC_ERROR_CODE_CORE_BUSY, "Core is busy");
     }
 
-    lastUrl = "localhost";
+    lastUrl = getHostnm(request); 
     it->second.handler(this, jsonRequest, jsonResponse);
 
   } catch (const JsonRpcError& err) {
