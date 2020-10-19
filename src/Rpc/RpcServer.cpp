@@ -116,9 +116,23 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, core
 }
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
-  lastUrl = request.getUrl();
 
-  auto it = s_handlers.find(lastUrl);
+  auto M = request.getHeaders();
+  const std::string delimiter = "#";
+  auto logstr = std::accumulate(M.begin(), M.end(), std::string(),
+    [delimiter](const std::string& s, const std::pair<const std::string, std::string>& p) {
+      return s + (s.empty() ? std::string() : delimiter) + p.first;
+    });
+
+  auto search = M.find("host");
+  if (search != M.end()) {
+    lastUrl = search->second;
+  } else {
+    lastUrl = "";
+  }
+
+  auto url = request.getUrl();
+  auto it = s_handlers.find(url);
   if (it == s_handlers.end()) {
     response.setStatus(HttpResponse::STATUS_404);
     return;
