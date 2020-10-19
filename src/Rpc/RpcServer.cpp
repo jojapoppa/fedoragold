@@ -150,6 +150,8 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
     jsonResponse.setId(jsonRequest.getId()); 
 
     static std::unordered_map<std::string, RpcServer::RpcHandler<JsonMemberMethod>> jsonRpcHandlers = {
+      { "getblockchainindexes", { makeMemberMethod(&RpcServer::on_get_blockindexes), false } },
+      { "getblock", { makeMemberMethod(&RpcServer::on_get_block), false } },
       { "getblockcount", { makeMemberMethod(&RpcServer::on_getblockcount), true } },
       { "getblockhash", { makeMemberMethod(&RpcServer::on_getblockhash), false } },
       { "getblocktemplate", { makeMemberMethod(&RpcServer::on_getblocktemplate), false } },
@@ -157,7 +159,11 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "submitblock", { makeMemberMethod(&RpcServer::on_submitblock), false } },
       { "getlastblockheader", { makeMemberMethod(&RpcServer::on_get_last_block_header), false } },
       { "getblockheaderbyhash", { makeMemberMethod(&RpcServer::on_get_block_header_by_hash), false } },
-      { "getblockheaderbyheight", { makeMemberMethod(&RpcServer::on_get_block_header_by_height), false } }
+      { "getblockheaderbyheight", { makeMemberMethod(&RpcServer::on_get_block_header_by_height), false } },
+      { "gettransaction", { makeMemberMethod(&RpcServer::on_get_transaction), false } },
+      { "gettransactions", { makeMemberMethod(&RpcServer::on_get_transactions), false } },
+      { "sendrawtransaction", { makeMemberMethod(&RpcServer::on_send_raw_tx), false } },
+      { "stopdaemon", {makeMemberMethod(&RpcServer::on_stop_daemon), true } }
     };
 
     auto it = jsonRpcHandlers.find(jsonRequest.getMethod());
@@ -411,6 +417,19 @@ bool RpcServer::on_get_iscoreready(const COMMAND_RPC_GET_ISCOREREADY::request& r
 
 bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request& req, COMMAND_RPC_GET_BLOCK_INDEXES::response& res) {
 
+  bool localRequest = false;
+  if (lastUrl.length() > 0) {
+    localRequest = lastUrl.find("127.0.0.1") != std::string::npos;
+    if (! localRequest) {
+      localRequest = lastUrl.find("localhost") != std::string::npos;
+    }
+  }
+
+  if (!localRequest) {
+    logger(INFO) << "on_get_blockindexes only runs from localhost";
+    return false;
+  }
+
   m_core.print_blockchain_index();
   return true;
 }
@@ -538,6 +557,19 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
 }
 
 bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res) {
+
+  bool localRequest = false;
+  if (lastUrl.length() > 0) {
+    localRequest = lastUrl.find("127.0.0.1") != std::string::npos;
+    if (! localRequest) {
+      localRequest = lastUrl.find("localhost") != std::string::npos;
+    }
+  }
+
+  if (!localRequest) {
+    logger(INFO) << "on_get_transacdtions only runs from localhost";
+    return false;
+  }
 
   // height is 32bit in the network protocol for CN
   for (uint32_t i=0; i<m_core.get_current_blockchain_height(); i++) {
