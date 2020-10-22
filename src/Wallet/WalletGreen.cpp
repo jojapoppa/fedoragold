@@ -248,7 +248,9 @@ WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currenc
   m_pendingBalance(0),
   m_transactionSoftLockTime(transactionSoftLockTime)
 {
-  m_upperTransactionSizeLimit = m_currency.blockGrantedFullRewardZone() * 2 - m_currency.minerTxBlobReservedSize();
+  //m_upperTransactionSizeLimit = m_currency.blockGrantedFullRewardZone() * 2 - m_currency.minerTxBlobReservedSize();
+  m_upperTransactionSizeLimit = m_currency.maxTransactionSizeLimit();
+
   m_readyEvent.set();
 }
 
@@ -1433,6 +1435,7 @@ size_t WalletGreen::validateSaveAndSendTransaction(const ITransactionReader& tra
   BinaryArray transactionData = transaction.getTransactionData();
 
   if (transactionData.size() > m_upperTransactionSizeLimit) {
+    m_logger(Logging::ERROR) << "Transaction is too big. Transaction hash " << transaction.getTransactionHash() << ", size " << transactionData.size() << ", size limit " << m_upperTransactionSizeLimit;
     throw std::system_error(make_error_code(error::TRANSACTION_SIZE_TOO_BIG));
   }
 
@@ -2783,6 +2786,11 @@ size_t WalletGreen::getTxSize(const TransactionParameters &sendingTransaction)
 
   BinaryArray transactionData = preparedTransaction.transaction->getTransactionData();
   return transactionData.size();
+}
+
+size_t WalletGreen::getMaxTxSize()
+{
+  return m_upperTransactionSizeLimit;
 }
 
 bool WalletGreen::txIsTooLarge(const TransactionParameters& sendingTransaction)

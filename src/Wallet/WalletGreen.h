@@ -95,6 +95,7 @@ public:
   void updateInternalCache();
   size_t getTxSize(const TransactionParameters &sendingTransaction);
   bool txIsTooLarge(const TransactionParameters& sendingTransaction);
+  size_t getMaxTxSize(); 
 
   void clearCaches();
 protected:
