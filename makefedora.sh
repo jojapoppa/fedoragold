@@ -63,8 +63,8 @@ then
   rm -r build
   set CC=CL.exe
   set CXX=CL.exe
-  set BOOST_ROOT=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win
-  set BOOST_LIBRARYDIR=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win/lib
+  set BOOST_ROOT=C:\Users\JP\Desktop\FEDG_BUILD\fedoragold-release\boostfedora_win
+  set BOOST_LIBRARYDIR=C:\Users\JP\Desktop\FEDG_BUILD\fedoragold-release\boostfedora_win\lib
   rm CMakeCache.txt
   cp CMakeListsWindows.txt CMakeLists.txt
   mkdir build
@@ -72,6 +72,7 @@ then
   cmake -G "Visual Studio 15 2017 Win64" -DBoost_INCLUDE_DIR=/Users/JP/Desktop/FEDG_BUILD/fedoragold-release/boostfedora_win/include ..
   cmake --build . --config Release
   cd ..
+  pause
   exit
 elif [ $1 = "-a" ];
 then
