@@ -1332,7 +1332,7 @@ namespace CryptoNote
         logger(DEBUGGING) << "acceptLoop() is interrupted";
         break;
       } catch (const std::exception& e) {
-        logger(WARNING) << "Exception in acceptLoop: " << e.what();
+        logger(WARNING) << "Exception in acceptLoop for NetNode: " << e.what();
       }
     }
 
