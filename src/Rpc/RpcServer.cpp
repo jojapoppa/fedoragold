@@ -447,6 +447,7 @@ bool RpcServer::checkLocal() {
   }
 
   if (!localRequest) {
+    logger(INFO) << "  invalid request from IP other than localhost...";
     return false;
   }
 

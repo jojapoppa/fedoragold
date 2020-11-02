@@ -79,19 +79,18 @@ void HttpServer::acceptLoop() {
     BOOST_SCOPE_EXIT_ALL(this, &connection) { 
       m_connections.erase(&connection); };
 
-    auto addr = connection.getPeerAddressAndPort();
-    /*
+    //auto addr = connection.getPeerAddressAndPort();
     auto addr = std::pair<System::IpAddress, uint16_t>(static_cast<System::IpAddress>(0),     0);
     try {
       addr = connection.getPeerAddressAndPort();
-    } catch (std::runtime_error&) {
+    } catch (std::runtime_error& e) {
       logger(WARNING) << "Could not get IP of connection";
+      throw e;
     }
-    */
 
     logger(DEBUGGING) << "Incoming connection from " << addr.first.toDottedDecimal() << ":" << addr.second;
 
-	  workingContextGroup.spawn(std::bind(&HttpServer::acceptLoop, this));
+    workingContextGroup.spawn(std::bind(&HttpServer::acceptLoop, this));
 
     System::TcpStreambuf streambuf(connection, logger);
     std::iostream stream(&streambuf);
