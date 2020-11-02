@@ -131,6 +131,7 @@ std::unique_ptr<IP2pConnection> P2pNode::receiveConnection() {
     m_queueEvent.wait();
     m_queueEvent.clear();
     if (m_stopRequested) {
+      logger(DEBUGGING) << "stopRequested in P2pNode.cpp, throwing InterruptedException";
       throw InterruptedException();
     }
   }
