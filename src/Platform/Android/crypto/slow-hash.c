@@ -9,6 +9,7 @@
 #include <sys/mman.h>
 #include <arm_neon.h>
 
+//jojapoppa: SEE REPO: https://github.com/DLTcollab/sse2neon/blob/master/sse2neon.h
 
 //typedef uint8x16_t __m128i;
 typedef int32x4_t __m128i;
