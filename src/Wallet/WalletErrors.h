@@ -77,7 +77,7 @@ public:
     break;
     case BAD_ADDRESS:              ss=m_msg+"Bad address";
     break;
-    case TRANSACTION_SIZE_TOO_BIG: ss=m_msg+"Transaction size is too big";
+    case TRANSACTION_SIZE_TOO_BIG: ss=m_msg+"Transaction size is too big. Please OPTIMIZE wallet.";
     break;
     case WRONG_AMOUNT:             ss=m_msg+"Wrong amount";
     break;
