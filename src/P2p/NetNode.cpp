@@ -1271,6 +1271,14 @@ namespace CryptoNote
   
   void NodeServer::on_connection_close(P2pConnectionContext& context)
   {
+    if (!m_stopEvent.get() && !context.m_is_income) {
+      NetworkAddress na;
+      na.ip = context.m_remote_ip;
+      na.port = context.m_remote_port;
+
+      m_peerlist.remove_from_peer_anchor(na);
+    }
+
     logger(TRACE) << context << "CLOSE CONNECTION";
     m_payload_handler.onConnectionClosed(context);
   }
@@ -1342,23 +1350,16 @@ namespace CryptoNote
   void NodeServer::onIdle() {
     logger(DEBUGGING) << "onIdle started";
 
-    while (!m_stop)
-    {
-        try
-        {
-            idle_worker();
-            m_payload_handler.on_idle();
-            m_idleTimer.sleep(std::chrono::seconds(1));
-        }
-        catch (System::InterruptedException &)
-        {
-            logger(DEBUGGING) << "onIdle() is interrupted";
-            break;
-        }
-        catch (std::exception &e)
-        {
-            logger(WARNING) << "Exception in onIdle: " << e.what();
-        }
+    try {
+      while (!m_stop) {
+        idle_worker();
+        m_payload_handler.on_idle();
+        m_idleTimer.sleep(std::chrono::seconds(1));
+      }
+    } catch (System::InterruptedException&) {
+      logger(DEBUGGING) << "onIdle() is interrupted";
+    } catch (std::exception& e) {
+      logger(TRACE) << "Exception in onIdle: " << e.what();
     }
 
     logger(DEBUGGING) << "onIdle finished";
