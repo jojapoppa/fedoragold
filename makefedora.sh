@@ -88,10 +88,10 @@ then
   exit
 else
   echo non-debian platform...
-  export CC=gcc
-  export CXX=g++
-  export BOOST_ROOT=/root/fedoragold/boostfedora
-  export Boost_INCLUDE_DIR=/root/fedoragold/boostfedora/include
+  export CC=gcc-9
+  export CXX=g++-9
+  export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
   cp CMakeListsLinux.txt CMakeLists.txt
   make build-release
   exit
