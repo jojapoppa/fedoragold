@@ -1276,7 +1276,8 @@ namespace CryptoNote
       na.ip = context.m_remote_ip;
       na.port = context.m_remote_port;
 
-      m_peerlist.remove_from_peer_anchor(na);
+      //FED doesn't use the 'anchor' peerlist algo from Karbo
+      //m_peerlist.remove_from_peer_anchor(na);
     }
 
     logger(TRACE) << context << "CLOSE CONNECTION";
