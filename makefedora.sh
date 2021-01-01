@@ -27,6 +27,8 @@ echo $1
 # _FORTIFY_FN_NOTALWAYS(vsnprintf) int vsnprintf(char *__s, size_t __n, const char *__f,
 #       __builtin_va_list __v)
 
+python -m platform
+
 if python -m platform | grep debian > /dev/null 
 then
   echo debian linux build platform...
@@ -84,6 +86,16 @@ then
   export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora_android/include
   rm CMakeCache.txt
   cp CMakeListsAndroid.txt CMakeLists.txt
+  make build-release
+  exit
+elif python -m platform | grep kvm > /dev/null
+then
+  echo alt-cloud platform...
+  export CC=gcc-8
+  export CXX=g++-8
+  export BOOST_ROOT=$HOME/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=$HOME/fedoragold/boostfedora/include
+  cp CMakeListsLinux.txt CMakeLists.txt
   make build-release
   exit
 else
