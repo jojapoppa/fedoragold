@@ -697,7 +697,7 @@ bool RpcServer::on_stop_mining(const COMMAND_RPC_STOP_MINING::request& req, COMM
 
 bool RpcServer::on_stop_daemon(const COMMAND_RPC_STOP_DAEMON::request& req, COMMAND_RPC_STOP_DAEMON::response& res) {
 
-  if (checkLocal() && !m_core.currency().isTestnet()) {
+  if (checkLocal()) {
     m_p2p.sendStopSignal();
     res.status = CORE_RPC_STATUS_OK;
   } else {
