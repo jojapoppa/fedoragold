@@ -14,11 +14,10 @@ sudo /sbin/reboot
 
 else
 
-echo -e "checkhttp.sh: $DATE: re-Starting server after backing up bootstrap"
-/bin/bash /root/stop_daemon.sh &
-timeout 180 tail -f fedoragold_daemon.log
+killall -9 fedoragold_daemon
 
 echo 'reboot now... will boot with old bootstrap files...'
+cp /var/www/html/bootstrap/* /root/.fedoragold
 sudo /sbin/reboot
 
 fi
