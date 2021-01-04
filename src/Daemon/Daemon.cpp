@@ -271,6 +271,10 @@ int main(int argc, char* argv[])
       dch.start_handling();
     }
 
+    if (!rpcConfig.contactInfo.empty()) {
+      rpcServer.setContactInfo(rpcConfig.contactInfo);
+    }
+
     logger(INFO) << "Core on address " << rpcConfig.getBindAddress();
     rpcServer.start(rpcConfig.bindIp, rpcConfig.bindPort);
     logger(INFO) << "Core rpc server started ok";

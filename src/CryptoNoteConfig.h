@@ -29,6 +29,7 @@ const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 const uint64_t MONEY_SUPPLY                                  = 10000000000000000000U;
 const unsigned EMISSION_SPEED_FACTOR                         = 26;
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
+const uint64_t TAIL_EMISSION_REWARD                          = UINT64_C(1000000000000);
 
 //TODO Define number of blocks for block size median calculation
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
@@ -38,6 +39,7 @@ const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
 const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
 // Define minimum fee for transactions
 const uint64_t MINIMUM_FEE                                   = 1000000;
+const uint64_t MAXIMUM_FEE                                   = UINT64_C(100000000000);
 const uint64_t DEFAULT_DUST_THRESHOLD                        = 0;
 
 // Define preferred block's target time

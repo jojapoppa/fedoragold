@@ -55,6 +55,9 @@ namespace CryptoNote {
      bool set_genesis_block(const Block& b);
      bool deinit();
 
+     uint64_t getMinimalFee() { return CryptoNote::parameters::MINIMUM_FEE; }
+     /* ours is flat: return getMinimalFeeForHeight(get_current_blockchain_height() - 1);*/ 
+
      // ICore
      virtual size_t addChain(const std::vector<const IBlock*>& chain) override;
      virtual bool handle_get_objects(NOTIFY_REQUEST_GET_OBJECTS_request& arg, NOTIFY_RESPONSE_GET_OBJECTS_request& rsp) override; //Deprecated. Should be removed with CryptoNoteProtocolHandler.
@@ -65,6 +68,7 @@ namespace CryptoNote {
                                  uint64_t& reward, int64_t& emissionChange) override;
      virtual bool scanOutputkeysForIndices(const KeyInput& txInToKey, std::list<std::pair<Crypto::Hash, size_t>>& outputReferences) override;
      virtual bool getBlockDifficulty(uint32_t height, difficulty_type& difficulty) override;
+     bool getBlockCumulativeDifficulty(uint32_t height, difficulty_type& difficulty);
      virtual bool getBlockContainingTx(const Crypto::Hash& txId, Crypto::Hash& blockId, uint32_t& blockHeight) override;
      virtual bool getMultisigOutputReference(const MultisignatureInput& txInMultisig, std::pair<Crypto::Hash, size_t>& output_reference) override;
      virtual bool getGeneratedTransactionsNumber(uint32_t height, uint64_t& generatedTransactions) override;
@@ -79,6 +83,8 @@ namespace CryptoNote {
      
      virtual bool addMessageQueue(MessageQueue<BlockchainMessage>& messageQueue) override;
      virtual bool removeMessageQueue(MessageQueue<BlockchainMessage>& messageQueue) override;
+
+     std::time_t getStartTime() const;
 
      uint32_t get_current_blockchain_height() override; // 32 bit in network protocol
      bool have_block(const Crypto::Hash& id) override;
@@ -192,5 +198,6 @@ namespace CryptoNote {
      friend class tx_validate_inputs;
      std::atomic<bool> m_starter_message_showed;
      Tools::ObserverManager<ICoreObserver> m_observerManager;
+     time_t start_time;
    };
 }

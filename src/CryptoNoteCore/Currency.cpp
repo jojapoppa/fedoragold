@@ -96,6 +96,30 @@ bool Currency::generateGenesisBlock() {
   return true;
 }
 
+uint64_t Currency::calculateReward(uint64_t alreadyGeneratedCoins) const {
+  // assert(alreadyGeneratedCoins <= m_moneySupply);
+  assert(m_emissionSpeedFactor > 0 && m_emissionSpeedFactor <= 8 * sizeof(uint64_t));
+
+  uint64_t baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
+
+  // Tail emission
+  if (alreadyGeneratedCoins + CryptoNote::parameters::TAIL_EMISSION_REWARD >= m_moneySupply || baseReward < CryptoNote::parameters::TAIL_EMISSION_REWARD)
+  {
+    // flat rate tail emission reward,
+    // inflation slowly diminishing in relation to supply
+    //baseReward = CryptoNote::parameters::TAIL_EMISSION_REWARD;
+    // changed to
+    // Friedman's k-percent rule,
+    // inflation 2% of total coins in circulation per year
+    // according to Whitepaper v. 1, p. 16 (with change of 1% to 2%)
+    const uint64_t blocksInOneYear = expectedNumberOfBlocksPerDay() * 365;
+    uint64_t twoPercentOfEmission = static_cast<uint64_t>(static_cast<double>(alreadyGeneratedCoins) / 100.0 * 2.0);
+    baseReward = twoPercentOfEmission / blocksInOneYear;
+  }
+
+  return baseReward;
+}
+
 bool Currency::getBlockReward(size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins,
   uint64_t fee, uint64_t& reward, int64_t& emissionChange) const {
   assert(alreadyGeneratedCoins <= m_moneySupply);
@@ -361,6 +385,27 @@ bool Currency::parseAmount(const std::string& str, uint64_t& amount) const {
   return Common::fromString(strAmount, amount);
 }
 
+// The idea is based on Zawy's post
+// http://zawy1.blogspot.com/2017/12/using-difficulty-to-get-constant-value.html
+// Moore's law application by Sergey Kozlov
+uint64_t Currency::getMinimalFee(uint64_t avgCurrentDifficulty, uint64_t currentReward, uint64_t avgReferenceDifficulty, uint64_t avgReferenceReward, uint32_t height) const {
+  uint64_t minimumFee(0);
+  double minFee(0.0);
+  const double baseFee = static_cast<double>(250000000000);
+  const uint64_t blocksInTwoYears = expectedNumberOfBlocksPerDay() * 365 * 2;
+  double currentDifficultyMoore = static_cast<double>(avgCurrentDifficulty) / 
+                                  pow(2, static_cast<double>(height) / static_cast<double>(blocksInTwoYears));
+  minFee = baseFee * static_cast<double>(avgReferenceDifficulty) / currentDifficultyMoore *
+           static_cast<double>(currentReward) / static_cast<double>(avgReferenceReward);
+
+  // zero test 
+  if (minFee == 0 || !std::isfinite(minFee))
+    return CryptoNote::parameters::MAXIMUM_FEE;
+
+  minimumFee = static_cast<uint64_t>(minFee);
+  return std::min<uint64_t>(CryptoNote::parameters::MAXIMUM_FEE, minimumFee);
+}
+
 // No longer in use, this was vulnerable to nasty harassment attacks that deadlock our chain
 difficulty_type Currency::nextDifficulty(std::vector<uint64_t> timestamps,
   std::vector<difficulty_type> cumulativeDifficulties) const {
@@ -509,6 +554,7 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger &log) : m_currency(log) {
   maxTxSize(parameters::CRYPTONOTE_MAX_TX_SIZE);
   publicAddressBase58Prefix(parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX);
   minedMoneyUnlockWindow(parameters::CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW);
+  expectedNumberOfBlocksPerDay(parameters::EXPECTED_NUMBER_OF_BLOCKS_PER_DAY);
 
   timestampCheckWindow(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW);
   blockFutureTimeLimit(parameters::CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT);

@@ -22,6 +22,8 @@ public:
 
   typedef std::function<bool(RpcServer*, const HttpRequest& request, HttpResponse& response)> HandlerFunction;
 
+  bool setContactInfo(const std::string& contact);
+
 private:
 
   std::string lastUrl = "";
@@ -89,6 +91,8 @@ private:
   //jojapoppa, add later to support VPN charges, see Karbo code
   //std::string m_fee_address;
   //CryptoNote::AccountPublicAddress m_fee_acc;
+  
+  std::string m_contact_info; 
 };
 
 }

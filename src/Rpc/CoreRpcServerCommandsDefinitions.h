@@ -396,29 +396,51 @@ struct COMMAND_RPC_GET_INFO {
 
   struct response {
     std::string status;
-    uint64_t height;
+    std::string version;
+    uint32_t height;
+    std::string top_block_hash;
     uint64_t difficulty;
+    uint64_t cumulative_difficulty;
+    uint64_t max_cumulative_block_size;
+    uint64_t next_reward;
+    uint64_t min_fee;
     uint64_t tx_count;
     uint64_t tx_pool_size;
     uint64_t alt_blocks_count;
     uint64_t outgoing_connections_count;
     uint64_t incoming_connections_count;
+    uint64_t rpc_connections_count;
     uint64_t white_peerlist_size;
     uint64_t grey_peerlist_size;
     uint32_t last_known_block_index;
+    uint64_t start_time;
+    uint8_t block_major_version;
+    std::string already_generated_coins;
+    std::string contact;   
 
     void serialize(ISerializer &s) {
       KV_MEMBER(status)
+      KV_MEMBER(version)
       KV_MEMBER(height)
+      KV_MEMBER(top_block_hash)
       KV_MEMBER(difficulty)
+      KV_MEMBER(cumulative_difficulty)
+      KV_MEMBER(max_cumulative_block_size)
+      KV_MEMBER(next_reward)
+      KV_MEMBER(min_fee)
       KV_MEMBER(tx_count)
       KV_MEMBER(tx_pool_size)
       KV_MEMBER(alt_blocks_count)
       KV_MEMBER(outgoing_connections_count)
       KV_MEMBER(incoming_connections_count)
+      KV_MEMBER(rpc_connections_count)
       KV_MEMBER(white_peerlist_size)
       KV_MEMBER(grey_peerlist_size)
       KV_MEMBER(last_known_block_index)
+      KV_MEMBER(start_time)
+      KV_MEMBER(block_major_version)
+      KV_MEMBER(already_generated_coins)
+      KV_MEMBER(contact)   
     }
   };
 };

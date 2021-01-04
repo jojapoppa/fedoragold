@@ -115,6 +115,10 @@ size_t core::get_alternative_blocks_count() {
   return m_blockchain.getAlternativeBlocksCount();
 }
 
+std::time_t core::getStartTime() const {
+  return start_time;
+}
+
 //-----------------------------------------------------------------------------------------------
 bool core::init(const CoreConfig& config, const MinerConfig& minerConfig, bool load_existing) {
   m_config_folder = config.configFolder;
@@ -130,6 +134,8 @@ bool core::init(const CoreConfig& config, const MinerConfig& minerConfig, bool l
   logger(INFO) << "Miner state init...";
   r = m_miner->init(minerConfig);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage for miner"; return false; }
+
+  start_time = std::time(nullptr);
 
   return load_state_data();
 }
@@ -223,7 +229,7 @@ bool core::get_stat_info(core_stat_info& st_inf) {
   return true;
 }
 
-//jojapoppa, new check added by Karbo (eval later)
+//jojapoppa, new check added by Karbo (eval later .. is this really a good idea?)
 //bool Core::check_tx_mixin(const Transaction& tx) {
 //  size_t inputIndex = 0;
 //  for (const auto& txin : tx.inputs) {
@@ -265,7 +271,7 @@ bool core::check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_v
   const uint64_t fee = inputs_amount - outputs_amount;
   bool isFusionTransaction = fee == 0 && m_currency.isFusionTransaction(tx, blobSize);
  
-  //check for minimal fee (is this needed?) 
+  //check for minimal fee (is this needed?  ... i think not) 
   //bool enough = true;
   //if (!isFusionTransaction && !m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
     //uint64_t min = m_blockchain.getMinimalFee(height);
@@ -948,6 +954,11 @@ bool core::scanOutputkeysForIndices(const KeyInput& txInToKey, std::list<std::pa
 
 bool core::getBlockDifficulty(uint32_t height, difficulty_type& difficulty) {
   difficulty = m_blockchain.blockDifficulty(height);
+  return true;
+}
+
+bool core::getBlockCumulativeDifficulty(uint32_t height, difficulty_type& difficulty) {
+  difficulty = m_blockchain.blockCumulativeDifficulty(height);
   return true;
 }
 

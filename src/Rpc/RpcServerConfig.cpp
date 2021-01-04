@@ -15,10 +15,12 @@ namespace CryptoNote {
 
     const command_line::arg_descriptor<std::string> arg_rpc_bind_ip = { "rpc-bind-ip", "", DEFAULT_RPC_IP };
     const command_line::arg_descriptor<uint16_t> arg_rpc_bind_port = { "rpc-bind-port", "", DEFAULT_RPC_PORT };
-  }
+    const command_line::arg_descriptor<std::string> arg_set_contact = { "contact", "Sets node admin contact", "" }; }
 
-
-  RpcServerConfig::RpcServerConfig() : bindIp(DEFAULT_RPC_IP), bindPort(DEFAULT_RPC_PORT) {
+  RpcServerConfig::RpcServerConfig() :
+    bindIp(DEFAULT_RPC_IP),
+    bindPort(DEFAULT_RPC_PORT),
+    contactInfo("") {
   }
 
   std::string RpcServerConfig::getBindAddress() const {
@@ -28,11 +30,13 @@ namespace CryptoNote {
   void RpcServerConfig::initOptions(boost::program_options::options_description& desc) {
     command_line::add_arg(desc, arg_rpc_bind_ip);
     command_line::add_arg(desc, arg_rpc_bind_port);
+    command_line::add_arg(desc, arg_set_contact);
   }
 
   void RpcServerConfig::init(const boost::program_options::variables_map& vm)  {
     bindIp = command_line::get_arg(vm, arg_rpc_bind_ip);
     bindPort = command_line::get_arg(vm, arg_rpc_bind_port);
+    contactInfo = command_line::get_arg(vm, arg_set_contact);
   }
 
 }
