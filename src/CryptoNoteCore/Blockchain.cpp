@@ -1087,7 +1087,7 @@ bool Blockchain::validate_miner_transaction(const Block& b, uint32_t height, siz
   }
 
   // jojapoppa, turn back on at 1st soft fork
-  // the premine history violates this... can't add back until after first soft fork to start check at given height
+  // the mining history violates this... can't add back until after first soft fork to start check at given height
   //if (minerReward > reward) {
   //  logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " << m_currency.formatAmount(minerReward) <<
   //    ", block reward is " << m_currency.formatAmount(reward);
@@ -2079,6 +2079,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
     << ENDL << "HEIGHT " << block.height << ", difficulty:\t" << currentDifficulty
     << ENDL << "block reward: " << m_currency.formatAmount(reward) << ", fee = " << m_currency.formatAmount(fee_summary)
     << ", coinbase_blob_size: " << coinbase_blob_size << ", cumulative size: " << cumulative_block_size
+    << " total coins mined: " << block.already_generated_coins
     << ", " << block_processing_time << "(" << target_calculating_time << "/" << longhash_calculating_time << ")ms";
 
   bvc.m_added_to_main_chain = true;
