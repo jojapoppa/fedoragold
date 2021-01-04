@@ -494,9 +494,7 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       return 1;
     }
 
-    if (!m_stop) {
-      m_dispatcher.yield();
-    }
+    m_dispatcher.yield();
   }
   return 0;
 }
