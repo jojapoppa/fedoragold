@@ -1086,18 +1086,18 @@ bool Blockchain::validate_miner_transaction(const Block& b, uint32_t height, siz
     return false;
   }
 
-  // jojapoppa, turn back on at 1st soft fork
-  // the mining history violates this... can't add back until after first soft fork to start check at given height
-  //if (minerReward > reward) {
-  //  logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " << m_currency.formatAmount(minerReward) <<
-  //    ", block reward is " << m_currency.formatAmount(reward);
-  //  return false;
-  //}
-  //else if (minerReward < reward) {
-  //  logger(ERROR, BRIGHT_RED) << "Coinbase transaction didn't use full amount of block reward: spent " <<
-  //    m_currency.formatAmount(minerReward) << ", block reward is " << m_currency.formatAmount(reward);
-  //  return false;
-  // }
+  // jojapoppa, turn back on at 1st soft fork - turning back on now... related to mining history
+  //   now will test with checkpoints active
+  if (minerReward > reward) {
+    logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " << m_currency.formatAmount(minerReward) <<
+      ", block reward is " << m_currency.formatAmount(reward);
+    return false;
+  }
+  else if (minerReward < reward) {
+    logger(ERROR, BRIGHT_RED) << "Coinbase transaction didn't use full amount of block reward: spent " <<
+      m_currency.formatAmount(minerReward) << ", block reward is " << m_currency.formatAmount(reward);
+    return false;
+   }
 
   return true;
 }

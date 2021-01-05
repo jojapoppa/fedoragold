@@ -570,6 +570,14 @@ void core::on_synchronized() {
   m_miner->on_synchronized();
 }
 
+void core::on_synched_enough() {
+  m_miner->on_synchronized();
+}
+
+void core::on_not_synchronized() {
+  m_miner->on_not_synchronized();
+}
+
 bool core::getPoolChanges(const Crypto::Hash& tailBlockId, const std::vector<Crypto::Hash>& knownTxsIds,
                           std::vector<Transaction>& addedTxs, std::vector<Crypto::Hash>& deletedTxsIds) {
   getPoolChanges(knownTxsIds, addedTxs, deletedTxsIds);

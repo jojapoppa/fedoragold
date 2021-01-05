@@ -190,7 +190,7 @@ namespace CryptoNote
   bool miner::start(const AccountPublicAddress& adr, size_t threads_count)
   {   
     if (is_mining()) {
-      logger(ERROR) << "Starting miner but it's already started";
+      //logger(ERROR) << "Starting miner but it's already started";
       return false;
     }
 
@@ -311,8 +311,19 @@ namespace CryptoNote
   //-----------------------------------------------------------------------------------------------------
   void miner::on_synchronized()
   {
+    if(!m_do_mining) {
+      logger(INFO) << "Miner synchronized with chain...";
+    }
+
     if(m_do_mining) {
       start(m_mine_address, m_threads_total);
+    }
+  }
+  void miner::on_not_synchronized()
+  {
+    if(m_do_mining) {
+      logger(INFO) << "Miner not sychronized with chain...";
+      stop();
     }
   }
   //-----------------------------------------------------------------------------------------------------

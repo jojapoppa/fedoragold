@@ -146,6 +146,7 @@ bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& 
   logger(DEBUGGING) << "in proccess_payload_sync_data: The current state is: " << get_protocol_state_string(context.m_state); 
 
   if (context.m_state == CryptoNoteConnectionContext::state_synchronizing) {
+      on_connection_not_synchronized();
   } else if (m_core.have_block(hshd.top_id)) {
     if (is_initial) {
       on_connection_synchronized();
@@ -167,6 +168,8 @@ bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& 
     // a new request as well
     logger(Logging::TRACE) << context << "requesting synchronization";
     context.m_state = CryptoNoteConnectionContext::state_sync_required;
+
+    on_connection_not_synchronized();
   }
 
   updateObservedHeight(hshd.current_height, context);
@@ -565,6 +568,8 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
         << "\r\nm_needed_objects.size()=" << context.m_needed_objects.size()
         << "\r\nm_requested_objects.size()=" << context.m_requested_objects.size() 
         << "\r\non connection [" << context << "]";
+
+      on_connection_not_synchronized();
       return false;
     }
 
@@ -574,6 +579,11 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
     logger(INFO, Logging::BRIGHT_GREEN) << context << "SYNCHRONIZED OK";
     on_connection_synchronized();
   }
+  return true;
+}
+
+bool CryptoNoteProtocolHandler::on_connection_not_synchronized() {
+  m_core.on_not_synchronized();
   return true;
 }
 
@@ -588,6 +598,8 @@ bool CryptoNoteProtocolHandler::on_connection_synchronized() {
     m_core.get_blockchain_top(height, hash);
     m_observerManager.notify(&ICryptoNoteProtocolObserver::blockchainSynchronized, height);
   }
+
+  m_core.on_synched_enough();
   return true;
 }
 

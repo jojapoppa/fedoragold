@@ -94,6 +94,8 @@ namespace CryptoNote {
      std::vector<Crypto::Hash> buildSparseChain() override;
      std::vector<Crypto::Hash> buildSparseChain(const Crypto::Hash& startBlockId) override;
      void on_synchronized() override;
+     void on_not_synchronized() override;
+     void on_synched_enough() override;
 
      uint64_t getcurrentmediansize();
 

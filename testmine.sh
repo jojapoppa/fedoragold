@@ -1,3 +1,3 @@
 #!/bin/bash
-./build/release/src/fedoragold_daemon --log-level 3 --rpc-bind-ip 0.0.0.0 --start-mining NJ3shqP5wn1didmDkvgJP5MHbFvLqbdYv8p7RyvHA93JKpMReKb2WYrGZGxvxmg4wM5LEDGuTt2d3385isqWyczg2otbc12 --mining-threads 7 --add-priority-node 18.222.96.134:30158 --add-priority-node fed.cryptonote.club:30158
+./build/release/src/fedoragold_daemon --log-level 2 --rpc-bind-ip 0.0.0.0 --start-mining NLr6xycTPnHTEmnsTdoMr93rnejuKxeb8HtDpMyfUkApK4b2cTt4HA4Yhay1HBU1CLgiEhwsM14wCXFriSj7DkFpCy5JMvU --mining-threads 2 --add-priority-node 192.248.151.29:30158 --add-priority-node fed.cryptonote.club:30158
 

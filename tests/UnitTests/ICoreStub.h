@@ -54,6 +54,8 @@ public:
   virtual bool handle_incoming_block_blob(const CryptoNote::BinaryArray& block_blob, CryptoNote::block_verification_context& bvc, bool control_miner, bool relay_block) override { return false; }
   virtual bool handle_get_objects(CryptoNote::NOTIFY_REQUEST_GET_OBJECTS::request& arg, CryptoNote::NOTIFY_RESPONSE_GET_OBJECTS::request& rsp) override { return false; }
   virtual void on_synchronized() override {}
+  virtual void on_not_synchronized() override {}
+  virtual void on_synched_enough() override {}
   virtual bool getOutByMSigGIndex(uint64_t amount, uint64_t gindex, CryptoNote::MultisignatureOutput& out) override { return true; }
   virtual size_t addChain(const std::vector<const CryptoNote::IBlock*>& chain) override;
 

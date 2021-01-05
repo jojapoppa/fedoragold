@@ -79,6 +79,7 @@ namespace CryptoNote
     uint32_t get_current_blockchain_height();
     bool request_missing_objects(CryptoNoteConnectionContext& context, bool check_having_blocks);
     bool on_connection_synchronized();
+    bool on_connection_not_synchronized();
     void updateObservedHeight(uint32_t peerHeight, const CryptoNoteConnectionContext& context);
     void recalculateMaxObservedHeight(const CryptoNoteConnectionContext& context);
     int processObjects(CryptoNoteConnectionContext& context, const std::vector<block_complete_entry>& blocks);
