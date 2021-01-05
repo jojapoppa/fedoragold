@@ -76,7 +76,7 @@ void serialize(TransactionOutputDetails& output, ISerializer& serializer) {
 
 void serialize(TransactionOutputReferenceDetails& outputReference, ISerializer& serializer) {
   serializePod(outputReference.transactionHash, "transactionHash", serializer);
-  serializer(outputReference.number, "number");
+  //serializer(outputReference.number, "number");
 }
 
 void serialize(TransactionInputMultisignatureDetails& inputMultisig, ISerializer& serializer) {
@@ -144,19 +144,19 @@ void serialize(TransactionDetails& transaction, ISerializer& serializer) {
       ++ctr;
     }
     size_t size = transaction.signatures.size();
-    serializer(size, "signaturesSize");
-    serializer(signaturesForSerialization, "signatures");
+    //serializer(size, "signaturesSize");
+    //serializer(signaturesForSerialization, "signatures");
   } else {
-    size_t size = 0;
-    serializer(size, "signaturesSize");
-    transaction.signatures.resize(size);
+    //size_t size = 0;
+    //serializer(size, "signaturesSize");
+    //transaction.signatures.resize(size);
 
-    std::vector<std::pair<size_t, Crypto::Signature>> signaturesForSerialization;
-    serializer(signaturesForSerialization, "signatures");
+    //std::vector<std::pair<size_t, Crypto::Signature>> signaturesForSerialization;
+    //serializer(signaturesForSerialization, "signatures");
 
-    for (const auto& signatureWithIndex : signaturesForSerialization) {
-      transaction.signatures[signatureWithIndex.first].push_back(signatureWithIndex.second);
-    }
+    //for (const auto& signatureWithIndex : signaturesForSerialization) {
+    //  transaction.signatures[signatureWithIndex.first].push_back(signatureWithIndex.second);
+    //}
   }
 }
 
