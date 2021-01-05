@@ -9,6 +9,7 @@
 #include <future>
 #include <unordered_map>
 #include <iostream>
+#include <sstream>
 
 #include "version.h"
 
@@ -682,7 +683,12 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.start_time = (uint64_t)m_core.getStartTime();
   uint64_t alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
   // that large uint64_t number is unsafe in JavaScript environment and therefore as a JSON value so we display it as a formatted string
-  res.already_generated_coins = m_core.getTotalGeneratedAmount();
+  
+  std::ostringstream oss;
+  oss << alreadyGeneratedCoins;
+  std::string totalSuppl(oss.str()); 
+  res.already_generated_coins = totalSuppl;
+
   res.block_major_version = CryptoNote::BLOCK_MAJOR_VERSION_1; // no forks
   uint64_t nextReward = m_core.currency().calculateReward(alreadyGeneratedCoins);
   res.next_reward = nextReward;
