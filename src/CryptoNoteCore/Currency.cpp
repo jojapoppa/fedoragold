@@ -96,6 +96,7 @@ bool Currency::generateGenesisBlock() {
   return true;
 }
 
+/*
 uint64_t Currency::calculateReward(uint64_t alreadyGeneratedCoins) const {
   // assert(alreadyGeneratedCoins <= m_moneySupply);
   assert(m_emissionSpeedFactor > 0 && m_emissionSpeedFactor <= 8 * sizeof(uint64_t));
@@ -119,6 +120,7 @@ uint64_t Currency::calculateReward(uint64_t alreadyGeneratedCoins) const {
 
   return baseReward;
 }
+*/
 
 bool Currency::getBlockReward(size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins,
   uint64_t fee, uint64_t& reward, int64_t& emissionChange) const {

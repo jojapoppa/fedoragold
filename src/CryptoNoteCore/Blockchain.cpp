@@ -830,6 +830,7 @@ uint64_t Blockchain::getBlockTimestamp(uint32_t height) {
   return m_blocks[height].bl.timestamp;
 }
 
+/*
 uint64_t Blockchain::getMinimalFee(uint32_t height) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
   if (height == 0 || m_blocks.size() <= 1) {
@@ -850,9 +851,8 @@ uint64_t Blockchain::getMinimalFee(uint32_t height) {
     ++offset;
   }
 
-  /* Perhaps, in case of POW change, difficulties for calculations here
-   * should be reset and used starting from the fork height.
-   */
+  // Perhaps, in case of POW change, difficulties for calculations here
+  // should be reset and used starting from the fork height.
 
   // calculate average difficulty for ~last month
   uint64_t avgCurrentDifficulty = getAvgDifficulty(height, window * 7 * 4);
@@ -865,6 +865,7 @@ uint64_t Blockchain::getMinimalFee(uint32_t height) {
 
   return m_currency.getMinimalFee(avgCurrentDifficulty, currentReward, avgReferenceDifficulty, avgReferenceReward, height);
 }
+*/
 
 uint64_t Blockchain::getCoinsInCirculation() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
