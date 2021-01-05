@@ -659,6 +659,16 @@ bool RpcServer::on_get_transaction_hashes_by_paymentid(const COMMAND_RPC_GET_TRA
 // JSON handlers
 //
 
+namespace {
+  uint64_t get_block_reward(const Block& blk) {
+    uint64_t reward = 0;
+    for (const TransactionOutput& out : blk.baseTransaction.outputs) {
+      reward += out.amount;
+    }
+    return reward;
+  }
+}
+
 bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RPC_GET_INFO::response& res) {
   //logger(INFO) << "on_get_info() called";
 
@@ -696,12 +706,13 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.block_major_version = CryptoNote::BLOCK_MAJOR_VERSION_1; // no forks
   res.max_cumulative_block_size = (uint64_t)m_core.currency().maxBlockCumulativeSize(res.height);
 
-  uint64_t nextReward;
-  int64_t emissionChange;
-  m_core.currency().getBlockReward(medianSize, res.max_cumulative_block_size, alreadyGeneratedCoins, res.min_fee, nextReward, emissionChange);
-  //nextReward = m_core.currency().calculateReward(alreadyGeneratedCoins);
- 
-  res.next_reward = nextReward;
+  Block block;
+  if (! m_core.getBlockByHash(last_block_hash, block)) {
+    res.next_reward = 0; 
+  } else {
+    res.next_reward = get_block_reward(block);
+  }
+
   if (!m_core.getBlockCumulativeDifficulty(res.height - 1, res.cumulative_difficulty)) {
     throw JsonRpc::JsonRpcError{
       CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get last cumulative difficulty." };
@@ -753,16 +764,6 @@ bool RpcServer::on_get_blockindexes(const COMMAND_RPC_GET_BLOCK_INDEXES::request
 
   m_core.print_blockchain_index();
   return true;
-}
-
-namespace {
-  uint64_t get_block_reward(const Block& blk) {
-    uint64_t reward = 0;
-    for (const TransactionOutput& out : blk.baseTransaction.outputs) {
-      reward += out.amount;
-    }
-    return reward;
-  }
 }
 
 bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_RPC_GET_BLOCK::response& res) {
