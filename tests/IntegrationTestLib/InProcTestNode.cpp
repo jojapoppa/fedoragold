@@ -29,8 +29,8 @@ bool parse_peer_from_string(NetworkAddress &pe, const std::string &node_addr) {
 }
 
 
-InProcTestNode::InProcTestNode(const TestNodeConfiguration& cfg, const CryptoNote::Currency& currency) : 
-  m_cfg(cfg), m_currency(currency) {
+InProcTestNode::InProcTestNode(const TestNodeConfiguration& cfg, const CryptoNote::Currency& currency, Logging::LoggerRef loggref) : 
+  m_cfg(cfg), m_currency(currency), logger(loggref) {
 
   std::promise<std::string> initPromise;
   std::future<std::string> initFuture = initPromise.get_future();
@@ -54,9 +54,8 @@ void InProcTestNode::workerThread(std::promise<std::string>& initPromise) {
 
   System::Dispatcher dispatcher;
 
-  Logging::ConsoleLogger log;
-
-  Logging::LoggerRef logger(log, "InProcTestNode");
+  //Logging::ConsoleLogger log;
+  //Logging::LoggerRef logger(log, "InProcTestNode");
 
   try {
 
@@ -163,7 +162,7 @@ bool InProcTestNode::getTailBlockId(Crypto::Hash &tailBlockId) {
 
 bool InProcTestNode::makeINode(std::unique_ptr<CryptoNote::INode> &node) {
 
-  std::unique_ptr<InProcessNode> inprocNode(new CryptoNote::InProcessNode(*core, *protocol));
+  std::unique_ptr<InProcessNode> inprocNode(new CryptoNote::InProcessNode(*core, *protocol, logger));
 
   std::promise<std::error_code> p;
   auto future = p.get_future();

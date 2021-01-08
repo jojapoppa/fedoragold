@@ -105,8 +105,8 @@ struct COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HEIGHTS {
     std::string status;
 
     void serialize(ISerializer& s) {
-      KV_MEMBER(status)
       KV_MEMBER(blocks)
+      KV_MEMBER(status)
     }
   };
 };

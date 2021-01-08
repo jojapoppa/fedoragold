@@ -76,7 +76,7 @@ void BaseFunctionalTests::launchInprocTestnet(size_t count, Topology t) {
 
   for (size_t i = 0; i < m_testnetSize; ++i) {
     auto cfg = createNodeConfiguration(i);
-    nodeDaemons.emplace_back(new InProcTestNode(cfg, m_currency));
+    nodeDaemons.emplace_back(new InProcTestNode(cfg, m_currency, llogger));
   }
 
   waitDaemonsReady();
@@ -100,7 +100,7 @@ void BaseFunctionalTests::launchTestnetWithInprocNode(size_t count, Topology t) 
   }
 
   auto cfg = createNodeConfiguration(m_testnetSize - 1);
-  nodeDaemons[m_testnetSize - 1].reset(new InProcTestNode(cfg, m_currency));
+  nodeDaemons[m_testnetSize - 1].reset(new InProcTestNode(cfg, m_currency, llogger));
 
   waitDaemonsReady();
 

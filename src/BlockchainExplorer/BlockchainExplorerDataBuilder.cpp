@@ -15,9 +15,10 @@
 
 namespace CryptoNote {
 
-BlockchainExplorerDataBuilder::BlockchainExplorerDataBuilder(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol) :
+BlockchainExplorerDataBuilder::BlockchainExplorerDataBuilder(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol, Logging::LoggerRef logref) :
 core(core),
-protocol(protocol) {
+protocol(protocol),
+logger(logref) {
 }
 
 bool BlockchainExplorerDataBuilder::getMixin(const Transaction& transaction, uint64_t& mixin) {
@@ -78,6 +79,8 @@ size_t BlockchainExplorerDataBuilder::median(std::vector<size_t>& v) {
 }
 
 bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDetails& blockDetails) {
+  //logger(Logging::INFO) << "in BlockchainExplorerDataBuilder::fillBlockDetails";
+
   Crypto::Hash hash = get_block_hash(block);
 
   blockDetails.majorVersion = block.majorVersion;
@@ -93,24 +96,36 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
   }
 
   if (block.baseTransaction.inputs.front().type() != typeid(BaseInput))
+  {
+    //logger(Logging::INFO) << "base input error...";
     return false;
+  }
   blockDetails.height = boost::get<BaseInput>(block.baseTransaction.inputs.front()).blockIndex;
+  //blockDetails.depth = core.getCurrentBlockchainHeight() - blockDetails.height - 1;
 
   Crypto::Hash tmpHash = core.getBlockIdByHeight(blockDetails.height);
   blockDetails.isOrphaned = hash != tmpHash;
 
   if (!core.getBlockDifficulty(blockDetails.height, blockDetails.difficulty)) {
+    //logger(Logging::INFO) << "could not get diff";
     return false;
   }
 
+  //if (!core.getBlockCumulativeDifficulty(blockDetails.height, blockDetails.cumulativeDifficulty)) {
+  //  logger(Logging::INFO) << "could not get cumulative diff";
+  //  return false;
+  //}
+
   std::vector<size_t> blocksSizes;
   if (!core.getBackwardBlocksSizes(blockDetails.height, blocksSizes, parameters::CRYPTONOTE_REWARD_BLOCKS_WINDOW)) {
+    //logger(Logging::INFO) << "error getting block sizes";
     return false;
   }
   blockDetails.sizeMedian = median(blocksSizes);
 
   size_t blockSize = 0;
   if (!core.getBlockSize(hash, blockSize)) {
+    //logger(Logging::INFO) << "could not get block size";
     return false;
   }
   blockDetails.transactionsCumulativeSize = blockSize;
@@ -120,16 +135,20 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
   blockDetails.blockSize = blokBlobSize + blockDetails.transactionsCumulativeSize - minerTxBlobSize;
 
   if (!core.getAlreadyGeneratedCoins(hash, blockDetails.alreadyGeneratedCoins)) {
+    //logger(Logging::INFO) << "error getting total supply";
     return false;
   }
 
+  //logger(Logging::INFO) << "getGeneratedTransactionsNumber at: " << blockDetails.height;
+
   if (!core.getGeneratedTransactionsNumber(blockDetails.height, blockDetails.alreadyGeneratedTransactions)) {
-    return false;
+    //logger(Logging::INFO) << "this is not an error: some blocks have no transactions...";
   }
 
   uint64_t prevBlockGeneratedCoins = 0;
   if (blockDetails.height > 0) {
     if (!core.getAlreadyGeneratedCoins(block.previousBlockHash, prevBlockGeneratedCoins)) {
+      logger(Logging::INFO) << "bad return from getAlreadyGeneratedCoins";
       return false;
     }
   }
@@ -137,9 +156,11 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
   uint64_t currentReward = 0;
   int64_t emissionChange = 0;
   if (!core.getBlockReward(blockDetails.sizeMedian, 0, prevBlockGeneratedCoins, 0, maxReward, emissionChange)) {
+    //logger(Logging::INFO) << "getBlockReward error";
     return false;
   }
   if (!core.getBlockReward(blockDetails.sizeMedian, blockDetails.transactionsCumulativeSize, prevBlockGeneratedCoins, 0, currentReward, emissionChange)) {
+    //logger(Logging::INFO) << "getBlockReward with cummulative size: error";
     return false;
   }
 
@@ -148,6 +169,7 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
     blockDetails.penalty = static_cast<double>(0);
   } else {
     if (maxReward < currentReward) {
+      //logger(Logging::INFO) << "maxReward < currentReward";
       return false;
     }
     blockDetails.penalty = static_cast<double>(maxReward - currentReward) / static_cast<double>(maxReward);
@@ -157,6 +179,7 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
   blockDetails.transactions.reserve(block.transactionHashes.size() + 1);
   TransactionDetails transactionDetails;
   if (!fillTransactionDetails(block.baseTransaction, transactionDetails, block.timestamp)) {
+    //logger(Logging::INFO) << "error in fillTransactionDetails";
     return false;
   }
   blockDetails.transactions.push_back(std::move(transactionDetails));
@@ -165,6 +188,7 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
   std::list<Crypto::Hash> missed;
   core.getTransactions(block.transactionHashes, found, missed, blockDetails.isOrphaned);
   if (found.size() != block.transactionHashes.size()) {
+    //logger(Logging::INFO) << "found and block sizes don't match";
     return false;
   }
 
@@ -173,6 +197,7 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
   for (const Transaction& tx : found) {
     TransactionDetails transactionDetails;
     if (!fillTransactionDetails(tx, transactionDetails, block.timestamp)) {
+      //logger(Logging::INFO) << "error in fillTransactionDetails";
       return false;
     }
     blockDetails.transactions.push_back(std::move(transactionDetails));

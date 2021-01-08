@@ -12,7 +12,8 @@
 #include <thread>
 
 #include <System/Dispatcher.h>
-
+#include <Logging/ConsoleLogger.h>
+#include <Logging/LoggerRef.h>
 
 namespace CryptoNote {
 class core;
@@ -25,7 +26,7 @@ namespace Tests {
 
 class InProcTestNode : public TestNode {
 public:
-  InProcTestNode(const TestNodeConfiguration& cfg, const CryptoNote::Currency& currency);
+  InProcTestNode(const TestNodeConfiguration& cfg, const CryptoNote::Currency& currency, Logging::LoggerRef);
   ~InProcTestNode();
 
   virtual bool startMining(size_t threadsCount, const std::string &address) override;
@@ -38,6 +39,9 @@ public:
   virtual uint64_t getLocalHeight() override;
 
 private:
+
+  Logging::ConsoleLogger log;
+  Logging::LoggerRef logger;
 
   void workerThread(std::promise<std::string>& initPromise);
 

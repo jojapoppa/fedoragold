@@ -48,7 +48,8 @@ public:
   InProcessNodeTests() :
     node(coreStub, protocolQueryStub),
     currency(CryptoNote::CurrencyBuilder(logger).currency()),
-    generator(currency) {}
+    generator(currency),
+    logger(log, "InProcNoteTest") {}
 
   ~InProcessNodeTests() noexcept {};
 

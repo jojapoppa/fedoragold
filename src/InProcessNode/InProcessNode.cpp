@@ -23,11 +23,11 @@ using namespace Common;
 
 namespace CryptoNote {
 
-InProcessNode::InProcessNode(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol) :
+InProcessNode::InProcessNode(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol, Logging::LoggerRef ref) :
     state(NOT_INITIALIZED),
     core(core),
     protocol(protocol),
-    blockchainExplorerDataBuilder(core, protocol)
+    blockchainExplorerDataBuilder(core, protocol, ref)
 {
 }
 

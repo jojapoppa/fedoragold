@@ -182,7 +182,7 @@ void PaymentGateService::runInProcess(Logging::LoggerRef& log) {
   std::promise<std::error_code> initPromise;
   auto initFuture = initPromise.get_future();
 
-  std::unique_ptr<CryptoNote::INode> node(new CryptoNote::InProcessNode(core, protocol));
+  std::unique_ptr<CryptoNote::INode> node(new CryptoNote::InProcessNode(core, protocol, log));
 
   node->init([&initPromise, &log](std::error_code ec) {
     if (ec) {

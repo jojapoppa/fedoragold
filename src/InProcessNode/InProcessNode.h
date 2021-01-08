@@ -16,13 +16,15 @@
 #include <thread>
 #include <boost/asio.hpp>
 
+#include <Logging/LoggerRef.h>
+
 namespace CryptoNote {
 
 class core;
 
 class InProcessNode : public INode, public CryptoNote::ICryptoNoteProtocolObserver, public CryptoNote::ICoreObserver {
 public:
-  InProcessNode(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol);
+  InProcessNode(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol, Logging::LoggerRef);
 
   InProcessNode(const InProcessNode&) = delete;
   InProcessNode(InProcessNode&&) = delete;

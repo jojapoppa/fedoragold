@@ -11,12 +11,14 @@
 #include "CryptoNoteCore/ICore.h"
 #include "BlockchainExplorerData.h"
 
+#include <Logging/LoggerRef.h>
+
 namespace CryptoNote {
 
 class BlockchainExplorerDataBuilder
 {
 public:
-  BlockchainExplorerDataBuilder(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol);
+  BlockchainExplorerDataBuilder(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol, Logging::LoggerRef);
 
   BlockchainExplorerDataBuilder(const BlockchainExplorerDataBuilder&) = delete;
   BlockchainExplorerDataBuilder(BlockchainExplorerDataBuilder&&) = delete;
@@ -30,6 +32,8 @@ public:
   static bool getPaymentId(const Transaction& transaction, Crypto::Hash& paymentId);
 
 private:
+  Logging::LoggerRef logger;
+
   bool getMixin(const Transaction& transaction, uint64_t& mixin);
   bool fillTxExtra(const std::vector<uint8_t>& rawExtra, TransactionExtraDetails& extraDetails);
   size_t median(std::vector<size_t>& v);

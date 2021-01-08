@@ -88,11 +88,11 @@ then
   cp CMakeListsAndroid.txt CMakeLists.txt
   make build-release
   exit
-elif python -m platform | grep kvm > /dev/null
+elif python -m platform | grep 'Linux-5.4.0-54-generic-x86_64-with-Ubuntu-20.04-focal' > /dev/null
 then
   echo alt-cloud platform...
-  export CC=gcc-8
-  export CXX=g++-8
+  export CC=gcc-9
+  export CXX=g++-9
   export BOOST_ROOT=$HOME/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=$HOME/fedoragold/boostfedora/include
   cp CMakeListsLinux.txt CMakeLists.txt
