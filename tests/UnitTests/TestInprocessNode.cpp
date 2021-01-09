@@ -46,10 +46,10 @@ CryptoNote::Transaction createTx(CryptoNote::ITransactionReader& tx) {
 class InProcessNodeTests : public ::testing::Test {
 public:
   InProcessNodeTests() :
-    node(coreStub, protocolQueryStub),
+    loggerRef(logger, "testing"),
+    node(coreStub, protocolQueryStub, loggerRef),
     currency(CryptoNote::CurrencyBuilder(logger).currency()),
-    generator(currency),
-    logger(log, "InProcNoteTest") {}
+    generator(currency) {}
 
   ~InProcessNodeTests() noexcept {};
 
@@ -65,6 +65,7 @@ protected:
   CryptoNote::Currency currency;
   TestBlockchainGenerator generator;
   Logging::FileLogger logger;
+  Logging::LoggerRef loggerRef;
 };
 
 void InProcessNodeTests::SetUp() {
@@ -80,7 +81,7 @@ void InProcessNodeTests::initNode() {
 }
 
 TEST_F(InProcessNodeTests, initOk) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   CallbackStatus status;
 
   newNode.init([&status] (std::error_code ec) { status.setStatus(ec); });
@@ -97,7 +98,7 @@ TEST_F(InProcessNodeTests, doubleInit) {
 }
 
 TEST_F(InProcessNodeTests, shutdownNotInited) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   ASSERT_FALSE(newNode.shutdown());
 }
 
@@ -188,22 +189,22 @@ TEST_F(InProcessNodeTests, getRandomOutsByAmountsFailure) {
 }
 
 TEST_F(InProcessNodeTests, getPeerCountUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   ASSERT_ANY_THROW(newNode.getPeerCount());
 }
 
 TEST_F(InProcessNodeTests, getLastLocalBlockHeightUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   ASSERT_ANY_THROW(newNode.getLastLocalBlockHeight());
 }
 
 TEST_F(InProcessNodeTests, getLastKnownBlockHeightUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   ASSERT_ANY_THROW(newNode.getLastKnownBlockHeight());
 }
 
 TEST_F(InProcessNodeTests, getNewBlocksUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   std::vector<Crypto::Hash> knownBlockIds;
   std::vector<CryptoNote::block_complete_entry> newBlocks;
   uint32_t startHeight;
@@ -215,7 +216,7 @@ TEST_F(InProcessNodeTests, getNewBlocksUninitialized) {
 }
 
 TEST_F(InProcessNodeTests, getTransactionOutsGlobalIndicesUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   std::vector<uint32_t> outsGlobalIndices;
 
   CallbackStatus status;
@@ -225,7 +226,7 @@ TEST_F(InProcessNodeTests, getTransactionOutsGlobalIndicesUninitialized) {
 }
 
 TEST_F(InProcessNodeTests, getRandomOutsByAmountsUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   std::vector<CryptoNote::COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS_outs_for_amount> outs;
 
   CallbackStatus status;
@@ -235,7 +236,7 @@ TEST_F(InProcessNodeTests, getRandomOutsByAmountsUninitialized) {
 }
 
 TEST_F(InProcessNodeTests, relayTransactionUninitialized) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
 
   CallbackStatus status;
   newNode.relayTransaction(CryptoNote::Transaction(), [&] (std::error_code ec) { status.setStatus(ec); });
@@ -329,7 +330,7 @@ TEST_F(InProcessNodeTests, getBlocksByHeightFail) {
 }
 
 TEST_F(InProcessNodeTests, getBlocksByHeightNotInited) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
 
   std::vector<uint32_t> blockHeights;
   std::vector<std::vector<CryptoNote::BlockDetails>> blocks;
@@ -425,7 +426,7 @@ TEST_F(InProcessNodeTests, getBlocksByHashFail) {
 }
 
 TEST_F(InProcessNodeTests, getBlocksByHashNotInited) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
 
   std::vector<Crypto::Hash> blockHashes;
   std::vector<CryptoNote::BlockDetails> blocks;
@@ -566,7 +567,7 @@ TEST_F(InProcessNodeTests, getTxFail) {
 }
 
 TEST_F(InProcessNodeTests, getTxNotInited) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
 
   std::vector<Crypto::Hash> transactionHashes;
   std::vector<CryptoNote::TransactionDetails> transactions;
@@ -603,7 +604,7 @@ TEST_F(InProcessNodeTests, isSynchronized) {
 }
 
 TEST_F(InProcessNodeTests, isSynchronizedNotInited) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
   bool syncStatus;
 
   CallbackStatus status;
@@ -629,7 +630,7 @@ TEST_F(InProcessNodeTests, getLastLocalBlockTimestamp) {
 
   uint64_t expectedTimestamp = 1234567890;
   GetBlockTimestampCore core(expectedTimestamp);
-  CryptoNote::InProcessNode newNode(core, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(core, protocolQueryStub, loggerRef);
 
   CallbackStatus initStatus;
   newNode.init([&initStatus] (std::error_code ec) { initStatus.setStatus(ec); });
@@ -652,7 +653,7 @@ TEST_F(InProcessNodeTests, getLastLocalBlockTimestampError) {
   };
 
   GetBlockTimestampErrorCore core;
-  CryptoNote::InProcessNode newNode(core, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(core, protocolQueryStub, loggerRef);
 
   CallbackStatus initStatus;
   newNode.init([&initStatus] (std::error_code ec) { initStatus.setStatus(ec); });
@@ -662,7 +663,7 @@ TEST_F(InProcessNodeTests, getLastLocalBlockTimestampError) {
 }
 
 TEST_F(InProcessNodeTests, getPoolDiffereceNotInited) {
-  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub);
+  CryptoNote::InProcessNode newNode(coreStub, protocolQueryStub, loggerRef);
 
   std::vector<Crypto::Hash> knownPoolTxIds; 
   Crypto::Hash knownBlockId = boost::value_initialized<Crypto::Hash>();
