@@ -909,10 +909,10 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
 
 bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res) {
 
-  //if (!checkLocal()) {
-  //  logger(INFO) << "on_get_transacdtions only runs from localhost";
-  //  return false;
-  //}
+  if (!checkLocal()) {
+    logger(INFO) << "on_get_transacdtions only runs from localhost";
+    return false;
+  }
 
   // height is 32bit in the network protocol for CN
   for (uint32_t i=0; i<m_core.get_current_blockchain_height(); i++) {
