@@ -531,7 +531,8 @@ bool fusionTX(CryptoNote::WalletGreen &wallet, CryptoNote::TransactionParameters
            However, in some wallets that have only received one big single
            transaction, they may be unable to send at all without lowering
            their mixin count to 0 */
-        if (errMsg == "MixIn count is too big" || errMsg == "Internal node error") {
+        if (errMsg == "MixIn count is too big" ||
+            errMsg == "Internal node error") {
             std::cout << WarningMsg("Failed to send transaction!") << std::endl
                       << "Unable to find enough outputs to mix with." << std::endl 
                       << "Try lowering the amount you are sending in one transaction." << std::endl
@@ -782,7 +783,8 @@ void doTransfer(uint16_t mixin, std::string dest_address, uint64_t amount, uint6
                However, in some wallets that have only recieved one big single
                transaction, they may be unable to send at all without lowering
                their mixin count to 0 */
-            else if ((errMsg == "MixIn count is too big" || errMsg == "Internal node error") && !retried) {
+            else if ((errMsg == "MixIn count is too big" ||
+                      errMsg == "Internal node error") && !retried) {
                 std::cout << WarningMsg("Failed to send transaction!") << std::endl
                           << "Unable to find enough outputs to mix with." << std::endl
                           << "Try lowering the amount you are sending in one transaction." << std::endl
