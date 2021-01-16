@@ -326,12 +326,12 @@ struct COMMAND_RPC_GET_BLOCK {
 
 struct COMMAND_RPC_GET_TRANSACTION {
   struct request {
-    Crypto::Hash txhash;
-    uint64_t blknum;
-    uint64_t txnum;
+    std::string hash;
+    uint64_t blknum=0;
+    uint64_t txnum=0;
 
     void serialize(ISerializer &s) {
-      KV_MEMBER(txhash)
+      KV_MEMBER(hash)
       KV_MEMBER(blknum)
       KV_MEMBER(txnum)
     }

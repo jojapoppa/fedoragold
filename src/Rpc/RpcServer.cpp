@@ -837,28 +837,41 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
 
 bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& req, COMMAND_RPC_GET_TRANSACTION::response& res) {
 
+  CryptoNote::Transaction tx;
   Blockchain::TransactionEntry te;
-  if (! m_core.transactionByHash(req.txhash, te)) {
-    logger(INFO) << "get transaction by ordinal position:" << req.blknum << " : " << req.txnum;
 
+  if (req.blknum > 0 && req.txnum > 0) {
     if (! m_core.transactionByOrdinal(req.blknum, req.txnum, te)) {
       logger(INFO) << "could not find transaction at ordinal positions given";
       return false;
     }
+  } else {
+    Crypto::Hash tx_hash;
+    if (!parse_hash256(req.hash, tx_hash)) {
+      throw JsonRpc::JsonRpcError{
+        CORE_RPC_ERROR_CODE_WRONG_PARAM,
+        "Failed to parse hex representation of transaction hash. Hex = " + req.hash + '.' };
+    } else if (! m_core.transactionByHash(tx_hash, te)) {
+      logger(INFO) << "could not get transaction with hash:" << tx_hash;
+      return false;
+    }
   }
 
-  CryptoNote::Transaction tx = (CryptoNote::Transaction) te.tx; 
+  tx = (CryptoNote::Transaction) te.tx; 
+
   res.global_output_indexes = te.m_global_output_indexes;
   res.hash = getObjectHash(tx);
 
   Crypto::Hash blockId;
   uint32_t blockH;
+  logger(INFO) << "check for block containing tx ";
   if (!m_core.getBlockContainingTx(res.hash, blockId, blockH)) {
     logger(INFO) << "could not locate block for transaction: " << res.hash;
     return false;
   }
 
   Block block;
+  logger(INFO) << "get block hash blockid: " << blockId;
   if (! m_core.getBlockByHash(blockId, block)) {
     logger(INFO) << "could not locate block with blockhash: " << blockId;
     return false;
@@ -869,10 +882,13 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.block = blockId;
 
   uint32_t blockHeight = 0;
+  logger(INFO) << "get block height";
   if (! m_core.getBlockHeight(blockId, blockHeight)) {
     logger(INFO) << "could not determine block height for hash: " << blockId;
     return false;
   }
+
+  logger(INFO) << "check for orphans";
 
   res.blockheight = blockHeight;
   res.orphan_status = false;
@@ -896,10 +912,14 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.unlocktime = tx.unlockTime;
   res.version = tx.version;
 
+  logger(INFO) << "get payment Id from extra";
+
   Crypto::Hash paymentID;
   if (! getPaymentIdFromTxExtra(tx.extra, paymentID)) {
     logger(INFO) << "No paymentID found for transaction";
   } 
+
+  logger(INFO) << "done";
 
   res.extra = Common::toHex(tx.extra);
   res.paymentid = paymentID;
