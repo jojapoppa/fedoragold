@@ -208,8 +208,9 @@ bool BlockchainExplorerDataBuilder::fillBlockDetails(const Block &block, BlockDe
 
 bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& transaction, TransactionDetails& transactionDetails, uint64_t timestamp) {
   Crypto::Hash hash = getObjectHash(transaction);
-  transactionDetails.hash = hash;
 
+  transactionDetails.hash = hash;
+  transactionDetails.version = transaction.version;
   transactionDetails.timestamp = timestamp;
 
   Crypto::Hash blockHash;
@@ -300,8 +301,16 @@ bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& tr
       txInToKeyDetails.outputIndexes = txInToKey.outputIndexes;
       txInToKeyDetails.keyImage = txInToKey.keyImage;
       txInToKeyDetails.mixin = txInToKey.outputIndexes.size();
-      txInToKeyDetails.output.number = outputReferences.back().second;
-      txInToKeyDetails.output.transactionHash = outputReferences.back().first;
+
+      //txInToKeyDetails.output.number = outputReferences.back().second;
+      //txInToKeyDetails.output.transactionHash = outputReferences.back().first;
+      for (const auto& r : outputReferences) {
+		    TransactionOutputReferenceDetails d;
+		    d.number = r.second;
+		    d.transactionHash = r.first;
+		    txInToKeyDetails.output.push_back(d);
+	    }
+
       txInDetails.input = txInToKeyDetails;
     } else if (txIn.type() == typeid(MultisignatureInput)) {
       TransactionInputMultisignatureDetails txInMultisigDetails;

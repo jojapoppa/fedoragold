@@ -51,7 +51,7 @@ struct TransactionInputToKeyDetails {
   std::vector<uint32_t> outputIndexes;
   Crypto::KeyImage keyImage;
   uint64_t mixin;
-  TransactionOutputReferenceDetails output;
+  std::vector<TransactionOutputReferenceDetails> output;
 };
 
 struct TransactionInputMultisignatureDetails {
@@ -77,17 +77,19 @@ struct TransactionExtraDetails {
 
 struct TransactionDetails {
   Crypto::Hash hash;
-  uint64_t size;
-  uint64_t fee;
-  uint64_t totalInputsAmount;
-  uint64_t totalOutputsAmount;
-  uint64_t mixin;
-  uint64_t unlockTime;
-  uint64_t timestamp;
+  uint64_t size = 0;
+  uint64_t fee = 0;
+  uint64_t totalInputsAmount = 0;
+  uint64_t totalOutputsAmount = 0;
+  uint64_t mixin = 0;
+  uint64_t unlockTime = 0;
+  uint64_t timestamp = 0;
+  uint8_t version = 0;
   Crypto::Hash paymentId;
-  bool inBlockchain;
+  bool hasPaymentId = false;
+  bool inBlockchain = false;
   Crypto::Hash blockHash;
-  uint32_t blockHeight;
+  uint32_t blockHeight = 0;
   TransactionExtraDetails extra;
   std::vector<std::vector<Crypto::Signature>> signatures;
   std::vector<TransactionInputDetails> inputs;
