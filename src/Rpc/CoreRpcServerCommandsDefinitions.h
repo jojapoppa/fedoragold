@@ -324,6 +324,46 @@ struct COMMAND_RPC_GET_BLOCK {
   };
 };
 
+struct keyinput_response {
+  uint64_t amount;
+  std::string key;
+
+  void serialize(ISerializer &s) {
+    KV_MEMBER(amount)
+    KV_MEMBER(key)
+  }
+};
+
+struct multisiginput_response {
+  uint64_t amount;
+  uint64_t signatureCount;
+  uint64_t outputIndex;
+
+  void serialize(ISerializer &s) {
+    KV_MEMBER(amount)
+    KV_MEMBER(signatureCount)
+    KV_MEMBER(outputIndex)
+  }
+};
+
+struct keyoutput_response {
+  std::string keyOutput;
+
+  void serialize(ISerializer &s) {
+    KV_MEMBER(keyOutput)
+  }
+};
+
+struct multisigoutput_response {
+  uint64_t requiredSignatureCount;
+  std::vector<std::string> keys;
+
+  void serialize(ISerializer &s) {
+    KV_MEMBER(requiredSignatureCount)
+    KV_MEMBER(keys)
+  }
+};
+
 struct COMMAND_RPC_GET_TRANSACTION {
   struct request {
     std::string hash;
@@ -348,6 +388,12 @@ struct COMMAND_RPC_GET_TRANSACTION {
     uint64_t outputamt; 
     uint64_t txsize;
     uint64_t fee;
+
+    std::vector<struct keyinput_response> inputskeyobjs;
+    std::vector<struct multisiginput_response> inputsmultisigobjs;
+    std::vector<struct keyoutput_response> outputskeyobjs;
+    std::vector<struct multisigoutput_response> outputsmultisigobjs;
+
     std::vector<uint64_t> inputsamts;
     std::vector<uint64_t> outputsamts;
     std::vector<Crypto::PublicKey> outputskeys;
@@ -366,6 +412,12 @@ struct COMMAND_RPC_GET_TRANSACTION {
       KV_MEMBER(orphan_status)
       KV_MEMBER(inputamt)
       KV_MEMBER(outputamt)
+
+      KV_MEMBER(inputskeyobjs)
+      KV_MEMBER(inputsmultisigobjs)
+      KV_MEMBER(outputskeyobjs)
+      KV_MEMBER(outputsmultisigobjs)
+
       KV_MEMBER(inputsamts)
       KV_MEMBER(outputsamts)
       KV_MEMBER(outputskeys)

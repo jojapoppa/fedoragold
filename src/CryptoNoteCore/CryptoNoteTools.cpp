@@ -2,6 +2,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#include <ios>
 #include "CryptoNoteTools.h"
 #include "CryptoNoteFormatUtils.h"
 
@@ -52,6 +53,40 @@ std::vector<uint64_t> getInputsAmounts(const Transaction& transaction) {
       inputsAmounts.push_back(boost::get<KeyInput>(input).amount);
     } else if (input.type() == typeid(MultisignatureInput)) {
       inputsAmounts.push_back(boost::get<MultisignatureInput>(input).amount);
+    } else {
+      inputsAmounts.push_back(0); // retains ordinal position
+    }
+  }
+
+  return inputsAmounts;
+}
+
+std::vector<KeyInput> getInputsKeyObjs(const Transaction& transaction) {
+  std::vector<KeyInput> inputsAmounts;
+  inputsAmounts.reserve(transaction.inputs.size());
+
+  for (auto& input: transaction.inputs) {
+    if (input.type() == typeid(KeyInput)) {
+      const KeyInput& keyInput = boost::get<KeyInput>(input);
+      inputsAmounts.push_back(keyInput);
+    } else {
+      inputsAmounts.push_back(*(new KeyInput()));
+    }
+  }
+
+  return inputsAmounts;
+}
+
+std::vector<MultisignatureInput> getInputsMultisigObjs(const Transaction& transaction) {
+  std::vector<MultisignatureInput> inputsAmounts;
+  inputsAmounts.reserve(transaction.inputs.size());
+
+  for (auto& input: transaction.inputs) {
+    if (input.type() == typeid(MultisignatureInput)) {
+      const MultisignatureInput& multisigInput = boost::get<MultisignatureInput>(input);
+      inputsAmounts.push_back(multisigInput);
+    } else {
+      inputsAmounts.push_back(*(new MultisignatureInput()));
     }
   }
 
@@ -87,6 +122,37 @@ std::vector<uint64_t> getOutputsAmounts(const Transaction& transaction) {
   return outputsAmounts;
 }
 
+std::vector<KeyOutput> getOutputsKeyObjs(const Transaction& transaction) {
+  std::vector<KeyOutput> outputsAmounts;
+  outputsAmounts.reserve(transaction.outputs.size());
+
+  for (auto& output: transaction.outputs) {
+    if (output.target.type() == typeid(KeyOutput)) {
+      const KeyOutput& keyOutput = boost::get<KeyOutput>(output.target);
+      outputsAmounts.push_back(keyOutput);
+    } else {
+      outputsAmounts.push_back(*(new KeyOutput()));
+    }
+  }
+
+  return outputsAmounts;
+}
+
+std::vector<MultisignatureOutput> getOutputsMultisigObjs(const Transaction& transaction) {
+  std::vector<MultisignatureOutput> outputsAmounts;
+  outputsAmounts.reserve(transaction.outputs.size());
+
+  for (auto& output: transaction.outputs) {
+    if (output.target.type() == typeid(MultisignatureOutput)) {
+      const MultisignatureOutput& multisigOutput = boost::get<MultisignatureOutput>(output.target);
+      outputsAmounts.push_back(multisigOutput);
+    } else {
+      outputsAmounts.push_back(*(new MultisignatureOutput()));
+    }
+  }
+
+  return outputsAmounts;
+}
 
 uint64_t getOutputAmount(const Transaction& transaction) {
   uint64_t amount = 0;

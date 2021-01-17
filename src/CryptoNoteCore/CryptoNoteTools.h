@@ -108,6 +108,12 @@ Crypto::Hash getObjectHash(const T& object) {
 
 uint64_t getInputAmount(const Transaction& transaction);
 std::vector<uint64_t> getInputsAmounts(const Transaction& transaction);
+
+std::vector<KeyInput> getInputsKeyObjs(const Transaction& transaction);
+std::vector<MultisignatureInput> getInputsMultisigObjs(const Transaction& transaction);
+std::vector<KeyOutput> getOutputsKeyObjs(const Transaction& transaction);
+std::vector<MultisignatureOutput> getOutputsMultisigObjs(const Transaction& transaction);
+
 std::vector<Crypto::PublicKey> getOutputsKeys(const Transaction& transaction);
 std::vector<uint64_t> getOutputsAmounts(const Transaction& transaction);
 uint64_t getOutputAmount(const Transaction& transaction);

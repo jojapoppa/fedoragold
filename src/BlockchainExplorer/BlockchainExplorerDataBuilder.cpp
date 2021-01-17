@@ -291,25 +291,23 @@ bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& tr
       }
       txInDetails.input = txInGenDetails;
     } else if (txIn.type() == typeid(KeyInput)) {
-      TransactionInputToKeyDetails txInToKeyDetails;
+      CryptoNote::KeyInputDetails txInToKeyDetails;
+
       const KeyInput& txInToKey = boost::get<KeyInput>(txIn);
+      txInToKeyDetails.input = txInToKey;
       std::list<std::pair<Crypto::Hash, size_t>> outputReferences;
       if (!core.scanOutputkeysForIndices(txInToKey, outputReferences)) {
         return false;
       }
       txInDetails.amount = txInToKey.amount;
-      txInToKeyDetails.outputIndexes = txInToKey.outputIndexes;
-      txInToKeyDetails.keyImage = txInToKey.keyImage;
       txInToKeyDetails.mixin = txInToKey.outputIndexes.size();
 
-      //txInToKeyDetails.output.number = outputReferences.back().second;
-      //txInToKeyDetails.output.transactionHash = outputReferences.back().first;
       for (const auto& r : outputReferences) {
-		    TransactionOutputReferenceDetails d;
-		    d.number = r.second;
-		    d.transactionHash = r.first;
-		    txInToKeyDetails.output.push_back(d);
-	    }
+        TransactionOutputReferenceDetails d;
+        d.number = r.second;
+        d.transactionHash = r.first;
+        txInToKeyDetails.outputs.push_back(d);
+      }
 
       txInDetails.input = txInToKeyDetails;
     } else if (txIn.type() == typeid(MultisignatureInput)) {

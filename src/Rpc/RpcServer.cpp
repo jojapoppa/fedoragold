@@ -904,6 +904,42 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.inputamt = getInputAmount(tx);
   res.outputamt = getOutputAmount(tx);
 
+  std::vector<CryptoNote::KeyInput> keyinpt = getInputsKeyObjs(tx);
+  for (CryptoNote::KeyInput inp : keyinpt) {
+    CryptoNote::keyinput_response rsp;
+    rsp.amount = inp.amount;
+    rsp.key = Common::podToHex(inp.keyImage);
+    res.inputskeyobjs.push_back(rsp);
+  }
+
+  std::vector<CryptoNote::MultisignatureInput> mltinpt = getInputsMultisigObjs(tx);
+  for (CryptoNote::MultisignatureInput inp : mltinpt) {
+    CryptoNote::multisiginput_response rsp;
+    rsp.amount = inp.amount;
+    rsp.signatureCount = inp.signatureCount;
+    rsp.outputIndex = inp.outputIndex;
+    res.inputsmultisigobjs.push_back(rsp);
+  }
+
+  std::vector<CryptoNote::KeyOutput> keyoutpt = getOutputsKeyObjs(tx);
+  for (CryptoNote::KeyOutput out : keyoutpt) {
+    CryptoNote::keyoutput_response rsp;
+    rsp.keyOutput = Common::podToHex(out.key);
+    res.outputskeyobjs.push_back(rsp);
+  }
+
+  std::vector<CryptoNote::MultisignatureOutput> mltoutpt = getOutputsMultisigObjs(tx);
+  for (CryptoNote::MultisignatureOutput out : mltoutpt) {
+    CryptoNote::multisigoutput_response rsp;
+    rsp.requiredSignatureCount = out.requiredSignatureCount;
+
+    for (Crypto::PublicKey keyy : out.keys) {
+      rsp.keys.push_back(Common::podToHex(keyy));
+    }
+
+    res.outputsmultisigobjs.push_back(rsp);
+  }
+
   res.inputsamts = getInputsAmounts(tx);
   res.outputsamts = getOutputsAmounts(tx);
   res.outputskeys = getOutputsKeys(tx);
