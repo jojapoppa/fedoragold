@@ -70,13 +70,13 @@ bool serializePod(T& v, Common::StringView name, CryptoNote::ISerializer& serial
 //namespace CryptoNote {
 
 void serialize(TransactionOutputDetails& output, ISerializer& serializer) {
-  //serializer(output.output, "output");
+  serializer(output.amount, "amount");
   serializer(output.globalIndex, "globalIndex");
 }
 
 void serialize(TransactionOutputReferenceDetails& outputReference, ISerializer& serializer) {
   serializePod(outputReference.transactionHash, "transactionHash", serializer);
-  //serializer(outputReference.number, "number");
+  serializer(outputReference.number, "number");
 }
 
 void serialize(TransactionInputMultisignatureDetails& inputMultisig, ISerializer& serializer) {
@@ -105,7 +105,13 @@ void serialize(TransactionInputMultisignatureDetails& input, ISerializer& serial
 }
 */
 
-void serialize(TransactionInputDetails& input, ISerializer& serializer) {
+void serialize(TransactionInputDetails& details, ISerializer& serializer) {
+  serializer(details.amount, "amount");
+
+  if (details.input.type() == typeid(KeyInputDetails)) {
+    KeyInputDetails keyD = boost::get<KeyInputDetails>(details.input);
+    serializer(keyD.input, "input");
+  } 
 }
 
 void serialize(TransactionExtraDetails& extra, ISerializer& serializer) {
@@ -132,7 +138,6 @@ void serialize(TransactionDetails& transaction, ISerializer& serializer) {
   serializer(transaction.inputs, "inputs");
   serializer(transaction.outputs, "outputs");
 
-  //serializer(transaction.signatures, "signatures");
   if (serializer.type() == ISerializer::OUTPUT) {
     std::vector<std::pair<size_t, Crypto::Signature>> signaturesForSerialization;
     signaturesForSerialization.reserve(transaction.signatures.size());
@@ -144,19 +149,19 @@ void serialize(TransactionDetails& transaction, ISerializer& serializer) {
       ++ctr;
     }
     size_t size = transaction.signatures.size();
-    //serializer(size, "signaturesSize");
-    //serializer(signaturesForSerialization, "signatures");
+    serializer(size, "signaturesSize");
+    serializer(signaturesForSerialization, "signatures");
   } else {
-    //size_t size = 0;
-    //serializer(size, "signaturesSize");
-    //transaction.signatures.resize(size);
+    size_t size = 0;
+    serializer(size, "signaturesSize");
+    transaction.signatures.resize(size);
 
-    //std::vector<std::pair<size_t, Crypto::Signature>> signaturesForSerialization;
-    //serializer(signaturesForSerialization, "signatures");
+    std::vector<std::pair<size_t, Crypto::Signature>> signaturesForSerialization;
+    serializer(signaturesForSerialization, "signatures");
 
-    //for (const auto& signatureWithIndex : signaturesForSerialization) {
-    //  transaction.signatures[signatureWithIndex.first].push_back(signatureWithIndex.second);
-    //}
+    for (const auto& signatureWithIndex : signaturesForSerialization) {
+      transaction.signatures[signatureWithIndex.first].push_back(signatureWithIndex.second);
+    }
   }
 }
 
@@ -172,7 +177,6 @@ void serialize(BlockDetails& block, ISerializer& serializer) {
   //serializer(block.depth, "depth");
   serializePod(block.hash, "hash", serializer);
   serializer(block.difficulty, "difficulty");
-  //serializer(block.cumulativeDifficulty, "cumulativeDifficulty");
   serializer(block.reward, "reward");
   serializer(block.baseReward, "baseReward");
   serializer(block.blockSize, "blockSize");
@@ -180,7 +184,6 @@ void serialize(BlockDetails& block, ISerializer& serializer) {
   serializer(block.alreadyGeneratedCoins, "alreadyGeneratedCoins");
   serializer(block.alreadyGeneratedTransactions, "alreadyGeneratedTransactions");
   serializer(block.sizeMedian, "sizeMedian");
-  //serializer(block.effectiveSizeMedian, "effectiveSizeMedian");
   serializer(block.penalty, "penalty");
   serializer(block.totalFeeAmount, "totalFeeAmount");
   serializer(block.transactions, "transactions");

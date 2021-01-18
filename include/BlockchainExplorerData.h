@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "CryptoTypes.h"
+#include "CryptoNote.h"
 
 #include <boost/variant.hpp>
 
@@ -59,12 +60,18 @@ struct TransactionInputMultisignatureDetails {
   TransactionOutputReferenceDetails output;
 };
 
+struct KeyInputDetails {
+  KeyInput input;
+  uint64_t mixin;
+  std::vector<TransactionOutputReferenceDetails> outputs;
+};
+
 struct TransactionInputDetails {
   uint64_t amount;
 
   boost::variant<
     TransactionInputGenerateDetails,
-    TransactionInputToKeyDetails,
+    KeyInputDetails,
     TransactionInputMultisignatureDetails> input;
 };
 

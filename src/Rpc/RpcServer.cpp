@@ -91,7 +91,7 @@ std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction
   { "/get_block_details_by_hash", { jsonMethod<COMMAND_RPC_GET_BLOCK_DETAILS_BY_HASH>(&RpcServer::on_get_block_details_by_hash), false } },
   { "/get_blocks_details_by_heights", { jsonMethod<COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HEIGHTS>(&RpcServer::on_get_blocks_details_by_heights), false } },
   { "/get_blocks_details_by_hashes", { jsonMethod<COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HASHES>(&RpcServer::on_get_blocks_details_by_hashes), false } },
-  { "/get_transaction_details_by_hashes", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES>(&RpcServer::on_get_transactions_details_by_hashes), false } },
+  { "/get_transaction_details_by_hashes", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES>(&RpcServer::on_get_transaction_details_by_hashes), false } },
   { "/get_transaction_details_by_hash", { jsonMethod<COMMAND_RPC_GET_TRANSACTION_DETAILS_BY_HASH>(&RpcServer::on_get_transaction_details_by_hash), false } },
   { "/get_transaction_hashes_by_payment_id", { jsonMethod<COMMAND_RPC_GET_TRANSACTION_HASHES_BY_PAYMENT_ID>(&RpcServer::on_get_transaction_hashes_by_paymentid), false } },
 
@@ -203,7 +203,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "get_block_details_by_hash", {makeMemberMethod(&RpcServer::on_get_block_details_by_hash), false } },
       { "get_blocks_details_by_heights", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_heights), false } },
       { "get_blocks_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_hashes), false } },
-      { "get_transaction_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_transactions_details_by_hashes), false } },
+      { "get_transaction_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hashes), false } },
       { "get_transaction_details_by_hash", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hash), false } },
       { "get_transaction_hashes_by_payment_id", {makeMemberMethod(&RpcServer::on_get_transaction_hashes_by_paymentid), false } }
     };
@@ -431,20 +431,14 @@ bool RpcServer::onGetPoolChangesLite(const COMMAND_RPC_GET_POOL_CHANGES_LITE::re
 
 bool RpcServer::on_get_blocks_details_by_heights(const COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HEIGHTS::request& req, COMMAND_RPC_GET_BLOCKS_DETAILS_BY_HEIGHTS::response& rsp) {
 
-  logger(Logging::INFO) << "in on_get_blocks_details_by_heights";
-
   try {
     if (req.blockHeights.size() > BLOCK_LIST_MAX_COUNT) {
       throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM,
         std::string("Requested blocks count: ") + std::to_string(req.blockHeights.size()) + " exceeded max limit of "      + std::to_string(BLOCK_LIST_MAX_COUNT) };
     }
 
-    logger(Logging::INFO) << "start loop";
-
     std::vector<BlockDetails> blockDetails;
     for (const uint32_t& height : req.blockHeights) {
-
-      logger(Logging::INFO) << "next height: " << height;
 
       if (m_core.get_current_blockchain_height() <= height) {
         throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT,
@@ -453,23 +447,17 @@ bool RpcServer::on_get_blocks_details_by_heights(const COMMAND_RPC_GET_BLOCKS_DE
       Crypto::Hash block_hash = m_core.getBlockIdByHeight(height);
       Block blk;
 
-      logger(Logging::INFO) << "got hash: " << block_hash;
-
       if (!m_core.getBlockByHash(block_hash, blk)) {
         throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get block by height "      + std::to_string(height) + '.' };
       }
-
-      logger(Logging::INFO) << "got block";
 
       BlockDetails detail;
       if (!blockchainExplorerDataBuilder.fillBlockDetails(blk, detail)) {
         logger(Logging::INFO) << "error filling in block details";
         throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't fill block details."      };
-  }
-      logger(Logging::INFO) << "push back details";
+      }
 
       blockDetails.push_back(detail);
-      //rsp.blocks.push_back(detail);
     } 
 
     rsp.blocks = std::move(blockDetails);
@@ -580,7 +568,7 @@ bool RpcServer::on_get_block_details_by_hash(const COMMAND_RPC_GET_BLOCK_DETAILS
   return true;
 }
 
-bool RpcServer::on_get_transactions_details_by_hashes(const COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES::request&      req, COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES::response& rsp) {
+bool RpcServer::on_get_transaction_details_by_hashes(const COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES::request& req, COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES::response& rsp) {
   try {
     std::vector<TransactionDetails> transactionsDetails;
     transactionsDetails.reserve(req.transactionHashes.size());
@@ -837,28 +825,41 @@ bool RpcServer::on_get_block(const COMMAND_RPC_GET_BLOCK::request& req, COMMAND_
 
 bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& req, COMMAND_RPC_GET_TRANSACTION::response& res) {
 
+  CryptoNote::Transaction tx;
   Blockchain::TransactionEntry te;
-  if (! m_core.transactionByHash(req.txhash, te)) {
-    logger(INFO) << "get transaction by ordinal position:" << req.blknum << " : " << req.txnum;
 
+  if (req.blknum > 0 && req.txnum > 0) {
     if (! m_core.transactionByOrdinal(req.blknum, req.txnum, te)) {
       logger(INFO) << "could not find transaction at ordinal positions given";
       return false;
     }
+  } else {
+    Crypto::Hash tx_hash;
+    if (!parse_hash256(req.hash, tx_hash)) {
+      throw JsonRpc::JsonRpcError{
+        CORE_RPC_ERROR_CODE_WRONG_PARAM,
+        "Failed to parse hex representation of transaction hash. Hex = " + req.hash + '.' };
+    } else if (! m_core.transactionByHash(tx_hash, te)) {
+      logger(INFO) << "could not get transaction with hash:" << tx_hash;
+      return false;
+    }
   }
 
-  CryptoNote::Transaction tx = (CryptoNote::Transaction) te.tx; 
+  tx = (CryptoNote::Transaction) te.tx; 
+
   res.global_output_indexes = te.m_global_output_indexes;
   res.hash = getObjectHash(tx);
 
   Crypto::Hash blockId;
   uint32_t blockH;
+  logger(INFO) << "check for block containing tx ";
   if (!m_core.getBlockContainingTx(res.hash, blockId, blockH)) {
     logger(INFO) << "could not locate block for transaction: " << res.hash;
     return false;
   }
 
   Block block;
+  logger(INFO) << "get block hash blockid: " << blockId;
   if (! m_core.getBlockByHash(blockId, block)) {
     logger(INFO) << "could not locate block with blockhash: " << blockId;
     return false;
@@ -869,10 +870,13 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.block = blockId;
 
   uint32_t blockHeight = 0;
+  logger(INFO) << "get block height";
   if (! m_core.getBlockHeight(blockId, blockHeight)) {
     logger(INFO) << "could not determine block height for hash: " << blockId;
     return false;
   }
+
+  logger(INFO) << "check for orphans";
 
   res.blockheight = blockHeight;
   res.orphan_status = false;
@@ -888,6 +892,42 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.inputamt = getInputAmount(tx);
   res.outputamt = getOutputAmount(tx);
 
+  std::vector<CryptoNote::KeyInput> keyinpt = getInputsKeyObjs(tx);
+  for (CryptoNote::KeyInput inp : keyinpt) {
+    CryptoNote::keyinput_response rsp;
+    rsp.amount = inp.amount;
+    rsp.key = Common::podToHex(inp.keyImage);
+    res.inputskeyobjs.push_back(rsp);
+  }
+
+  std::vector<CryptoNote::MultisignatureInput> mltinpt = getInputsMultisigObjs(tx);
+  for (CryptoNote::MultisignatureInput inp : mltinpt) {
+    CryptoNote::multisiginput_response rsp;
+    rsp.amount = inp.amount;
+    rsp.signatureCount = inp.signatureCount;
+    rsp.outputIndex = inp.outputIndex;
+    res.inputsmultisigobjs.push_back(rsp);
+  }
+
+  std::vector<CryptoNote::KeyOutput> keyoutpt = getOutputsKeyObjs(tx);
+  for (CryptoNote::KeyOutput out : keyoutpt) {
+    CryptoNote::keyoutput_response rsp;
+    rsp.keyOutput = Common::podToHex(out.key);
+    res.outputskeyobjs.push_back(rsp);
+  }
+
+  std::vector<CryptoNote::MultisignatureOutput> mltoutpt = getOutputsMultisigObjs(tx);
+  for (CryptoNote::MultisignatureOutput out : mltoutpt) {
+    CryptoNote::multisigoutput_response rsp;
+    rsp.requiredSignatureCount = out.requiredSignatureCount;
+
+    for (Crypto::PublicKey keyy : out.keys) {
+      rsp.keys.push_back(Common::podToHex(keyy));
+    }
+
+    res.outputsmultisigobjs.push_back(rsp);
+  }
+
   res.inputsamts = getInputsAmounts(tx);
   res.outputsamts = getOutputsAmounts(tx);
   res.outputskeys = getOutputsKeys(tx);
@@ -896,10 +936,14 @@ bool RpcServer::on_get_transaction(const COMMAND_RPC_GET_TRANSACTION::request& r
   res.unlocktime = tx.unlockTime;
   res.version = tx.version;
 
+  logger(INFO) << "get payment Id from extra";
+
   Crypto::Hash paymentID;
   if (! getPaymentIdFromTxExtra(tx.extra, paymentID)) {
     logger(INFO) << "No paymentID found for transaction";
   } 
+
+  logger(INFO) << "done";
 
   res.extra = Common::toHex(tx.extra);
   res.paymentid = paymentID;
