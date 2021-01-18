@@ -1740,6 +1740,13 @@ bool Blockchain::check_tx_input(const KeyInput& txin, const Crypto::Hash& tx_pre
   //   logger(ERROR) << "Transaction uses key image not in the valid domain";
   //   return false;
   // }
+  //
+  // and Karbo handles it this way:
+  //
+  //   if (!(scalarmultKey(txin.keyImage, Crypto::EllipticCurveScalar2KeyImage(Crypto::L)) == Crypto::EllipticCurveScalar2KeyImage(Crypto::I))) {
+  //  logger(ERROR) << "Transaction uses key image not in the valid domain";
+  //  return false;
+  //}
 
   //check ring signature
   std::vector<const Crypto::PublicKey *> output_keys;
