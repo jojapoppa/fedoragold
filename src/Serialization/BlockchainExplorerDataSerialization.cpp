@@ -34,7 +34,9 @@ enum class SerializationTag : uint8_t { Base = 0xff, Key = 0x2, Multisignature =
 namespace {
 
 struct BinaryVariantTagGetter: boost::static_visitor<uint8_t> {
-  uint8_t operator()(const CryptoNote::MultisignatureInput) { return static_cast<uint8_t>(SerializationTag::Multisignature); }
+  uint8_t operator()(const CryptoNote::TransactionInputGenerateDetails) { return static_cast<uint8_t>(SerializationTag::Base); }
+  uint8_t operator()(const CryptoNote::KeyInputDetails) { return static_cast<uint8_t>(SerializationTag::Key); }
+  uint8_t operator()(const CryptoNote::TransactionInputMultisignatureDetails) { return static_cast<uint8_t>(SerializationTag::Multisignature); }
 };
 
 struct VariantSerializer : boost::static_visitor<> {
@@ -47,8 +49,17 @@ struct VariantSerializer : boost::static_visitor<> {
   const std::string name;
 };
 
-void getVariantValue(CryptoNote::ISerializer& serializer, uint8_t tag, boost::variant<CryptoNote::TransactionInputMultisignatureDetails> in) {
+void getVariantValue(CryptoNote::ISerializer& serializer, uint8_t tag, boost::variant<
+    CryptoNote::TransactionInputGenerateDetails,
+    CryptoNote::KeyInputDetails,
+    CryptoNote::TransactionInputMultisignatureDetails> in) {
   switch (static_cast<SerializationTag>(tag)) {
+  case SerializationTag::Key: {
+    CryptoNote::KeyInputDetails v;
+    serializer(v, "data");
+    in = v;
+    break;
+  }
   case SerializationTag::Multisignature: {
     CryptoNote::TransactionInputMultisignatureDetails v;
     serializer(v, "data");
@@ -69,6 +80,9 @@ bool serializePod(T& v, Common::StringView name, CryptoNote::ISerializer& serial
 
 //namespace CryptoNote {
 
+void serialize(TransactionInputGenerateDetails& details, ISerializer& serializer) {
+}
+
 void serialize(TransactionOutputDetails& output, ISerializer& serializer) {
   serializer(output.amount, "amount");
   serializer(output.globalIndex, "globalIndex");
@@ -78,6 +92,12 @@ void serialize(TransactionOutputDetails& output, ISerializer& serializer) {
 void serialize(TransactionOutputReferenceDetails& outputReference, ISerializer& serializer) {
   serializePod(outputReference.transactionHash, "transactionHash", serializer);
   serializer(outputReference.number, "number");
+}
+
+void serialize(KeyInputDetails& inputToKey, ISerializer& serializer) {
+  serializer(inputToKey.input, "input");
+  serializer(inputToKey.mixin, "mixin");
+  serializer(inputToKey.outputs, "outputs");
 }
 
 void serialize(TransactionInputMultisignatureDetails& inputMultisig, ISerializer& serializer) {
@@ -106,13 +126,24 @@ void serialize(TransactionInputMultisignatureDetails& input, ISerializer& serial
 }
 */
 
-void serialize(TransactionInputDetails& details, ISerializer& serializer) {
-  serializer(details.amount, "amount");
+void serialize(TransactionInputDetails& input, ISerializer& serializer) {
+  if (serializer.type() == ISerializer::OUTPUT) {
+    BinaryVariantTagGetter tagGetter;
+    uint8_t tag = boost::apply_visitor(tagGetter, input);
+    serializer.binary(&tag, sizeof(tag), "type");
 
-  if (details.input.type() == typeid(KeyInputDetails)) {
-    KeyInputDetails keyD = boost::get<KeyInputDetails>(details.input);
-    serializer(keyD.input, "input");
-  } 
+    VariantSerializer visitor(serializer, "data");
+    boost::apply_visitor(visitor, input);
+  } else {
+    uint8_t tag;
+    serializer.binary(&tag, sizeof(tag), "type");
+
+    getVariantValue(serializer, tag, input);
+  }
+//  if (details.type() == typeid(KeyInputDetails)) {
+//    KeyInputDetails keyD = boost::get<KeyInputDetails>(details);
+//    serializer(keyD.input, "input");
+//  } 
 }
 
 void serialize(TransactionExtraDetails& extra, ISerializer& serializer) {

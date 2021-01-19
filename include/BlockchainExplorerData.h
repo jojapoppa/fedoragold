@@ -68,14 +68,17 @@ struct KeyInputDetails {
   std::vector<TransactionOutputReferenceDetails> outputs;
 };
 
-struct TransactionInputDetails {
-  uint64_t amount;
+//struct TransactionInputDetails {
+//  uint64_t amount;
+//
+//  boost::variant<
+//    TransactionInputGenerateDetails,
+//    KeyInputDetails,
+//    TransactionInputMultisignatureDetails> input;
+//};
 
-  boost::variant<
-    TransactionInputGenerateDetails,
-    KeyInputDetails,
-    TransactionInputMultisignatureDetails> input;
-};
+typedef boost::variant<TransactionInputGenerateDetails, 
+  KeyInputDetails, TransactionInputMultisignatureDetails> TransactionInputDetails;
 
 struct TransactionExtraDetails {
   std::vector<size_t> padding;

@@ -275,11 +275,7 @@ bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& tr
     if (txIn.type() == typeid(BaseInput)) {
       TransactionInputGenerateDetails txInGenDetails;
       txInGenDetails.height = boost::get<BaseInput>(txIn).blockIndex;
-      txInDetails.amount = 0;
-      for (const TransactionOutput& out : transaction.outputs) {
-        txInDetails.amount += out.amount;
-      }
-      txInDetails.input = txInGenDetails;
+      txInDetails = txInGenDetails;
     } else if (txIn.type() == typeid(KeyInput)) {
       CryptoNote::KeyInputDetails txInToKeyDetails;
 
@@ -287,29 +283,26 @@ bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& tr
       txInToKeyDetails.input = txInToKey;
       std::list<std::pair<Crypto::Hash, size_t>> outputReferences;
       if (core.scanOutputkeysForIndices(txInToKey, outputReferences)) {
-        txInDetails.amount = txInToKey.amount;
         txInToKeyDetails.mixin = txInToKey.outputIndexes.size();
-
         for (const auto& r : outputReferences) {
           TransactionOutputReferenceDetails d;
           d.number = r.second;
           d.transactionHash = r.first;
+	  //logger(Logging::INFO) << "adding transactionHash... ";
           txInToKeyDetails.outputs.push_back(d);
         }
       }
-
-      txInDetails.input = txInToKeyDetails;
+      txInDetails = txInToKeyDetails;
     } else if (txIn.type() == typeid(MultisignatureInput)) {
       TransactionInputMultisignatureDetails txInMultisigDetails;
       const MultisignatureInput& txInMultisig = boost::get<MultisignatureInput>(txIn);
-      txInDetails.amount = txInMultisig.amount;
       txInMultisigDetails.signatures = txInMultisig.signatureCount;
       std::pair<Crypto::Hash, size_t> outputReference;
       if (core.getMultisigOutputReference(txInMultisig, outputReference)) {
         txInMultisigDetails.output.number = outputReference.second;
         txInMultisigDetails.output.transactionHash = outputReference.first;
       }
-      txInDetails.input = txInMultisigDetails;
+      txInDetails = txInMultisigDetails;
     }
     transactionDetails.inputs.push_back(std::move(txInDetails));
   }

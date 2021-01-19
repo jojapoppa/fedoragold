@@ -26,6 +26,8 @@ namespace CryptoNote {
 
 void serialize(TransactionOutputDetails& output, ISerializer& serializer);
 void serialize(TransactionOutputReferenceDetails& outputReference, ISerializer& serializer);
+void serialize(KeyInputDetails& inputToKey, ISerializer& serializer);
+
 void serialize(TransactionInputMultisignatureDetails& inputMultisig, ISerializer& serializer);
 void serialize(TransactionInputDetails& input, ISerializer& serializer);
 void serialize(TransactionExtraDetails& extra, ISerializer& serializer);
