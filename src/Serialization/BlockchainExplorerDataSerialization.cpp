@@ -72,6 +72,7 @@ bool serializePod(T& v, Common::StringView name, CryptoNote::ISerializer& serial
 void serialize(TransactionOutputDetails& output, ISerializer& serializer) {
   serializer(output.amount, "amount");
   serializer(output.globalIndex, "globalIndex");
+  serializer(output.outpt, "output");
 }
 
 void serialize(TransactionOutputReferenceDetails& outputReference, ISerializer& serializer) {

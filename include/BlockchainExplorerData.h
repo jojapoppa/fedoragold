@@ -34,6 +34,8 @@ struct TransactionOutputDetails {
   uint64_t amount;
   uint32_t globalIndex;
 
+  TransactionOutput outpt; // needed a version that serializes
+
   boost::variant<
     TransactionOutputToKeyDetails,
     TransactionOutputMultisignatureDetails> output;

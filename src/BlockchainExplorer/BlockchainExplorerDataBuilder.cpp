@@ -230,7 +230,7 @@ bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& tr
   transactionDetails.totalOutputsAmount = get_outs_money_amount(transaction);
 
   uint64_t inputsAmount;
-  if (!get_inputs_money_amount(transaction, inputsAmount)) {
+  if (get_inputs_money_amount(transaction, inputsAmount)) {
     transactionDetails.totalInputsAmount = inputsAmount;
   }
 
@@ -331,6 +331,8 @@ bool BlockchainExplorerDataBuilder::fillTransactionDetails(const Transaction& tr
     TransactionOutputDetails txOutDetails;
     txOutDetails.amount = txOutput.get<0>().amount;
     txOutDetails.globalIndex = txOutput.get<1>();
+    txOutDetails.outpt.amount = txOutput.get<0>().amount;
+    txOutDetails.outpt.target = txOutput.get<0>().target;
 
     if (txOutput.get<0>().target.type() == typeid(KeyOutput)) {
       TransactionOutputToKeyDetails txOutToKeyDetails;
