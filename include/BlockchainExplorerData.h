@@ -42,8 +42,8 @@ struct TransactionOutputDetails {
 };
 
 struct TransactionOutputReferenceDetails {
+  uint64_t number;
   Crypto::Hash transactionHash;
-  size_t number;
 };
 
 struct TransactionInputGenerateDetails {
@@ -68,20 +68,11 @@ struct KeyInputDetails {
   std::vector<TransactionOutputReferenceDetails> outputs;
 };
 
-//struct TransactionInputDetails {
-//  uint64_t amount;
-//
-//  boost::variant<
-//    TransactionInputGenerateDetails,
-//    KeyInputDetails,
-//    TransactionInputMultisignatureDetails> input;
-//};
-
 typedef boost::variant<TransactionInputGenerateDetails, 
   KeyInputDetails, TransactionInputMultisignatureDetails> TransactionInputDetails;
 
 struct TransactionExtraDetails {
-  std::vector<size_t> padding;
+  std::vector<uint64_t> padding;
   std::vector<Crypto::PublicKey> publicKey; 
   std::vector<std::string> nonce;
   std::vector<uint8_t> raw;
