@@ -14,6 +14,12 @@ void Reset::Request::serialize(CryptoNote::ISerializer& serializer) {
 void Reset::Response::serialize(CryptoNote::ISerializer& serializer) {
 }
 
+void Stop::Request::serialize(CryptoNote::ISerializer& serializer) {
+}
+
+void Stop::Response::serialize(CryptoNote::ISerializer& serializer) {
+}
+
 void GetViewKey::Request::serialize(CryptoNote::ISerializer& serializer) {
 }
 

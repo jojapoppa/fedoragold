@@ -525,6 +525,10 @@ WalletService::WalletService(const CryptoNote::Currency& currency, System::Dispa
 }
 
 WalletService::~WalletService() {
+  stop();
+}
+
+void WalletService::stop() {
   if (inited) {
     wallet.stop();
     refreshContext.wait();

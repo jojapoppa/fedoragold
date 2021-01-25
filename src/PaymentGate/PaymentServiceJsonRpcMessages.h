@@ -31,6 +31,16 @@ struct Reset {
   };
 };
 
+struct Stop {
+  struct Request {
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+
+  struct Response {
+    void serialize(CryptoNote::ISerializer& serializer);
+  };
+};
+
 struct GetViewKey {
   struct Request {
     void serialize(CryptoNote::ISerializer& serializer);

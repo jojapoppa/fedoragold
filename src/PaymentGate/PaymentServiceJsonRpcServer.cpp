@@ -43,6 +43,8 @@ PaymentServiceJsonRpcServer::PaymentServiceJsonRpcServer(System::Dispatcher& sys
   handlers.emplace("getAddresses", jsonHandler<GetAddresses::Request, GetAddresses::Response>(std::bind(&PaymentServiceJsonRpcServer::handleGetAddresses, this, std::placeholders::_1, std::placeholders::_2)));
   handlers.emplace("sendFusionTransaction", jsonHandler<SendFusionTransaction::Request, SendFusionTransaction::Response>(std::bind(&PaymentServiceJsonRpcServer::handleSendFusionTransaction, this, std::placeholders::_1, std::placeholders::_2)));
   handlers.emplace("estimateFusion", jsonHandler<EstimateFusion::Request, EstimateFusion::Response>(std::bind(&PaymentServiceJsonRpcServer::handleEstimateFusion, this, std::placeholders::_1, std::placeholders::_2)));
+
+  handlers.emplace("stop", jsonHandler<Stop::Request, Stop::Response>(std::bind(&PaymentServiceJsonRpcServer::handleStop, this, std::placeholders::_1, std::placeholders::_2)));
 }
 
 void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue& req, Common::JsonValue& resp) {
@@ -96,6 +98,12 @@ std::error_code PaymentServiceJsonRpcServer::handleReset(const Reset::Request& r
   } else {
     return service.replaceWithNewWallet(request.viewSecretKey);
   }
+}
+
+std::error_code PaymentServiceJsonRpcServer::handleStop(const Stop::Request& request, Stop::Response& response)
+{
+  service.stop();
+  return std::error_code();
 }
 
 std::error_code PaymentServiceJsonRpcServer::handleCreateAddress(const CreateAddress::Request& request, CreateAddress::Response& response) {

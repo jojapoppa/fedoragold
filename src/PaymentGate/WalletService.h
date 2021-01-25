@@ -46,6 +46,7 @@ public:
 
   void init();
   void saveWallet();
+  void stop();
   std::error_code saveWalletNoThrow();
 
   std::error_code resetWallet();
