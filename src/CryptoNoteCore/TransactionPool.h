@@ -147,7 +147,7 @@ namespace CryptoNote {
       BlockInfo lastFailedBlock;
     };
 
-    struct TransactionDetails : public TransactionCheckInfo {
+    struct PoolTransactionDetails : public TransactionCheckInfo {
       Crypto::Hash id;
       Transaction tx;
       uint64_t blobSize;
@@ -156,14 +156,14 @@ namespace CryptoNote {
       time_t receiveTime;
     };
 
-	void getMemoryPool(std::list<CryptoNote::tx_memory_pool::TransactionDetails> txs) const;
-	std::list<CryptoNote::tx_memory_pool::TransactionDetails> getMemoryPool() const;
+	void getMemoryPool(std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> txs) const;
+	std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> getMemoryPool() const;
 
   private:
 
     struct TransactionPriorityComparator {
       // lhs > hrs
-      bool operator()(const TransactionDetails& lhs, const TransactionDetails& rhs) const {
+      bool operator()(const PoolTransactionDetails& lhs, const PoolTransactionDetails& rhs) const {
         // price(lhs) = lhs.fee / lhs.blobSize
         // price(lhs) > price(rhs) -->
         // lhs.fee / lhs.blobSize > rhs.fee / rhs.blobSize -->
@@ -182,10 +182,10 @@ namespace CryptoNote {
       }
     };
 
-    typedef hashed_unique<BOOST_MULTI_INDEX_MEMBER(TransactionDetails, Crypto::Hash, id)> main_index_t;
-    typedef ordered_non_unique<identity<TransactionDetails>, TransactionPriorityComparator> fee_index_t;
+    typedef hashed_unique<BOOST_MULTI_INDEX_MEMBER(PoolTransactionDetails, Crypto::Hash, id)> main_index_t;
+    typedef ordered_non_unique<identity<PoolTransactionDetails>, TransactionPriorityComparator> fee_index_t;
 
-    typedef multi_index_container<TransactionDetails,
+    typedef multi_index_container<PoolTransactionDetails,
       indexed_by<main_index_t, fee_index_t>
     > tx_container_t;
 

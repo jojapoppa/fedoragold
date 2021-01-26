@@ -69,6 +69,8 @@ public:
   virtual bool handle_incoming_tx(const BinaryArray& tx_blob, tx_verification_context& tvc, bool keeped_by_block) = 0; //Deprecated. Should be removed with CryptoNoteProtocolHandler.
   virtual std::vector<Transaction> getPoolTransactions() = 0;
 
+  virtual std::vector<std::pair<Transaction, uint64_t>> getPoolTransactionsWithReceiveTime() = 0;
+
   virtual bool check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_verification_context& tvc) = 0;
 
   virtual bool getPoolChanges(const Crypto::Hash& tailBlockId, const std::vector<Crypto::Hash>& knownTxsIds,

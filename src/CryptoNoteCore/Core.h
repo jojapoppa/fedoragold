@@ -19,6 +19,8 @@
 #include "ICoreObserver.h"
 #include "Common/ObserverManager.h"
 
+#include <BlockchainExplorerData.h>
+
 #include "System/Dispatcher.h"
 #include "CryptoNoteCore/MessageQueue.h"
 #include "CryptoNoteCore/BlockchainMessages.h"
@@ -124,6 +126,10 @@ namespace CryptoNote {
      void set_checkpoints(Checkpoints&& chk_pts);
 
      std::vector<Transaction> getPoolTransactions() override;
+     std::vector<std::pair<Transaction, uint64_t>> getPoolTransactionsWithReceiveTime() override;
+
+     std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> getTransactionDetails() const;
+
      size_t get_pool_transactions_count();
      size_t get_blockchain_total_transactions();
 

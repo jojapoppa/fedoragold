@@ -20,6 +20,9 @@
 #include "Miner.h"
 #include "TransactionExtra.h"
 #include "IBlock.h"
+
+#include "TransactionPool.h"
+
 #undef ERROR
 
 using namespace Logging;
@@ -1010,6 +1013,26 @@ bool core::getBlocksByTimestamp(uint64_t timestampBegin, uint64_t timestampEnd, 
     blocks.push_back(std::move(blk));
   }
   return true;
+}
+
+std::vector<std::pair<Transaction, uint64_t>> core::getPoolTransactionsWithReceiveTime() {
+
+  std::vector<std::pair<Transaction, uint64_t>> transactionsWithreceiveTimes;
+  std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> tpool;
+  m_mempool.getMemoryPool(tpool);
+
+  for (auto it = tpool.begin(); it != tpool.end(); ++it) {
+    auto p = std::make_pair((*it).tx, (*it).receiveTime);
+    transactionsWithreceiveTimes.push_back(p);
+  }
+
+  return transactionsWithreceiveTimes;
+}
+
+std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> core::getTransactionDetails() const {
+  std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> tpool;
+  m_mempool.getMemoryPool(tpool);
+  return tpool;
 }
 
 bool core::getPoolTransactionsByTimestamp(uint64_t timestampBegin, uint64_t timestampEnd, uint32_t transactionsNumberLimit, std::vector<Transaction>& transactions, uint64_t& transactionsNumberWithinTimestamps) {

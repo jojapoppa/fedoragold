@@ -191,7 +191,7 @@ namespace CryptoNote {
 
     // add to pool
     {
-      TransactionDetails txd;
+      PoolTransactionDetails txd;
 
       txd.id = id;
       txd.blobSize = blobSize;
@@ -277,16 +277,16 @@ namespace CryptoNote {
   }
 
   //---------------------------------------------------------------------------------
-  void tx_memory_pool::getMemoryPool(std::list<tx_memory_pool::TransactionDetails> txs) const {
+  void tx_memory_pool::getMemoryPool(std::list<tx_memory_pool::PoolTransactionDetails> txs) const {
 	  std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
 	  for (const auto& txd : m_fee_index) {
 		  txs.push_back(txd);
 	  }
   }
 
-  std::list<CryptoNote::tx_memory_pool::TransactionDetails> tx_memory_pool::getMemoryPool() const {
+  std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> tx_memory_pool::getMemoryPool() const {
 	  std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
-	  std::list<tx_memory_pool::TransactionDetails> txs;
+	  std::list<tx_memory_pool::PoolTransactionDetails> txs;
 	  for (const auto& txd : m_fee_index) {
 		  txs.push_back(txd);
 	  }
@@ -511,7 +511,7 @@ namespace CryptoNote {
 
 #define CURRENT_MEMPOOL_ARCHIVE_VER 1
 
-  void serialize(CryptoNote::tx_memory_pool::TransactionDetails& td, ISerializer& s) {
+  void serialize(CryptoNote::tx_memory_pool::PoolTransactionDetails& td, ISerializer& s) {
     s(td.id, "id");
     s(td.blobSize, "blobSize");
     s(td.fee, "fee");
@@ -539,9 +539,9 @@ namespace CryptoNote {
 
     if (s.type() == ISerializer::INPUT) {
       m_transactions.clear();
-      readSequence<TransactionDetails>(std::inserter(m_transactions, m_transactions.end()), "transactions", s);
+      readSequence<PoolTransactionDetails>(std::inserter(m_transactions, m_transactions.end()), "transactions", s);
     } else {
-      writeSequence<TransactionDetails>(m_transactions.begin(), m_transactions.end(), "transactions", s);
+      writeSequence<PoolTransactionDetails>(m_transactions.begin(), m_transactions.end(), "transactions", s);
     }
 
     KV_MEMBER(m_spent_key_images);

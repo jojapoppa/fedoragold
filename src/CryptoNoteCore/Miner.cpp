@@ -312,7 +312,7 @@ namespace CryptoNote
   void miner::on_synchronized()
   {
     if(!m_do_mining) {
-      logger(INFO) << "Miner synchronized with chain...";
+      //logger(INFO) << "Miner synchronized with chain...";
     }
 
     if(m_do_mining) {
