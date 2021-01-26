@@ -13,6 +13,10 @@
 #include "crypto-tests.h"
 #include "../Io.h"
 
+extern "C" {
+#include "crypto/crypto-util.h"
+}
+
 using namespace std;
 typedef Crypto::Hash chash;
 
@@ -48,7 +52,7 @@ int main(int argc, char *argv[]) {
     input.exceptions(ios_base::badbit | ios_base::failbit | ios_base::eofbit);
     if (cmd == "check_scalar") {
       Crypto::EllipticCurveScalar scalar;
-      bool expected, actual;
+      bool expected=false, actual=false;
       get(input, scalar, expected);
       actual = check_scalar(scalar);
       if (expected != actual) {
@@ -100,7 +104,7 @@ int main(int argc, char *argv[]) {
     } else if (cmd == "generate_key_derivation") {
       Crypto::PublicKey key1;
       Crypto::SecretKey key2;
-      bool expected1, actual1;
+      bool expected1=false, actual1=false;
       Crypto::KeyDerivation expected2, actual2;
       get(input, key1, key2, expected1);
       if (expected1) {
@@ -114,7 +118,7 @@ int main(int argc, char *argv[]) {
       Crypto::KeyDerivation derivation;
       size_t output_index;
       Crypto::PublicKey base;
-      bool expected1, actual1;
+      bool expected1=false, actual1=false;
       Crypto::PublicKey expected2, actual2;
       get(input, derivation, output_index, base, expected1);
       if (expected1) {
@@ -162,7 +166,7 @@ int main(int argc, char *argv[]) {
       chash prefix_hash;
       Crypto::PublicKey pub;
       Crypto::Signature sig;
-      bool expected, actual;
+      bool expected=false, actual=false;
       get(input, prefix_hash, pub, sig, expected);
       actual = check_signature(prefix_hash, pub, sig);
       if (expected != actual) {

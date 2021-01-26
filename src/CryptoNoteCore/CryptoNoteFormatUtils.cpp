@@ -520,4 +520,26 @@ Hash get_tx_tree_hash(const Block& b) {
   return get_tx_tree_hash(txs_ids);
 }
 
+bool getTransactionProof(const Crypto::Hash& transactionHash, const CryptoNote::AccountPublicAddress& destinationAddress, const Crypto::SecretKey& transactionKey, std::string& transactionProof, Logging::ILogger& log) {
+  LoggerRef logger(log, "get_tx_proof");
+  Crypto::KeyImage p = *reinterpret_cast<const Crypto::KeyImage*>(&destinationAddress.viewPublicKey);
+  Crypto::KeyImage k = *reinterpret_cast<const Crypto::KeyImage*>(&transactionKey);
+  Crypto::KeyImage pk = Crypto::scalarmultKey(p, k);
+  Crypto::PublicKey R;
+  Crypto::PublicKey rA = reinterpret_cast<const PublicKey&>(pk);
+  Crypto::secret_key_to_public_key(transactionKey, R);
+  Crypto::Signature sig;
+
+  try {
+    Crypto::generate_tx_proof(transactionHash, R, destinationAddress.viewPublicKey, rA, transactionKey, sig    );
+  } catch (const std::runtime_error &e) {
+    logger(ERROR, BRIGHT_RED) << "Proof generation error: " << *e.what();
+    return false;
+  }
+
+  transactionProof = Tools::Base58::encode_addr(CryptoNote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX,     std::string((const char *)&rA, sizeof(Crypto::PublicKey)) + std::string((const char *)&sig, sizeof(Crypto::    Signature)));
+
+  return true;
+}
+
 }

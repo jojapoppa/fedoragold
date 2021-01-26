@@ -13,6 +13,8 @@
 
 #include "version.h"
 
+#include "Common/Base58.h"
+
 // CryptoNote
 #include "Common/StringTools.h"
 #include "CryptoNoteCore/Blockchain.h"
@@ -123,6 +125,10 @@ std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction
   { "/gettransactions", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS>(&RpcServer::on_get_transactions), false } },
   { "/sendrawtransaction", { jsonMethod<COMMAND_RPC_SEND_RAW_TX>(&RpcServer::on_send_raw_tx), false } },
 
+  { "/checktransactionproof", { jsonMethod<COMMAND_RPC_CHECK_TX_PROOF>(&RpcServer::on_check_transaction_proof), false } },
+  { "/checktransactionkey", { jsonMethod<COMMAND_RPC_CHECK_TX_KEY>(&RpcServer::on_check_transaction_key), false } },
+  { "/checktransactionviewkey", { jsonMethod<COMMAND_RPC_CHECK_TX_WITH_PRIVATE_VIEW_KEY>(&RpcServer::on_check_transaction_view_key), false } },
+
   // json rpc
   { "/json_rpc", { std::bind(&RpcServer::processJsonRpcRequest, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), true } }
 };
@@ -212,7 +218,11 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "get_blocks_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_hashes), false } },
       { "get_transaction_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hashes), false } },
       { "get_transaction_details_by_hash", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hash), false } },
-      { "get_transaction_hashes_by_payment_id", {makeMemberMethod(&RpcServer::on_get_transaction_hashes_by_paymentid), false } }
+      { "get_transaction_hashes_by_payment_id", {makeMemberMethod(&RpcServer::on_get_transaction_hashes_by_paymentid), false } },
+
+      { "checktransactionproof", {makeMemberMethod(&RpcServer::on_check_transaction_proof), false } },
+      { "checktransactionkey", {makeMemberMethod(&RpcServer::on_check_transaction_key), false } },
+      { "checktransactionviewkey", {makeMemberMethod(&RpcServer::on_check_transaction_view_key), false } }
     };
 
     auto it = jsonRpcHandlers.find(jsonRequest.getMethod());
@@ -1335,6 +1345,244 @@ bool RpcServer::on_get_block_header_by_height(const COMMAND_RPC_GET_BLOCK_HEADER
 
   fill_block_header_response(blk, false, req.height, block_hash, res.block_header);
   res.status = CORE_RPC_STATUS_OK;
+  return true;
+}
+
+bool RpcServer::on_check_transaction_proof(const COMMAND_RPC_CHECK_TX_PROOF::request& req, COMMAND_RPC_CHECK_TX_PROOF::response& res) {
+
+  // parse txid
+  Crypto::Hash txid;
+  if (!parse_hash256(req.transaction_id, txid)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse txid" };
+  }
+  // parse address
+  CryptoNote::AccountPublicAddress address;
+  if (!m_core.currency().parseAccountAddressString(req.destination_address, address)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse address " + req.destination_address + '.' };
+  }
+  // parse pubkey r*A & signature
+  std::string decoded_data;
+  uint64_t prefix;
+  if (!Tools::Base58::decode_addr(req.signature, prefix, decoded_data) || prefix != CryptoNote::parameters::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Transaction proof decoding error" };
+  }
+  Crypto::PublicKey rA;
+  Crypto::Signature sig;
+  
+  std::string rA_decoded = decoded_data.substr(0, sizeof(Crypto::PublicKey));
+  std::string sig_decoded = decoded_data.substr(sizeof(Crypto::PublicKey), sizeof(Crypto::Signature));
+
+  memcpy(&rA, rA_decoded.data(), sizeof(Crypto::PublicKey));
+  memcpy(&sig, sig_decoded.data(), sizeof(Crypto::Signature));
+
+  // fetch tx pubkey
+  Transaction tx;
+
+  std::vector<uint32_t> out;
+  std::vector<Crypto::Hash> tx_ids;
+  tx_ids.push_back(txid);
+
+  std::list<Crypto::Hash> missed_txs; 
+  std::list<Transaction> txs;
+
+  m_core.getTransactions(tx_ids, txs, missed_txs);
+  tx = txs.front();
+
+  CryptoNote::TransactionPrefix transaction = *static_cast<const TransactionPrefix*>(&tx);
+
+  Crypto::PublicKey R = getTransactionPublicKeyFromExtra(transaction.extra);
+  if (R == NULL_PUBLIC_KEY)
+  {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Tx pubkey was not found" };
+  }
+
+  // check signature
+  bool r = Crypto::check_tx_proof(txid, R, address.viewPublicKey, rA, sig);
+  res.signature_valid = r;
+
+  if (r) {
+
+    // obtain key derivation by multiplying scalar 1 to the pubkey r*A included in the signature
+    Crypto::KeyDerivation derivation;
+    if (!Crypto::generate_key_derivation(rA, Crypto::EllipticCurveScalar2SecretKey(Crypto::I), derivation)) {
+      throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Failed to generate key derivation" };
+    }
+
+    // look for outputs
+    uint64_t received(0);
+    size_t keyIndex(0);
+    std::vector<TransactionOutput> outputs;
+    try {
+      for (const TransactionOutput& o : transaction.outputs) {
+        if (o.target.type() == typeid(KeyOutput)) {
+          const KeyOutput out_key = boost::get<KeyOutput>(o.target);
+          Crypto::PublicKey pubkey;
+          derive_public_key(derivation, keyIndex, address.spendPublicKey, pubkey);
+          if (pubkey == out_key.key) {
+            received += o.amount;
+            outputs.push_back(o);
+          }
+        }
+        ++keyIndex;
+      }
+    }
+    catch (...)
+    {
+      throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Unknown error" };
+    }
+    res.received_amount = received;
+    res.outputs = outputs;
+
+    CryptoNote::tx_memory_pool::PoolTransactionDetails transactionDetails = m_core.getTransactionDetails(txid);
+    res.confirmations = m_protocolQuery.getObservedHeight() - transactionDetails.maxUsedBlock.height;
+  }
+  else {
+    res.received_amount = 0;
+  }
+
+  res.status = CORE_RPC_STATUS_OK;
+
+  return true;
+}
+
+bool RpcServer::on_check_transaction_key(const COMMAND_RPC_CHECK_TX_KEY::request& req, COMMAND_RPC_CHECK_TX_KEY::response& res) {
+
+  // parse txid
+  Crypto::Hash txid;
+  if (!parse_hash256(req.transaction_id, txid)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse txid" };
+  }
+  // parse address
+  CryptoNote::AccountPublicAddress address;
+  if (!m_core.currency().parseAccountAddressString(req.address, address)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse address " + req.address + '.' };
+  }
+  // parse txkey
+  Crypto::Hash tx_key_hash;
+  size_t size;
+  if (!Common::fromHex(req.transaction_key, &tx_key_hash, sizeof(tx_key_hash), size) || size != sizeof(tx_key_hash)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse txkey" };
+  }
+  Crypto::SecretKey tx_key = *(struct Crypto::SecretKey *) &tx_key_hash;
+
+  // fetch tx
+  Transaction tx;
+  std::vector<Crypto::Hash> tx_ids;
+  tx_ids.push_back(txid);
+
+  std::list<Crypto::Hash> missed_txs;
+  std::list<Transaction> txs;
+
+  m_core.getTransactions(tx_ids, txs, missed_txs);
+  tx = txs.front();
+
+  CryptoNote::TransactionPrefix transaction = *static_cast<const TransactionPrefix*>(&tx);
+
+  // obtain key derivation
+  Crypto::KeyDerivation derivation;
+  if (!Crypto::generate_key_derivation(address.viewPublicKey, tx_key, derivation))
+  {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to generate key derivation from supplied parameters" };
+  }
+
+  // look for outputs
+  uint64_t received(0);
+  size_t keyIndex(0);
+  std::vector<TransactionOutput> outputs;
+  try {
+    for (const TransactionOutput& o : transaction.outputs) {
+      if (o.target.type() == typeid(KeyOutput)) {
+        const KeyOutput out_key = boost::get<KeyOutput>(o.target);
+        Crypto::PublicKey pubkey;
+        derive_public_key(derivation, keyIndex, address.spendPublicKey, pubkey);
+        if (pubkey == out_key.key) {
+          received += o.amount;
+          outputs.push_back(o);
+        }
+      }
+      ++keyIndex;
+    }
+  }
+  catch (...)
+  {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Unknown error" };
+  }
+  res.amount = received;
+  res.outputs = outputs;
+  res.status = CORE_RPC_STATUS_OK;
+
+  return true;
+}
+
+bool RpcServer::on_check_transaction_view_key(const COMMAND_RPC_CHECK_TX_WITH_PRIVATE_VIEW_KEY::request& req, COMMAND_RPC_CHECK_TX_WITH_PRIVATE_VIEW_KEY::response& res) {
+
+  // parse txid
+  Crypto::Hash txid;
+  if (!parse_hash256(req.transaction_id, txid)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse txid" };
+  }
+  // parse address
+  CryptoNote::AccountPublicAddress address;
+  if (!m_core.currency().parseAccountAddressString(req.address, address)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse address " + req.address + '.' };
+  }
+  // parse view key
+  Crypto::Hash view_key_hash;
+  size_t size;
+  if (!Common::fromHex(req.view_key, &view_key_hash, sizeof(view_key_hash), size) || size != sizeof(view_key_hash)) {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to parse private view key" };
+  }
+  Crypto::SecretKey viewKey = *(struct Crypto::SecretKey *) &view_key_hash;
+
+  // fetch tx
+  Transaction tx;
+  std::vector<Crypto::Hash> tx_ids;
+  tx_ids.push_back(txid);
+
+  std::list<Crypto::Hash> missed_txs;
+  std::list<Transaction> txs;
+
+  m_core.getTransactions(tx_ids, txs, missed_txs);
+  tx = txs.front();
+
+  CryptoNote::TransactionPrefix transaction = *static_cast<const TransactionPrefix*>(&tx);
+
+  // get tx pub key
+  Crypto::PublicKey txPubKey = getTransactionPublicKeyFromExtra(transaction.extra);
+
+  // obtain key derivation
+  Crypto::KeyDerivation derivation;
+  if (!Crypto::generate_key_derivation(txPubKey, viewKey, derivation))
+  {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_WRONG_PARAM, "Failed to generate key derivation from supplied parameters" };
+  }
+
+  // look for outputs
+  uint64_t received(0);
+  size_t keyIndex(0);
+  std::vector<TransactionOutput> outputs;
+  try {
+    for (const TransactionOutput& o : transaction.outputs) {
+      if (o.target.type() == typeid(KeyOutput)) {
+        const KeyOutput out_key = boost::get<KeyOutput>(o.target);
+        Crypto::PublicKey pubkey;
+        derive_public_key(derivation, keyIndex, address.spendPublicKey, pubkey);
+        if (pubkey == out_key.key) {
+          received += o.amount;
+          outputs.push_back(o);
+        }
+      }
+      ++keyIndex;
+    }
+  }
+  catch (...)
+  {
+    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Unknown error" };
+  }
+  res.amount = received;
+  res.outputs = outputs;
+  res.status = CORE_RPC_STATUS_OK;
+
   return true;
 }
 

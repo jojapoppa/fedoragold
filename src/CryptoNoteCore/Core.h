@@ -128,6 +128,7 @@ namespace CryptoNote {
      std::vector<Transaction> getPoolTransactions() override;
      std::vector<std::pair<Transaction, uint64_t>> getPoolTransactionsWithReceiveTime() override;
 
+     CryptoNote::tx_memory_pool::PoolTransactionDetails getTransactionDetails(Crypto::Hash txid) const;
      std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> getTransactionDetails() const;
 
      size_t get_pool_transactions_count();

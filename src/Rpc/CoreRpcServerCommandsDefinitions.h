@@ -975,4 +975,86 @@ struct COMMAND_RPC_QUERY_BLOCKS_LITE {
   };
 };
 
+struct COMMAND_RPC_CHECK_TX_KEY {
+  struct request {
+    std::string transaction_id;
+    std::string transaction_key;
+    std::string address;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(transaction_id)
+      KV_MEMBER(transaction_key)
+      KV_MEMBER(address)
+    }
+  };
+
+  struct response {
+    uint64_t amount;
+    std::vector<TransactionOutput> outputs;
+    std::string status;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(amount)
+      KV_MEMBER(outputs)
+      KV_MEMBER(status)
+    }
+  };
+};
+
+struct COMMAND_RPC_CHECK_TX_WITH_PRIVATE_VIEW_KEY {
+  struct request {
+    std::string transaction_id;
+    std::string view_key;
+    std::string address;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(transaction_id)
+      KV_MEMBER(view_key)
+      KV_MEMBER(address)
+    }
+  };
+
+  struct response {
+    uint64_t amount;
+    std::vector<TransactionOutput> outputs;
+    std::string status;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(amount)
+      KV_MEMBER(outputs)
+      KV_MEMBER(status)
+    }
+  };
+};
+
+struct COMMAND_RPC_CHECK_TX_PROOF {
+  struct request {
+    std::string transaction_id;
+    std::string destination_address;
+    std::string signature;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(transaction_id)
+      KV_MEMBER(destination_address)
+      KV_MEMBER(signature)
+    }
+  };
+
+  struct response {
+    bool signature_valid;
+    uint64_t received_amount;
+    std::vector<TransactionOutput> outputs;
+    uint32_t confirmations = 0;
+    std::string status;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(signature_valid)
+      KV_MEMBER(received_amount)
+      KV_MEMBER(outputs)
+      KV_MEMBER(confirmations)
+      KV_MEMBER(status)
+    }
+  };
+};
+
 }
