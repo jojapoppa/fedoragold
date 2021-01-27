@@ -19,6 +19,7 @@
 #include "Common/StringTools.h"
 #include "CryptoNoteCore/Blockchain.h"
 #include "CryptoNoteCore/CryptoNoteTools.h"
+#include "Common/StringTools.h"
 #include "CryptoNoteCore/Core.h"
 #include "CryptoNoteCore/IBlock.h"
 #include "CryptoNoteCore/Miner.h"
@@ -608,6 +609,7 @@ bool RpcServer::on_get_transactions_pool_short(const COMMAND_RPC_GET_TRANSACTION
 bool RpcServer::on_get_transactions_pool(const COMMAND_RPC_GET_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL::response& res) {
 
   auto pool = m_core.getTransactionDetails();
+  logger(INFO) << "on_get_transactions_pool size: " << pool.size() << ENDL;
   for (const auto transactionDetails: pool) {
     try {
       PoolTransactionDetailsData datum;
@@ -1044,22 +1046,34 @@ bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request&
     return false;
   }
 
-  // height is 32bit in the network protocol for CN
-  for (uint32_t i=0; i<m_core.get_current_blockchain_height(); i++) {
-
-    std::list<Block> blocks;
-    std::list<Transaction> txs;
-    if (!m_core.get_blocks(i, 1, blocks, txs)) {
-      logger(INFO) << "block not found at height: " << i;
-      return false;
+  std::vector<Hash> vh;
+  for (const auto& tx_hex_str : req.txs_hashes) {
+    BinaryArray b;
+    if (!fromHex(tx_hex_str, b)) {
+      res.status = "Failed to parse hex representation of transaction hash";
+      return true;
     }
 
-    Block block = blocks.front();
-    for (auto& tx : block.transactionHashes) {
-      std::stringstream ss;
-      ss << tx;
-      std::string s = ss.str();
-      res.txs.push_back(s);
+    if (b.size() != sizeof(Hash)) {
+      res.status = "Failed, size of data mismatch";
+    }
+
+    vh.push_back(*reinterpret_cast<const Hash*>(b.data()));
+  }
+
+  std::list<Crypto::Hash> missed_txs;
+  std::list<Transaction> txs;
+  m_core.getTransactions(vh, txs, missed_txs);
+
+  if (!txs.empty()) {
+    for (const Transaction& tx : txs) {
+      res.txs_as_hex.push_back(Common::podToHex(tx));
+    }
+  }
+
+  if (!missed_txs.empty()) {
+    for (const auto& miss_tx : missed_txs) {
+      res.missed_txs.push_back(Common::podToHex(miss_tx));
     }
   }
 

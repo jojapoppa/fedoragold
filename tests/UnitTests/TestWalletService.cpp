@@ -45,6 +45,8 @@ struct IWalletBaseStub : public CryptoNote::IWallet {
   virtual void shutdown() override { }
 
   virtual Crypto::SecretKey getTransactionSecretKey() const override { return m_key; }
+  virtual Crypto::SecretKey getTransactionSecretKey(Crypto::Hash& transactionHash) const override { return m_key; } 
+  virtual bool getTransactionProof(const Crypto::Hash& transactionHash, const CryptoNote::AccountPublicAddress& destinationAddress, const Crypto::SecretKey& txKey, std::string& transactionProof) { return true; }
 
   virtual void changePassword(const std::string& oldPassword, const std::string& newPassword) override { }
   virtual void save(std::ostream& destination, bool saveDetails = true, bool saveCache = true) override { }

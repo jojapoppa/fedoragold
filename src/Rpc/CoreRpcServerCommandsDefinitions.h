@@ -532,20 +532,26 @@ struct COMMAND_RPC_GET_TRANSACTION {
 
 struct COMMAND_RPC_GET_TRANSACTIONS {
   struct request {
+    std::vector<std::string> txs_hashes;
+
     void serialize(ISerializer &s) {
+      KV_MEMBER(txs_hashes)
     }
   };
 
   struct response {
-    std::vector<std::string> txs;
+    std::vector<std::string> txs_as_hex; //transactions blobs as hex
+    std::vector<std::string> missed_txs;  //not found transactions
     std::string status;
 
     void serialize(ISerializer &s) {
-      KV_MEMBER(txs)
-      KV_MEMBER(status) 
+      KV_MEMBER(txs_as_hex)
+      KV_MEMBER(missed_txs)
+      KV_MEMBER(status)
     }
   };
 };
+
 //-----------------------------------------------
 struct COMMAND_RPC_GET_POOL_CHANGES {
   struct request {

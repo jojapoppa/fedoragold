@@ -34,13 +34,15 @@ public:
       [&](uint64_t chunk) { destinations.push_back(CryptoNote::TransactionDestinationEntry(chunk, address)); },
       [&](uint64_t a_dust) { destinations.push_back(CryptoNote::TransactionDestinationEntry(a_dust, address)); });
 
-    CryptoNote::constructTransaction(this->m_miners[this->real_source_idx].getAccountKeys(), this->m_sources, destinations, std::vector<uint8_t>(), tx, unlockTime, m_logger);
+    Crypto::SecretKey tx_key;
+    CryptoNote::constructTransaction(this->m_miners[this->real_source_idx].getAccountKeys(), this->m_sources, destinations, std::vector<uint8_t>(), tx, unlockTime, tx_key, m_logger);
   }
 
   void generateSingleOutputTx(const AccountPublicAddress& address, uint64_t amount, Transaction& tx) {
     std::vector<TransactionDestinationEntry> destinations;
     destinations.push_back(TransactionDestinationEntry(amount, address));
-    constructTransaction(this->m_miners[this->real_source_idx].getAccountKeys(), this->m_sources, destinations, std::vector<uint8_t>(), tx, 0, m_logger);
+    Crypto::SecretKey tx_key;
+    constructTransaction(this->m_miners[this->real_source_idx].getAccountKeys(), this->m_sources, destinations, std::vector<uint8_t>(), tx, 0, tx_key, m_logger);
   }
 };
 

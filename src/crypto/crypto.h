@@ -92,6 +92,8 @@ namespace Crypto {
       const PublicKey *const *, size_t, const Signature *);
   };
 
+  void hash_to_scalar(const void *data, size_t length, EllipticCurveScalar &res);
+
   /* Generate a value filled with random bytes.
    */
   template<typename T>

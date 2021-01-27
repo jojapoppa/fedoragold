@@ -11,6 +11,9 @@
 #include <system_error>
 #include "CryptoNote.h"
 
+#include <boost/optional.hpp>
+#include "CryptoNoteCore/CryptoNoteBasic.h"
+
 namespace CryptoNote {
 
 typedef size_t TransactionId;
@@ -42,6 +45,7 @@ struct WalletLegacyTransaction {
   uint64_t         sentTime;
   uint64_t         unlockTime;
   Crypto::Hash     hash;
+  boost::optional<Crypto::SecretKey> secretKey = CryptoNote::NULL_SECRET_KEY;
   bool             isCoinbase;
   uint32_t         blockHeight;
   uint64_t         timestamp;

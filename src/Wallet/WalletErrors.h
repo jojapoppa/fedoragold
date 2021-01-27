@@ -44,7 +44,8 @@ enum WalletErrorCodes {
   CHANGE_ADDRESS_REQUIRED,
   CHANGE_ADDRESS_NOT_FOUND,
   DESTINATION_ADDRESS_REQUIRED,
-  DESTINATION_ADDRESS_NOT_FOUND
+  DESTINATION_ADDRESS_NOT_FOUND,
+  WRONG_TX_SECRET_KEY
 };
 
 // custom category:
@@ -124,6 +125,8 @@ public:
     case CHANGE_ADDRESS_REQUIRED:  ss=m_msg+"Change address required";
     break;
     case CHANGE_ADDRESS_NOT_FOUND: ss=m_msg+"Change address not found";
+    break;
+    case WRONG_TX_SECRET_KEY:      ss=m_msg+"Wrong transaction secret key";
     break;
     default:                       ss=m_msg+"Unknown error";
     break;

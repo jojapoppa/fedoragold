@@ -57,7 +57,11 @@ public:
   virtual WalletTransaction getTransaction(size_t transactionIndex) const override;
   virtual size_t getTransactionTransferCount(size_t transactionIndex) const override;
   virtual WalletTransfer getTransactionTransfer(size_t transactionIndex, size_t transferIndex) const override;
+
   virtual Crypto::SecretKey getTransactionSecretKey() const override;
+  virtual Crypto::SecretKey getTransactionSecretKey(Crypto::Hash& transactionHash) const override;
+  virtual bool getTransactionProof(const Crypto::Hash& transactionHash, const CryptoNote::AccountPublicAddress& destinationAddress, const Crypto::SecretKey& txKey, std::string& transactionProof) override;
+
   virtual WalletTransactionWithTransfers getTransaction(const Crypto::Hash& transactionHash) const override;
   virtual std::vector<TransactionsInBlockInfo> getTransactions(const Crypto::Hash& blockHash, size_t count) const override;
   virtual std::vector<TransactionsInBlockInfo> getTransactions(uint32_t blockIndex, size_t count) const override;
@@ -107,6 +111,8 @@ protected:
   mutable Logging::LoggerRef m_logger;
 
   void initWithKeys(const Crypto::PublicKey& viewPublicKey, const Crypto::SecretKey& viewSecretKey, const std::string& password);
+
+  Crypto::SecretKey getTransactionDeterministicSecretKey(Crypto::Hash& transactionHash) const;
 
   std::string doCreateAddress(const Crypto::PublicKey& spendPublicKey, const Crypto::SecretKey& spendSecretKey, uint64_t creationTimestamp);
 

@@ -31,6 +31,7 @@
 #include "CryptoNoteCore/CryptoNoteTools.h"
 #include "CryptoNoteCore/TransactionApi.h"
 #include "CryptoNoteCore/CryptoNoteBasicImpl.h"
+#include "CryptoNoteCore/TransactionExtra.h"
 #include "crypto/crypto.h"
 #include "crypto/random.h"
 #include "Transfers/TransfersContainer.h"
@@ -1805,10 +1806,58 @@ std::vector<size_t> WalletGreen::getDelayedTransactionIds() const {
   return result;
 }
 
+Crypto::SecretKey WalletGreen::getTransactionDeterministicSecretKey(Crypto::Hash& transactionHash) const {
+  throwIfNotInitialized();
+  throwIfStopped();
+
+  Crypto::SecretKey txKey = CryptoNote::NULL_SECRET_KEY;
+
+  auto getTransactionCompleted = std::promise<std::error_code>();
+  auto getTransactionWaitFuture = getTransactionCompleted.get_future();
+  CryptoNote::Transaction tx;
+  m_node.getTransaction(std::move(transactionHash), std::ref(tx),
+    [&getTransactionCompleted](std::error_code ec) {
+    auto detachedPromise = std::move(getTransactionCompleted);
+    detachedPromise.set_value(ec);
+  });
+  std::error_code ec = getTransactionWaitFuture.get();
+  if (ec) {
+    m_logger(Logging::ERROR) << "Failed to get tx: " << ec << ", " << ec.message();
+    return CryptoNote::NULL_SECRET_KEY;
+  }
+
+  Crypto::PublicKey txPubKey = getTransactionPublicKeyFromExtra(tx.extra);
+  KeyPair deterministicTxKeys;
+  bool ok = generateDeterministicTransactionKeys(tx, m_viewSecretKey, deterministicTxKeys)
+    && deterministicTxKeys.publicKey == txPubKey;
+
+  return ok ? deterministicTxKeys.secretKey : CryptoNote::NULL_SECRET_KEY;
+
+  return txKey;
+}
+
 Crypto::SecretKey WalletGreen::getTransactionSecretKey() const {
   throwIfNotInitialized();
   throwIfStopped();
   return m_viewSecretKey;
+}
+
+Crypto::SecretKey WalletGreen::getTransactionSecretKey(Crypto::Hash& transactionHash) const {
+  throwIfNotInitialized();
+  throwIfStopped();
+
+  auto txInfo = getTransaction(transactionHash);
+  Crypto::SecretKey txKey = txInfo.transaction.secretKey.get_value_or(CryptoNote::NULL_SECRET_KEY);
+
+  if (txKey == CryptoNote::NULL_SECRET_KEY) {
+    txKey = getTransactionDeterministicSecretKey(transactionHash);
+  }
+
+  return txKey;
+}
+
+bool WalletGreen::getTransactionProof(const Crypto::Hash& transactionHash, const CryptoNote::AccountPublicAddress& destinationAddress, const Crypto::SecretKey& txKey, std::string& transactionProof) {
+  return CryptoNote::getTransactionProof(transactionHash, destinationAddress, txKey, transactionProof, m_logger.getLogger());
 }
 
 void WalletGreen::start() {

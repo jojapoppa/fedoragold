@@ -112,7 +112,8 @@ public:
       destinations.push_back(TransactionDestinationEntry(amountPerOut, rv_acc.getAccountKeys().address));
     }
 
-    constructTransaction(m_realSenderKeys, m_sources, destinations, std::vector<uint8_t>(), tx, 0, m_logger);
+    Crypto::SecretKey tx_key;
+    constructTransaction(m_realSenderKeys, m_sources, destinations, std::vector<uint8_t>(), tx, 0, tx_key, m_logger);
   }
 
   std::vector<AccountBase> m_miners;
