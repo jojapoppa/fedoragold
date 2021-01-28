@@ -309,6 +309,7 @@ struct SendTransaction {
 
   struct Response {
     std::string transactionHash;
+    std::string proof;
 
     void serialize(CryptoNote::ISerializer& serializer);
   };

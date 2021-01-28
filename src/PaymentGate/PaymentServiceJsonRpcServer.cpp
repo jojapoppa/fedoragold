@@ -147,6 +147,8 @@ std::error_code PaymentServiceJsonRpcServer::handleGetTransactionHashes(const Ge
 }
 
 std::error_code PaymentServiceJsonRpcServer::handleGetTransactions(const GetTransactions::Request& request, GetTransactions::Response& response) {
+  std::error_code errState;
+
   if (!request.blockHash.empty()) {
     return service.getTransactions(request.addresses, request.blockHash, request.blockCount, request.paymentId, response.items);
   } else {
@@ -171,7 +173,19 @@ std::error_code PaymentServiceJsonRpcServer::handleGetTransactionProof(const Get
 }
 
 std::error_code PaymentServiceJsonRpcServer::handleSendTransaction(const SendTransaction::Request& request, SendTransaction::Response& response) {
-  return service.sendTransaction(request, response.transactionHash);
+  std::error_code ercode;
+  ercode = service.sendTransaction(request, response.transactionHash);
+
+  // Automatically generate proof for all single destination outgoing transfers
+  if (request.transfers.size() == 1) {
+    GetTransactionSecretKey::Response secretResp;
+    service.getTransactionSecretKey(response.transactionHash, secretResp.transactionSecretKey);
+    GetTransactionProof::Response proofResp;
+    service.getTransactionProof(response.transactionHash, request.transfers.front().address, secretResp.transactionSecretKey, proofResp.transactionProof);
+    response.proof = proofResp.transactionProof;
+  }
+
+  return ercode;
 }
 
 std::error_code PaymentServiceJsonRpcServer::handleCreateDelayedTransaction(const CreateDelayedTransaction::Request& request, CreateDelayedTransaction::Response& response) {
