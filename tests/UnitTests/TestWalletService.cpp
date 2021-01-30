@@ -787,7 +787,8 @@ TEST_F(WalletServiceTest_sendTransaction, passesCorrectParameters) {
   auto service = createWalletService(wallet);
 
   std::string hash;
-  auto ec = service->sendTransaction(request, hash);
+  std::string proof;
+  auto ec = service->sendTransaction(request, hash, proof);
 
   ASSERT_FALSE(ec);
   ASSERT_EQ(Common::podToHex(wallet.hash), hash);
@@ -799,7 +800,8 @@ TEST_F(WalletServiceTest_sendTransaction, incorrectSourceAddress) {
   request.sourceAddresses.push_back("wrong address");
 
   std::string hash;
-  auto ec = service->sendTransaction(request, hash);
+  std::string proof;
+  auto ec = service->sendTransaction(request, hash, proof);
   ASSERT_EQ(make_error_code(CryptoNote::error::BAD_ADDRESS), ec);
 }
 
@@ -808,7 +810,8 @@ TEST_F(WalletServiceTest_sendTransaction, incorrectTransferAddress) {
   request.transfers.push_back(WalletRpcOrder{"wrong address", 12131});
 
   std::string hash;
-  auto ec = service->sendTransaction(request, hash);
+  std::string proof;
+  auto ec = service->sendTransaction(request, hash, proof);
   ASSERT_EQ(make_error_code(CryptoNote::error::BAD_ADDRESS), ec);
 }
 
