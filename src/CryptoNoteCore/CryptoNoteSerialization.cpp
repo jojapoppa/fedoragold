@@ -8,7 +8,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <iostream>
-#include <stdio>
 
 #include <boost/variant/static_visitor.hpp>
 #include <boost/variant/apply_visitor.hpp>
@@ -307,7 +306,7 @@ void serialize(MultisignatureOutput& multisignature, ISerializer& serializer) {
 void serializeBlockHeader(BlockHeader& header, ISerializer& serializer) {
   serializer(header.majorVersion, "major_version");
   if (header.majorVersion > BLOCK_MAJOR_VERSION_1) {
-    std::string erm;
+    char erm[100];
     sprintf(erm, "Wrong major version detected: %d", header.majorVersion);
     throw std::runtime_error(erm);
   }
