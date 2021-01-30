@@ -289,7 +289,7 @@ struct PoolTransactionDetailsData {
   uint64_t blobSize;
   uint64_t fee;
   bool keptByBlock;
-  time_t receiveTime;
+  uint64_t receiveTime;
 
   void serialize(ISerializer &s) {
     KV_MEMBER(id)
