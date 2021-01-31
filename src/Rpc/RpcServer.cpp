@@ -226,6 +226,8 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "checktransactionviewkey", {makeMemberMethod(&RpcServer::on_check_transaction_view_key), false } }
     };
 
+    logger(INFO) << "jsonRequst: " << jsonRequest.getMethod();
+
     auto it = jsonRpcHandlers.find(jsonRequest.getMethod());
     if (it == jsonRpcHandlers.end()) {
       throw JsonRpcError(JsonRpc::errMethodNotFound);
