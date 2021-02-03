@@ -1089,16 +1089,18 @@ bool Blockchain::validate_miner_transaction(const Block& b, uint32_t height, siz
 
   // jojapoppa, turn back on at 1st soft fork - turning back on now... related to mining history
   //   now will test with checkpoints active
-  if (minerReward > reward) {
-    logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " << m_currency.formatAmount(minerReward) <<
-      ", block reward is " << m_currency.formatAmount(reward);
-    return false;
+  if (height > UPGRADE_HEIGHT_V2) { 
+    if (minerReward > reward) {
+      logger(ERROR, BRIGHT_RED) << "Coinbase transaction spend too much money: " <<
+        m_currency.formatAmount(minerReward) << ", block reward is " << m_currency.formatAmount(reward);
+      return false;
+    }
+    else if (minerReward < reward) {
+      logger(ERROR, BRIGHT_RED) << "Coinbase transaction didn't use full amount of block reward: spent " <<
+        m_currency.formatAmount(minerReward) << ", block reward is " << m_currency.formatAmount(reward);
+      return false;
+     }
   }
-  else if (minerReward < reward) {
-    logger(ERROR, BRIGHT_RED) << "Coinbase transaction didn't use full amount of block reward: spent " <<
-      m_currency.formatAmount(minerReward) << ", block reward is " << m_currency.formatAmount(reward);
-    return false;
-   }
 
   return true;
 }

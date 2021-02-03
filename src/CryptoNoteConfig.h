@@ -137,9 +137,13 @@ struct CheckpointData {
 __attribute__((unused))
 #endif
 
+const uint32_t UPGRADE_HEIGHT_V2 = 2815800; // Coinbase spend check - closing exploit
+
 // You may add here other checkpoints using the following format:
 // {<block height>, "<block hash>"},
 const std::initializer_list<CheckpointData> CHECKPOINTS = {
+  { 0,       "c01db05b73a7bdb03cff6ce9b9104096523b542ee40944e7726c3f589eff618d" },
+  { 1,       "9fabc5641fe3f9333b60d1fc295975e790d6bf9876e9b48899b00b1c00d9dfbd" },
   { 1192156, "d4d514f0ebeecd9f0847f4357a3baaa133a73fd27a4837759d939d4f152197a0" },
   { 1192782, "728766de7334a5151e3d9f1cf3677e5284403b53d72a1b4f8d892580123578a6" },
   { 1192783, "33c8862c59fc65e1dea0e5e708437e2ae2284bca387e52cd627431d7ab00cf6b" },
