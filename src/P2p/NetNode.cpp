@@ -137,7 +137,7 @@ namespace CryptoNote
 
     if (writeQueueSize > P2P_CONNECTION_MAX_WRITE_BUFFER_SIZE) {
       logger(DEBUGGING) << "Write queue overflows. Interrupt connection: " << *this;
-      interruptP2p();
+      interrupt();
       return false;
     }
 
@@ -165,7 +165,7 @@ namespace CryptoNote
     return writeOperationStartTime == TimePoint() ? 0 : std::chrono::duration_cast<std::chrono::milliseconds>(now - writeOperationStartTime).count();
   }
 
-  void P2pConnectionContext::interruptP2p() {
+  void P2pConnectionContext::interrupt() {
     logger(DEBUGGING) << *this << "Interrupt p2p connection";
     assert(context != nullptr);
     stopped = true;
@@ -504,9 +504,10 @@ namespace CryptoNote
 
     m_stopEvent.wait();
 
-    logger(INFO) << "Stopping NodeServer and it's " << m_connections.size() << " connections...";
+    logger(INFO) << "Stopping NodeServer and its " << m_connections.size() << " connections...";
     m_workingContextGroup.interrupt();
-    m_workingContextGroup.wait();
+
+    //m_workingContextGroup.wait();
 
     logger(INFO) << "NodeServer loop stopped";
     return true;
@@ -528,6 +529,9 @@ namespace CryptoNote
   bool NodeServer::store_config()
   {
     try {
+
+      logger(INFO) << "storing to config files";
+
       if (!Tools::create_directories_if_necessary(m_config_folder)) {
         logger(INFO) << "Failed to create data directory: " << m_config_folder;
         return false;
@@ -541,9 +545,17 @@ namespace CryptoNote
         return false;
       };
 
+      logger(INFO) << "serialize config";
+
       StdOutputStream stream(p2p_data);
       BinaryOutputStreamSerializer a(stream);
       CryptoNote::serialize(*this, a);
+
+      p2p_data.flush();
+      p2p_data.close();
+
+      logger(INFO) << "config stored";
+
       return true;
     } catch (const std::exception& e) {
       logger(WARNING) << "store_config failed: " << e.what();
@@ -903,6 +915,8 @@ namespace CryptoNote
       if(m_stopEvent.get())
         return false;
 
+      if (m_stop) return true;
+
       if(!make_new_connection_from_peerlist(white_list))
         break;
       conn_count = get_outgoing_connections_count();
@@ -1148,6 +1162,11 @@ namespace CryptoNote
   {
     logger(DEBUGGING) << "COMMAND_TIMEDSYNC...";
 
+    if (m_stop) {
+      context.m_state = CryptoNoteConnectionContext::state_shutdown;
+      return 1;
+    }
+
     if(!m_payload_handler.process_payload_sync_data(arg.payload_data, context, false)) {
       logger((Logging::Level)ERROR) << context << "Failed to process_payload_sync_data(), dropping connection";
       context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -1373,10 +1392,13 @@ namespace CryptoNote
         auto now = P2pConnectionContext::Clock::now();
 
         for (auto& kv : m_connections) {
+
+          if (m_stop) break;
+
           auto& ctx = kv.second;
           if (ctx.writeDuration(now) > P2P_DEFAULT_INVOKE_TIMEOUT) {
             logger(WARNING) << ctx << "write operation timed out, stopping connection";
-            ctx.interruptP2p();
+            ctx.interrupt();
           }
         }
       }
@@ -1467,7 +1489,7 @@ namespace CryptoNote
         // Don't show this error, it's expected behavior... network errors do happen...
       }
 
-      ctx.interruptP2p();
+      ctx.interrupt();
       writeContext.interrupt();
       writeContext.get();
 
@@ -1523,7 +1545,7 @@ namespace CryptoNote
       logger(DEBUGGING) << ctx << "writeHandler() is interrupted";
     } catch (std::exception& e) {
       logger(WARNING) << ctx << "error during write: " << e.what();
-      ctx.interruptP2p(); // stop connection on write error
+      ctx.interrupt(); // stop connection on write error
     }
 
     logger(DEBUGGING) << ctx << "writeHandler finished";

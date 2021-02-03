@@ -89,6 +89,7 @@ void CryptoNoteProtocolHandler::onConnectionClosed(CryptoNoteConnectionContext& 
 }
 
 void CryptoNoteProtocolHandler::stop() {
+  logger(INFO) << "stopping CN protocol handler";
   m_stop = true;
 }
 
@@ -454,7 +455,7 @@ int CryptoNoteProtocolHandler::handle_response_get_objects(int command,
 
 int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& context, const std::vector<block_complete_entry>& blocks) {
 
-  logger(DEBUGGING) << "processObjects!!!!!!!!!!!!!!";
+  //logger(DEBUGGING) << "processObjects!!!!!!!!!!!!!!";
 	
   for (const block_complete_entry& block_entry : blocks) {
     if (m_stop) {
@@ -463,6 +464,11 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
 
     //process transactions
     for (auto& tx_blob : block_entry.txs) {
+
+      if (m_stop) {
+        break;
+      }
+
       auto transactionBinary = asBinaryArray(tx_blob);
       Crypto::Hash transactionHash = Crypto::cn_fast_hash(transactionBinary.data(), transactionBinary.size());
       logger(DEBUGGING) << "transaction " << transactionHash << " came in processObjects";
@@ -496,7 +502,7 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       context.m_requested_objects.clear();
       return 1;
     }
-
+    
     m_dispatcher.yield();
   }
   return 0;
@@ -504,7 +510,11 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
 
 
 bool CryptoNoteProtocolHandler::on_idle() {
-  return m_core.on_idle();
+  if (! m_stop) {
+    return m_core.on_idle();
+  }
+
+  return true;
 }
 
 int CryptoNoteProtocolHandler::handle_request_chain(int command, NOTIFY_REQUEST_CHAIN::request& arg, CryptoNoteConnectionContext& context) {

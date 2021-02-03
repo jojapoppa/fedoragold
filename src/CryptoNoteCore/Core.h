@@ -60,6 +60,8 @@ namespace CryptoNote {
      uint64_t getMinimalFee() { return CryptoNote::parameters::MINIMUM_FEE; }
      /* ours is flat: return getMinimalFeeForHeight(get_current_blockchain_height() - 1);*/ 
 
+     void stop() { m_stop = true; }
+
      // ICore
      virtual size_t addChain(const std::vector<const IBlock*>& chain) override;
      virtual bool handle_get_objects(NOTIFY_REQUEST_GET_OBJECTS_request& arg, NOTIFY_RESPONSE_GET_OBJECTS_request& rsp) override; //Deprecated. Should be removed with CryptoNoteProtocolHandler.
@@ -211,5 +213,6 @@ namespace CryptoNote {
      std::atomic<bool> m_starter_message_showed;
      Tools::ObserverManager<ICoreObserver> m_observerManager;
      time_t start_time;
+     bool m_stop = false;
    };
 }

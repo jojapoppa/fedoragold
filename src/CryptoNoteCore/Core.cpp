@@ -347,7 +347,7 @@ bool core::check_tx_semantic(const Transaction& tx, bool keeped_by_block) {
   return true;
 }
 
-//jojapoppa, fix for the famous Monero coin exploit (see Karbo code) ... see new function below
+//jojapoppa, original fix for the famous Monero coin exploit (see Karbo code) ... see new function below
 //bool core::check_tx_inputs_keyimages_diff(const Transaction& tx) {
 //  std::unordered_set<Crypto::KeyImage> ki;
 //  for (const auto& in : tx.inputs) {
