@@ -530,7 +530,7 @@ namespace CryptoNote
   {
     try {
 
-      logger(INFO) << "storing to config files";
+      //logger(INFO) << "storing to config files";
 
       if (!Tools::create_directories_if_necessary(m_config_folder)) {
         logger(INFO) << "Failed to create data directory: " << m_config_folder;
@@ -545,7 +545,7 @@ namespace CryptoNote
         return false;
       };
 
-      logger(INFO) << "serialize config";
+      //logger(INFO) << "serialize config";
 
       StdOutputStream stream(p2p_data);
       BinaryOutputStreamSerializer a(stream);
@@ -554,7 +554,7 @@ namespace CryptoNote
       p2p_data.flush();
       p2p_data.close();
 
-      logger(INFO) << "config stored";
+      //logger(INFO) << "config stored";
 
       return true;
     } catch (const std::exception& e) {
