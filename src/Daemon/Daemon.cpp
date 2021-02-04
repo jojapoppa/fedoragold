@@ -225,7 +225,10 @@ int main(int argc, char* argv[])
 
     if (!coreConfig.configFolderDefaulted) {
       if (!Tools::directoryExists(coreConfig.configFolder)) {
-        throw std::runtime_error("Directory does not exist: " + coreConfig.configFolder);
+        if (!Tools::create_directories_if_necessary(coreConfig.configFolder)) {
+          throw std::runtime_error("Can't create directory: " + coreConfig.configFolder);
+        }
+        //throw std::runtime_error("Directory does not exist: " + coreConfig.configFolder);
       }
     } else {
       if (!Tools::create_directories_if_necessary(coreConfig.configFolder)) {
