@@ -125,7 +125,11 @@ const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 // Add here your network seed nodes
 const std::initializer_list<const char*> SEED_NODES = {
   "202.182.106.252:30158",  // blockexplorer & seed
-  "213.136.89.252:30158"   // pool seed 
+  "213.136.89.252:30158",   // pool seed
+  "45.76.106.169:30158",    // fedswap-test
+  "172.86.75.248:30158",    // fedoragold.com
+  "192.248.165.242:30158",  // fedswap
+  "45.32.248.218:30158"     // email-fedoragold.com
 };
 
 struct CheckpointData {
@@ -176,7 +180,11 @@ const std::initializer_list<CheckpointData> CHECKPOINTS = {
   { 2502350, "883ea69d5e7574c57d319156f3e6c41e005033ad2cfe0b5209e910b923c05327" },
   { 2776398, "7a3ffbb938d4d18d290f0bfe7b3a6de14abc2b7da5844e08b7688e110c3dda6d" },
   { 2776399, "11e3185bd558244cd7327e2540782ab786489c42908ddc3a71b874beca7d0cb0" },
-  { 2782955, "31ca55792dfe1c02c3787f9a6a135cbbad110edd2b51e11f40289f1a57880cfc" }
+  { 2782955, "31ca55792dfe1c02c3787f9a6a135cbbad110edd2b51e11f40289f1a57880cfc" },
+  { 2795912, "67e2bf7db2db2ab53d1ae0e2d264167a80494660e8822088e5c3704293928288" },
+  { 2795913, "8b5382f20faba345b6b80b0b8abeceab488d9a97bb096da6cc1781530a975cf8" },
+  { 2795914, "c3ea9aa2509beaa5dba2efe920324e47020239b61a72ae7f0571b86cf553b881" },
+  { 2804277, "50c9296eb23fb9efdd8250f0aef402b0e2e95f34e0192bb662d68ca40b609765" }
 };
 } // CryptoNote
 

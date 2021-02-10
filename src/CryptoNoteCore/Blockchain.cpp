@@ -195,15 +195,11 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
 
-      std::string lasth(m_lastBlockHash.data, m_lastBlockHash.data + sizeof(m_lastBlockHash.data));
-      std::string thish(blockHash.data, blockHash.data + sizeof(blockHash.data));
+      std::string lasth = Common::podToHex(m_lastBlockHash);
+      std::string thish = Common::podToHex(blockHash);
       if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH &&
         lasth.length() > 0 && thish.length() > 0) {
-        if (blockHash != m_lastBlockHash) {
-
-          std::cout << "last block does not match... rebuild block cache..." <<
-            "  stored last_block: " << lasth <<
-            "  last_block in current chain: " << thish; 
+        if (lasth.compare(thish) != 0) {
 
           logger(INFO) << "last block does not match... rebuild block cache..." <<
             "  stored last_block: " << lasth <<
@@ -283,11 +279,14 @@ public:
       Crypto::Hash blockHash;
       s(blockHash, "blockHash");
 
-      std::string lasth(m_lastBlockHash.data, m_lastBlockHash.data + sizeof(m_lastBlockHash.data));
-      std::string thish(blockHash.data, blockHash.data + sizeof(blockHash.data));
+      //std::string lasth(m_lastBlockHash.data, m_lastBlockHash.data + sizeof(m_lastBlockHash.data));
+      //std::string thish(blockHash.data, blockHash.data + sizeof(blockHash.data));
+      std::string lasth = Common::podToHex(m_lastBlockHash);
+      std::string thish = Common::podToHex(blockHash);
+
       if (m_lastBlockHash != NULL_HASH && blockHash != NULL_HASH && 
         lasth.length() > 0 && thish.length() > 0) {
-        if (blockHash != m_lastBlockHash) {
+        if (lasth.compare(thish) != 0) {
           logger(INFO) << "last block does not match, reloading block indices...";
           return;
         }
