@@ -286,24 +286,28 @@ size_t makeFusionTransaction(CryptoNote::WalletGreen &wallet,
                              uint64_t threshold)
 {
     uint64_t bestThreshold = threshold;
-    size_t optimizable = 0;
+    uint64_t optimizable = 0;
+
+    std::cout << "in makeFusionTransaction" << std::endl;
 
     /* Find the best threshold by starting at threshold and decreasing by
        half till we get to the minimum amount, storing the threshold that
        gave us the most amount of optimizable amounts */
-    while (threshold > CryptoNote::parameters::MINIMUM_FEE)
+    uint64_t lowerBound = CryptoNote::parameters::MINIMUM_FEE;
+    while (threshold > lowerBound)
     {
-        CryptoNote::IFusionManager::EstimateResult r 
-            = wallet.estimate(threshold);
+        CryptoNote::IFusionManager::EstimateResult r = wallet.estimate(threshold);
+        uint64_t rdycnt = r.fusionReadyCount;
 
-        if (r.fusionReadyCount > optimizable)
-        {
-            optimizable = r.fusionReadyCount;
-            bestThreshold = threshold;
-        }
+        //std::cout << "readycnt: " << rdycnt << std::endl;
+        //std::cout << "thresh: " << threshold << std::endl;
 
-        threshold /= 2;
+        if (rdycnt > optimizable) optimizable = rdycnt;
+        if (threshold > lowerBound) threshold /= 2;
     }
+
+    bestThreshold = threshold;
+    //std::cout << "Proceeding with threshold: " << bestThreshold << std::endl;
 
     /* Can throw if it can't create - lol what are error codes - just catch
        it and assume we can't fusion anymore */
@@ -311,7 +315,10 @@ size_t makeFusionTransaction(CryptoNote::WalletGreen &wallet,
     {
         // CryptoNote::parameters::DEFAULT_MIXIN is zero
         std::vector<std::string> sourceAddresses = {wallet.getAddress(0)};
-        return wallet.createFusionTransaction(bestThreshold, 0, sourceAddresses, wallet.getAddress(0));
+        std::cout << "source address count:" << sourceAddresses.size() << std::endl;
+
+        std::string dest = wallet.getAddress(0);
+        return wallet.createFusionTransaction(bestThreshold, 0, sourceAddresses, dest);
     }
     catch (...)
     {
@@ -322,8 +329,8 @@ size_t makeFusionTransaction(CryptoNote::WalletGreen &wallet,
 void quickOptimize(CryptoNote::WalletGreen &wallet)
 {
     std::cout << "Attempting to optimize your wallet to allow you to send "
-              << "large amounts at once. " << std::endl 
-              << "You can run this command as many times as you like."
+              << "large amounts at once. " << std::endl; 
+    std::cout << "You can run this command as many times as you like."
               << std::endl << "You will be informed when your wallet is fully "
               << "optimized." << std::endl
               << WarningMsg("This may take a long time!") << std::endl;
@@ -380,13 +387,16 @@ void fullOptimize(CryptoNote::WalletGreen &wallet)
 bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
     std::vector<Crypto::Hash> fusionTransactionHashes;
 
+    std::cout << "starting with threshold: " << threshold << std::endl;
+
     while (true) {
         /* Create as many fusion transactions until we can't send anymore,
            either because balance is locked too much or we can no longer
            optimize anymore transactions */
         size_t tmpFusionTxID = makeFusionTransaction(wallet, threshold);
 
-        if (tmpFusionTxID == CryptoNote::WALLET_INVALID_TRANSACTION_ID) {
+        if (tmpFusionTxID == CryptoNote::WALLET_INVALID_TRANSACTION_ID) { 
+            //std::cout << "invalid transaction ID during fusion" << std::endl;
             break;
         } else {
             CryptoNote::WalletTransaction w = wallet.getTransaction(tmpFusionTxID); 
@@ -401,6 +411,7 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
     }
 
     if (fusionTransactionHashes.empty()) {
+        //std::cout << "Fusion transaction hash list empty" << std::endl;
         return false;
     }
 
@@ -430,6 +441,7 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
         }
 
         bool fusionCompleted = true;
+        std::cout << "fusion transaction count: " << fusionTransactionHashes.size();
 
         /* Is our fusion transaction still unconfirmed? We can't gain the
            benefits of fusioning if the balance hasn't unlocked, so we can
@@ -440,6 +452,8 @@ bool optimize(CryptoNote::WalletGreen &wallet, uint64_t threshold) {
             if (std::find(unconfirmedTxHashes.begin(), unconfirmedTxHashes.end(), tx) != unconfirmedTxHashes.end()) {
                 fusionCompleted = false; 
             } else {
+                //std::cout << "transaction not found in unconfirmed transaction pool";
+                //
                 /* We can't find this transaction in the unconfirmed
                    transaction pool anymore, so it has been confirmed. Remove
                    it so we both have to check less transactions each time,

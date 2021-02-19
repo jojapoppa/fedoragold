@@ -249,9 +249,7 @@ WalletGreen::WalletGreen(System::Dispatcher& dispatcher, const Currency& currenc
   m_pendingBalance(0),
   m_transactionSoftLockTime(transactionSoftLockTime)
 {
-  //m_upperTransactionSizeLimit = m_currency.blockGrantedFullRewardZone() * 2 - m_currency.minerTxBlobReservedSize();
   m_upperTransactionSizeLimit = m_currency.maxTransactionSizeLimit();
-
   m_readyEvent.set();
 }
 
@@ -1450,8 +1448,12 @@ void WalletGreen::sendTransaction(const CryptoNote::Transaction& cryptoNoteTrans
 size_t WalletGreen::validateSaveAndSendTransaction(const ITransactionReader& transaction, const std::vector<WalletTransfer>& destinations, bool isFusion, bool send) {
   BinaryArray transactionData = transaction.getTransactionData();
 
+  /* note: can't use logger here as it's called from simplewallet... */
+
   if (transactionData.size() > m_upperTransactionSizeLimit) {
-    m_logger(Logging::ERROR) << "Transaction is too big. Transaction hash " << transaction.getTransactionHash() << ", size " << transactionData.size() << ", size limit " << m_upperTransactionSizeLimit;
+    std::cout << "Transaction is too big. Transaction hash " << transaction.getTransactionHash() <<
+    ", size " << transactionData.size() << ", size limit " << m_upperTransactionSizeLimit << std::endl;
+
     throw std::system_error(make_error_code(error::TRANSACTION_SIZE_TOO_BIG));
   }
 
@@ -2306,29 +2308,26 @@ void WalletGreen::validateChangeDestination(const std::vector<std::string>&
   }
 }
 
-size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin, 
-  const std::vector<std::string>& sourceAddresses, 
-  const std::string& destinationAddress) {
+size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
+  const std::vector<std::string>& sourceAddresses, const std::string& destinationAddress) {
+
+  /* logger won't work in this context as it's used by Simplewallet... */
 
   size_t id = WALLET_INVALID_TRANSACTION_ID;
   Tools::ScopeExit releaseContext([this, &id] {
     m_dispatcher.yield();
-
-    if (id != WALLET_INVALID_TRANSACTION_ID) {
-      m_logger(Logging::INFO) << "Fusion transaction created and sent, ID " << id <<
-        ", hash " << m_transactions[id].hash;
-    }
+    if (id != WALLET_INVALID_TRANSACTION_ID) { auto& tx = m_transactions[id]; }
   });
 
   System::EventLock lk(m_readyEvent);
 
   std::string sAddr;
   for (const auto &piece : sourceAddresses) sAddr += piece;
-  m_logger(Logging::INFO) << "createFusionTransaction" <<
+  std::cout << "createFusionTransaction" <<
     ", from " << sAddr <<
     ", to " << destinationAddress <<
     ", threshold " << m_currency.formatAmount(threshold) <<
-    ", mixin " << mixin;
+    ", mixin " << mixin << std::endl;
 
   throwIfNotInitialized();
   throwIfTrackingMode();
@@ -2341,24 +2340,23 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
   uint64_t fusionThreshold = m_currency.defaultDustThreshold();
 
   if (threshold <= m_currency.defaultDustThreshold()) {
-    m_logger(Logging::ERROR) << 
-      "Fusion transaction threshold is too small. Threshold " << 
-      m_currency.formatAmount(threshold) <<
-      ", minimum threshold " << 
-      m_currency.formatAmount(fusionThreshold + 1);
+      std::cout << "Fusion transaction threshold is too small. Threshold " << 
+      m_currency.formatAmount(threshold) << ", minimum threshold " << 
+      m_currency.formatAmount(fusionThreshold + 1) << std::endl;
     throw std::runtime_error("Threshold must be greater than " + 
       std::to_string(m_currency.defaultDustThreshold()));
   }
 
   if (m_walletsContainer.get<RandomAccessIndex>().size() == 0) {
-    m_logger(Logging::ERROR) << "The container doesn't have any wallets";
+    std::cout << "The container doesn't have any wallets" << std::endl;
     throw std::runtime_error("You must have at least one address");
   }
 
+  // Run this at 80% capacity ... leave some headroom
   size_t estimatedFusionInputsCount = m_currency.getApproximateMaximumInputCount(
-    m_currency.fusionTxMaxSize(), MAX_FUSION_OUTPUT_COUNT, mixin);
+    (.8*m_currency.fusionTxMaxSize()), MAX_FUSION_OUTPUT_COUNT, mixin);
   if (estimatedFusionInputsCount < m_currency.fusionTxMinInputCount()) {
-    m_logger(Logging::ERROR) << "Fusion transaction mixin is too big " << mixin;
+    std::cout << "Fusion transaction mixin is too big " << mixin << std::endl;
     throw std::system_error(make_error_code(error::MIXIN_COUNT_TOO_BIG));
   }
 
@@ -2367,8 +2365,8 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
 
   if (fusionInputs.size() < m_currency.fusionTxMinInputCount()) {
     //nothing to optimize
-    m_logger(Logging::WARNING) << "Fusion transaction not created: nothing to optimize" <<
-      ", threshold " << m_currency.formatAmount(threshold);
+      std::cout << "Fusion transaction not created: nothing to optimize" <<
+      ", threshold " << m_currency.formatAmount(threshold) << std::endl;
     return WALLET_INVALID_TRANSACTION_ID;
   }
 
@@ -2383,8 +2381,7 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
 
   AccountPublicAddress destination = getChangeDestination(destinationAddress, 
     sourceAddresses);
-  m_logger(Logging::DEBUGGING) << "Destination address " << 
-    m_currency.accountAddressAsString(destination);
+  std::cout << "Destination address " << m_currency.accountAddressAsString(destination) << std::endl;
 
   std::unique_ptr<ITransaction> fusionTransaction;
   size_t transactionSize;
@@ -2401,8 +2398,8 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
     });
 
     ReceiverAmounts decomposedOutputs = decomposeFusionOutputs(destination, inputsAmount);
-    assert(decomposedOutputs.amounts.size() <= MAX_FUSION_OUTPUT_COUNT);
 
+    assert(decomposedOutputs.amounts.size() <= MAX_FUSION_OUTPUT_COUNT);
     Crypto::SecretKey txkey;
     fusionTransaction = makeTransaction(std::vector<ReceiverAmounts>{decomposedOutputs}, keysInfo, "", 0, txkey);
 
@@ -2412,7 +2409,7 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
   } while (transactionSize > m_currency.fusionTxMaxSize() && fusionInputs.size() >= m_currency.fusionTxMinInputCount());
 
   if (fusionInputs.size() < m_currency.fusionTxMinInputCount()) {
-    m_logger(Logging::ERROR) << "Unable to create fusion transaction";
+    std::cout << "Unable to create fusion transaction" << std::endl;
     throw std::runtime_error("Unable to create fusion transaction");
   }
 
@@ -2859,6 +2856,7 @@ size_t WalletGreen::getMaxTxSize()
 
 bool WalletGreen::txIsTooLarge(const TransactionParameters& sendingTransaction)
 {
+  std::cout << "txIsTooLarge check: " << getTxSize(sendingTransaction) << " against limit: " << m_upperTransactionSizeLimit << std::endl;
   return getTxSize(sendingTransaction) > m_upperTransactionSizeLimit;
 }
 
