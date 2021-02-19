@@ -590,6 +590,9 @@ bool RpcServer::on_get_block_details_by_hash(const COMMAND_RPC_GET_BLOCK_DETAILS
 
 bool RpcServer::on_get_transactions_pool_short(const COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT::response& res) {
   auto pool = m_core.getPoolTransactionsWithReceiveTime();
+
+  logger(TRACE) << "memory pool size: " << pool.size();
+
   for (const auto txrt : pool) {
 	transaction_pool_response transaction_short;
 	Transaction tx = txrt.first;
@@ -610,17 +613,32 @@ bool RpcServer::on_get_transactions_pool_short(const COMMAND_RPC_GET_TRANSACTION
 
 bool RpcServer::on_get_transactions_pool(const COMMAND_RPC_GET_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL::response& res) {
 
-  auto pool = m_core.getTransactionDetails();
-  logger(INFO) << "on_get_transactions_pool size: " << pool.size() << ENDL;
-  for (const auto transactionDetails: pool) {
+  std::vector<Transaction> transactions;
+  transactions = m_core.getPoolTransactions();
+
+  for (const Transaction poolDetails: transactions) {
+
+    //CryptoNote::tx_memory_pool::PoolTransactionDetails poolDetails;
+    //poolDetails = m_core.getTransactionDetails(tx.getTransactionHash());
+
     try {
       PoolTransactionDetailsData datum;
-      datum.id = transactionDetails.id;
-      datum.tx = transactionDetails.tx;
-      datum.blobSize = transactionDetails.blobSize;
-      datum.fee = transactionDetails.fee;
-      datum.keptByBlock = transactionDetails.keptByBlock;
-      datum.receiveTime = transactionDetails.receiveTime;
+
+/*
+      uint64_t amount_in = getInputAmount(poolDetails.tx);
+      uint64_t amount_out = getOutputAmount(poolDetails.tx);
+
+      datum.id = podToHex(poolDetails.tx);
+      datum.tx = poolDetails.tx;
+      datum.blobSize = poolDetails.blobSize;
+
+      datum.fee = amount_in - amount_out;
+      //datum.fee = poolDetails.fee;
+
+      datum.keptByBlock = poolDetails.keptByBlock;
+      datum.receiveTime = poolDetails.receiveTime;
+      datum.amount_out = amount_out;
+*/
 
       res.transactions.push_back(datum);
     }
@@ -636,6 +654,9 @@ bool RpcServer::on_get_transactions_pool(const COMMAND_RPC_GET_TRANSACTIONS_POOL
 
 bool RpcServer::on_get_transactions_pool_raw(const COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::response& res) {
   auto pool = m_core.getPoolTransactionsWithReceiveTime();
+
+  logger(TRACE) << "memory pool size: " << pool.size();
+
   for (const auto txrt : pool) {
     try {
       res.transactions.push_back(tx_with_output_global_indexes());

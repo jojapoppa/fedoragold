@@ -290,6 +290,7 @@ struct PoolTransactionDetailsData {
   uint64_t fee;
   bool keptByBlock;
   uint64_t receiveTime;
+  uint64_t amount_out;
 
   void serialize(ISerializer &s) {
     KV_MEMBER(id)
@@ -298,6 +299,7 @@ struct PoolTransactionDetailsData {
     KV_MEMBER(fee)
     KV_MEMBER(keptByBlock)
     KV_MEMBER(receiveTime)
+    KV_MEMBER(amount_out)
   }
 };
 
