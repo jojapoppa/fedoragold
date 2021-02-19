@@ -37,7 +37,7 @@ namespace Tests {
     Logging::LoggerRef &m_logger;
 
     uint16_t m_rpcPort;
-    System::Dispatcher& m_dispatcher;
+    //System::Dispatcher& m_dispatcher;
     CryptoNote::HttpClient m_httpClient;
   };
 }

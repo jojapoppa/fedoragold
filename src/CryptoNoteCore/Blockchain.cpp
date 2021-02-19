@@ -558,7 +558,8 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
       << "Generating genesis block because blockchain not loaded at: " << blockFilePath;
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     logger(INFO, BRIGHT_WHITE) << "pushBlock into context now...";
-    pushBlock(m_currency.genesisBlock(), bvc);
+    uint32_t height=0;
+    pushBlock(m_currency.genesisBlock(), bvc, height);
     if (bvc.m_verifivation_failed) {
       logger(ERROR, BRIGHT_RED) << "Failed to add genesis block to blockchain";
       return false;
@@ -882,11 +883,13 @@ bool Blockchain::rollback_blockchain_switching(std::list<Block> &original_chain,
     popBlock(get_block_hash(m_blocks.back().bl));
   }
 
+  uint32_t height = static_cast<uint32_t>(rollback_height - 1);
+
   // return back original chain
   for (auto &bl : original_chain) {
     block_verification_context bvc =
       boost::value_initialized<block_verification_context>();
-    bool r = pushBlock(bl, bvc);
+    bool r = pushBlock(bl, bvc, ++height);
     if (!(r && bvc.m_added_to_main_chain)) {
       logger(ERROR, BRIGHT_RED) << "PANIC!!! failed to add (again) block while "
         "chain switching during the rollback!";
@@ -937,11 +940,13 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::
     disconnected_chain.push_front(b);
   }
 
+  uint32_t height = static_cast<uint32_t>(split_height - 1);
+
   //connecting new alternative chain
   for (auto alt_ch_iter = alt_chain.begin(); alt_ch_iter != alt_chain.end(); alt_ch_iter++) {
     auto ch_ent = *alt_ch_iter;
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
-    bool r = pushBlock(ch_ent->second.bl, bvc);
+    bool r = pushBlock(ch_ent->second.bl, bvc, ++height);
     if (!r || !bvc.m_added_to_main_chain) {
       logger(INFO, BRIGHT_WHITE) << "Failed to switch to alternative blockchain";
       rollback_blockchain_switching(disconnected_chain, split_height);
@@ -1883,13 +1888,15 @@ bool Blockchain::addNewBlock(const Block& bl_, block_verification_context& bvc) 
       return false;
     }
 
+    uint32_t height = m_blocks.size();
+
     //check that block refers to chain tail
     if (!(bl.previousBlockHash == getTailId())) {
       //chain switching or wrong block
       bvc.m_added_to_main_chain = false;
       add_result = handle_alternative_block(bl, id, bvc);
     } else {
-      add_result = pushBlock(bl, bvc);
+      add_result = pushBlock(bl, bvc, ++height);
       logger(DEBUGGING) << "...check add_result";
       if (add_result) {
         sendMessage(BlockchainMessage(NewBlockMessage(id)));
@@ -1926,11 +1933,11 @@ bool Blockchain::transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTra
   return true; 
 }
 
-bool Blockchain::pushBlock(const Block& blockData, block_verification_context& bvc) {
+bool Blockchain::pushBlock(const Block& blockData, block_verification_context& bvc, uint32_t& height) {
   std::vector<Transaction> transactions;
 
   //logger(INFO, BRIGHT_WHITE) << "Loading transactions...";
-  if (!loadTransactions(blockData, transactions)) {
+  if (!loadTransactions(blockData, transactions, height)) {
     logger(INFO, BRIGHT_WHITE) << "failed to load transactions.";
     bvc.m_verifivation_failed = true;
     return false;
@@ -1938,7 +1945,7 @@ bool Blockchain::pushBlock(const Block& blockData, block_verification_context& b
 
   if (!pushBlock(blockData, transactions, bvc)) {
     logger(INFO, BRIGHT_WHITE) << "pushBlock failed, saving transactions...";
-    saveTransactions(transactions);
+    saveTransactions(transactions, height);
     return false;
   }
 
@@ -2099,6 +2106,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 }
 
 bool Blockchain::pushBlock(BlockEntry& block) {
+
   Crypto::Hash blockHash = get_block_hash(block.bl);
 
   m_blocks.push_back(block);
@@ -2107,12 +2115,15 @@ bool Blockchain::pushBlock(BlockEntry& block) {
   m_timestampIndex.add(block.bl.timestamp, blockHash);
   m_generatedTransactionsIndex.add(block.bl);
 
+  //m_tx_pool.on_blockchain_inc(m_blocks.size(), blockHash);
+
   assert(m_blockIndex.size() == m_blocks.size());
 
   return true;
 }
 
 void Blockchain::popBlock(const Crypto::Hash& blockHash) {
+
   if (m_blocks.empty()) {
     logger(ERROR, BRIGHT_RED) <<
       "Attempt to pop block from empty blockchain.";
@@ -2124,7 +2135,8 @@ void Blockchain::popBlock(const Crypto::Hash& blockHash) {
     transactions[i] = m_blocks.back().transactions[1 + i].tx;
   }
 
-  saveTransactions(transactions);
+  uint32_t height = m_blocks.size();
+  saveTransactions(transactions, height);
 
   popTransactions(m_blocks.back(), getObjectHash(m_blocks.back().bl.baseTransaction));
 
@@ -2133,6 +2145,8 @@ void Blockchain::popBlock(const Crypto::Hash& blockHash) {
 
   m_blocks.pop_back();
   m_blockIndex.pop();
+
+  //m_tx_pool.on_blockchain_dec(m_blocks.size(), blockHash);
 
   assert(m_blockIndex.size() == m_blocks.size());
 }
@@ -2572,7 +2586,8 @@ bool Blockchain::getTransactionIdsByPaymentId(const Crypto::Hash& paymentId, std
   return m_paymentIdIndex.find(paymentId, transactionHashes);
 }
 
-bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& transactions) {
+bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& transactions, uint32_t height) {
+
   transactions.resize(block.transactionHashes.size());
   size_t transactionSize;
   uint64_t fee;
@@ -2580,7 +2595,7 @@ bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& 
     if (!m_tx_pool.take_tx(block.transactionHashes[i], transactions[i], transactionSize, fee)) {
       tx_verification_context context;
       for (size_t j = 0; j < i; ++j) {
-        if (!m_tx_pool.add_tx(transactions[i - 1 - j], context, true)) {
+        if (!m_tx_pool.add_tx(transactions[i - 1 - j], context, true, height)) {
           throw std::runtime_error("Blockchain::loadTransactions, failed to add transaction to pool");
         }
       }
@@ -2592,10 +2607,10 @@ bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& 
   return true;
 }
 
-void Blockchain::saveTransactions(const std::vector<Transaction>& transactions) {
+void Blockchain::saveTransactions(const std::vector<Transaction>& transactions, uint32_t height) {
   tx_verification_context context;
   for (size_t i = 0; i < transactions.size(); ++i) {
-    if (!m_tx_pool.add_tx(transactions[transactions.size() - 1 - i], context, true)) {
+    if (!m_tx_pool.add_tx(transactions[transactions.size() - 1 - i], context, true, height)) {
       throw std::runtime_error("Blockchain::saveTransactions, failed to add transaction to pool");
     }
   }

@@ -26,7 +26,8 @@ using namespace System;
 namespace Tests {
 
 RPCTestNode::RPCTestNode(uint16_t port, System::Dispatcher& d, Logging::LoggerRef &logger) : 
-  m_rpcPort(port), m_dispatcher(d), m_httpClient(d, "127.0.0.1", port, logger), m_logger(logger) {
+  m_rpcPort(port), m_httpClient(d, "127.0.0.1", port, logger), m_logger(logger) {
+  //m_dispatcher = d;
 }
 
 bool RPCTestNode::startMining(size_t threadsCount, const std::string& address) { 

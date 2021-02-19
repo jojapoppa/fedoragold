@@ -44,9 +44,9 @@ namespace {
     return account;
   }
 
-  AccountPublicAddress generateAddress() {
-    return generateAccount().getAccountKeys().address;
-  }
+  //AccountPublicAddress generateAddress() {
+  //  return generateAccount().getAccountKeys().address;
+  //}
   
   KeyImage generateKeyImage() {
     return Crypto::rand<KeyImage>();
@@ -69,19 +69,19 @@ namespace {
     input.amount = amount;
     input.keyImage = generateKeyImage();
     input.outputIndexes.emplace_back(1);
-
+  
     transaction.addInput(input);
   }
 
   TransactionOutputInformationIn addTestKeyOutput(ITransaction& transaction, uint64_t amount,
     uint32_t globalOutputIndex, const AccountKeys& senderKeys = generateAccountKeys()) {
-
+   
     uint32_t index = static_cast<uint32_t>(transaction.addOutput(amount, senderKeys.address));
-
+  
     uint64_t amount_;
     KeyOutput output;
     transaction.getOutput(index, output, amount_);
-
+  
     TransactionOutputInformationIn outputInfo;
     outputInfo.type = TransactionTypes::OutputType::Key;
     outputInfo.amount = amount_;
@@ -90,7 +90,7 @@ namespace {
     outputInfo.transactionPublicKey = transaction.getTransactionPublicKey();
     outputInfo.outputKey = output.key;
     outputInfo.keyImage = generateKeyImage(senderKeys, index, transaction.getTransactionPublicKey());
-
+  
     return outputInfo;
   }
 

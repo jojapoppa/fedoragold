@@ -144,6 +144,50 @@ bool Currency::getBlockReward(size_t medianSize, size_t currentBlockSize, uint64
   return true;
 }
 
+/* ---------------------------------------------------------------------------------------------------- */
+
+uint64_t Currency::getTransactionInputAmount(const TransactionInput &in, uint32_t height) const
+{
+  if (in.type() == typeid(KeyInput))
+  {
+    return boost::get<KeyInput>(in).amount;
+  }
+  else if (in.type() == typeid(MultisignatureInput))
+  {
+    const MultisignatureInput &multisignatureInput = boost::get<MultisignatureInput>(in);
+    //if (multisignatureInput.term == 0)
+    //{
+      return multisignatureInput.amount;
+    //}
+    //else
+    //{
+    //  return multisignatureInput.amount + calculateInterest(multisignatureInput.amount, multisignatureInput.term, height);
+    //}
+  }
+  else if (in.type() == typeid(BaseInput))
+  {
+    return 0;
+  }
+  else
+  {
+    assert(false);
+    return 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------------- */
+
+uint64_t Currency::getTransactionAllInputsAmount(const Transaction &tx, uint32_t height) const
+{
+  uint64_t amount = 0;
+  for (const auto &in : tx.inputs)
+  {
+    amount += getTransactionInputAmount(in, height);
+  }
+
+  return amount;
+}
+
 size_t Currency::maxBlockCumulativeSize(uint64_t height) const {
   assert(height <= std::numeric_limits<uint64_t>::max() / m_maxBlockSizeGrowthSpeedNumerator);
   size_t maxSize = static_cast<size_t>(m_maxBlockSizeInitial +

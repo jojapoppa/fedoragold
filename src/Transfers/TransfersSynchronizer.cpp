@@ -18,8 +18,7 @@ namespace CryptoNote {
 
 const uint32_t TRANSFERS_STORAGE_ARCHIVE_VERSION = 0;
 
-TransfersSyncronizer::TransfersSyncronizer(const CryptoNote::Currency& currency, IBlockchainSynchronizer& sync, INode& node) :
-  m_currency(currency), m_sync(sync), m_node(node) {
+TransfersSyncronizer::TransfersSyncronizer(const CryptoNote::Currency& currency, IBlockchainSynchronizer& sync, INode& node) : m_currency(currency), m_sync(sync), m_node(node) {
 }
 
 TransfersSyncronizer::~TransfersSyncronizer() {
@@ -76,6 +75,13 @@ void TransfersSyncronizer::getSubscriptions(std::vector<AccountPublicAddress>& s
 ITransfersSubscription* TransfersSyncronizer::getSubscription(const AccountPublicAddress& acc) {
   auto it = m_consumers.find(acc.viewPublicKey);
   return (it == m_consumers.end()) ? nullptr : it->second->getSubscription(acc);
+}
+
+void TransfersSyncronizer::addPublicKeysSeen(const AccountPublicAddress& acc, const Crypto::Hash& transactionHash, const Crypto::PublicKey& outputKey) {
+  auto it = m_consumers.find(acc.viewPublicKey);
+  if (it != m_consumers.end()) {
+     it->second->addPublicKeysSeen(transactionHash, outputKey);
+  }
 }
 
 std::vector<Crypto::Hash> TransfersSyncronizer::getViewKeyKnownBlocks(const Crypto::PublicKey& publicViewKey) {
@@ -204,7 +210,6 @@ void setObjectState(IStreamSerializable& obj, const std::string& state) {
 }
 
 void TransfersSyncronizer::load(std::istream& is) {
-
   m_sync.load(is);
 
   StdInputStream inputStream(is);

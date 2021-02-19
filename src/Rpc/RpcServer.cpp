@@ -13,6 +13,10 @@
 
 #include "version.h"
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/foreach.hpp>
+
 #include "Common/Base58.h"
 
 // CryptoNote
@@ -102,33 +106,33 @@ std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction
   { "/getinfo", { jsonMethod<COMMAND_RPC_GET_INFO>(&RpcServer::on_get_info), true } },
   { "/getheight", { jsonMethod<COMMAND_RPC_GET_HEIGHT>(&RpcServer::on_get_height), true } },
   { "/iscoreready", { jsonMethod<COMMAND_RPC_GET_ISCOREREADY>(&RpcServer::on_get_iscoreready), true } },                        
+  //{ "/gettransactionspool", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT>(&RpcServer::on_get_transactions_pool_short), true } },
+  //{ "/gettransactionsinpool", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_POOL>(&RpcServer::on_get_transactions_pool), true } },
+  //{ "/getrawtransactionspool", { jsonMethod<COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL>(&RpcServer::on_get_transactions_pool_raw), true } },
 
-  { "/gettransactionspool", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT>(&RpcServer::on_get_transactions_pool_short), true } },
-  { "/gettransactionsinpool", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_POOL>(&RpcServer::on_get_transactions_pool), true } },
-  { "/getrawtransactionspool", { jsonMethod<COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL>(&RpcServer::on_get_transactions_pool_raw), true } },
-
-  { "/getblockchainindexes", { jsonMethod<COMMAND_RPC_GET_BLOCK_INDEXES>(&RpcServer::on_get_blockindexes), false } },
-  { "/getblock", { jsonMethod<COMMAND_RPC_GET_BLOCK>(&RpcServer::on_get_block), false } },
+  //{ "/getblockchainindexes", { jsonMethod<COMMAND_RPC_GET_BLOCK_INDEXES>(&RpcServer::on_get_blockindexes), false } },
+  //{ "/getblock", { jsonMethod<COMMAND_RPC_GET_BLOCK>(&RpcServer::on_get_block), false } },
 
   { "/start_mining", { jsonMethod<COMMAND_RPC_START_MINING>(&RpcServer::on_start_mining), false } },
   { "/stop_mining", { jsonMethod<COMMAND_RPC_STOP_MINING>(&RpcServer::on_stop_mining), false } },
   { "/stop_daemon", { jsonMethod<COMMAND_RPC_STOP_DAEMON>(&RpcServer::on_stop_daemon), true } },
 
-  { "/getblockcount", { jsonMethod<COMMAND_RPC_GETBLOCKCOUNT>(&RpcServer::on_getblockcount), true } },
-  { "/getblockhash", { jsonMethod<COMMAND_RPC_GETBLOCKHASH>(&RpcServer::on_getblockhash), false } },
-  { "/getblocktemplate", { jsonMethod<COMMAND_RPC_GETBLOCKTEMPLATE>(&RpcServer::on_getblocktemplate), false } },
-  { "/getcurrencyid", { jsonMethod<COMMAND_RPC_GET_CURRENCY_ID>(&RpcServer::on_get_currency_id), true } },
-  { "/submitblock", { jsonMethod<COMMAND_RPC_SUBMITBLOCK>(&RpcServer::on_submitblock), false } },
-  { "/getlastblockheader", { jsonMethod<COMMAND_RPC_GET_LAST_BLOCK_HEADER>(&RpcServer::on_get_last_block_header), false } },
-  { "/getblockheaderbyhash", { jsonMethod<COMMAND_RPC_GET_BLOCK_HEADER_BY_HASH>(&RpcServer::on_get_block_header_by_hash), false } },
-  { "/getblockheaderbyheight", { jsonMethod<COMMAND_RPC_GET_BLOCK_HEADER_BY_HEIGHT>(&RpcServer::on_get_block_header_by_height), false } },
+  //{ "/getblockcount", { jsonMethod<COMMAND_RPC_GETBLOCKCOUNT>(&RpcServer::on_getblockcount), true } },
+  //{ "/getblockhash", { jsonMethod<COMMAND_RPC_GETBLOCKHASH>(&RpcServer::on_getblockhash), false } },
+  //{ "/getblocktemplate", { jsonMethod<COMMAND_RPC_GETBLOCKTEMPLATE>(&RpcServer::on_getblocktemplate), false } },
+  //{ "/getcurrencyid", { jsonMethod<COMMAND_RPC_GET_CURRENCY_ID>(&RpcServer::on_get_currency_id), true } },
+  //{ "/submitblock", { jsonMethod<COMMAND_RPC_SUBMITBLOCK>(&RpcServer::on_submitblock), false } },
+  //{ "/getlastblockheader", { jsonMethod<COMMAND_RPC_GET_LAST_BLOCK_HEADER>(&RpcServer::on_get_last_block_header), false } },
+  //{ "/getblockheaderbyhash", { jsonMethod<COMMAND_RPC_GET_BLOCK_HEADER_BY_HASH>(&RpcServer::on_get_block_header_by_hash), false } },
+  //{ "/getblockheaderbyheight", { jsonMethod<COMMAND_RPC_GET_BLOCK_HEADER_BY_HEIGHT>(&RpcServer::on_get_block_header_by_height), false } },
+
   { "/gettransaction", { jsonMethod<COMMAND_RPC_GET_TRANSACTION>(&RpcServer::on_get_transaction), false } },
   { "/gettransactions", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS>(&RpcServer::on_get_transactions), false } },
   { "/sendrawtransaction", { jsonMethod<COMMAND_RPC_SEND_RAW_TX>(&RpcServer::on_send_raw_tx), false } },
 
-  { "/checktransactionproof", { jsonMethod<COMMAND_RPC_CHECK_TX_PROOF>(&RpcServer::on_check_transaction_proof), false } },
-  { "/checktransactionkey", { jsonMethod<COMMAND_RPC_CHECK_TX_KEY>(&RpcServer::on_check_transaction_key), false } },
-  { "/checktransactionviewkey", { jsonMethod<COMMAND_RPC_CHECK_TX_WITH_PRIVATE_VIEW_KEY>(&RpcServer::on_check_transaction_view_key), false } },
+  //{ "/checktransactionproof", { jsonMethod<COMMAND_RPC_CHECK_TX_PROOF>(&RpcServer::on_check_transaction_proof), false } },
+  //{ "/checktransactionkey", { jsonMethod<COMMAND_RPC_CHECK_TX_KEY>(&RpcServer::on_check_transaction_key), false } },
+  //{ "/checktransactionviewkey", { jsonMethod<COMMAND_RPC_CHECK_TX_WITH_PRIVATE_VIEW_KEY>(&RpcServer::on_check_transaction_view_key), false } },
 
   // json rpc
   { "/json_rpc", { std::bind(&RpcServer::processJsonRpcRequest, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), true } }
@@ -209,17 +213,16 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "gettransactionspool", { makeMemberMethod(&RpcServer::on_get_transactions_pool_short), false } },
       { "gettransactionsinpool", { makeMemberMethod(&RpcServer::on_get_transactions_pool), false } },
       { "getrawtransactionspool", { makeMemberMethod(&RpcServer::on_get_transactions_pool_raw), false } },
-      { "gettransaction", { makeMemberMethod(&RpcServer::on_get_transaction), false } },
-      { "gettransactions", { makeMemberMethod(&RpcServer::on_get_transactions), false } },
-      { "sendrawtransaction", { makeMemberMethod(&RpcServer::on_send_raw_tx), false } },
-      { "stopdaemon", {makeMemberMethod(&RpcServer::on_stop_daemon), true } },
-      { "get_block_details_by_height", {makeMemberMethod(&RpcServer::on_get_block_details_by_height), false } },
-      { "get_block_details_by_hash", {makeMemberMethod(&RpcServer::on_get_block_details_by_hash), false } },
-      { "get_blocks_details_by_heights", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_heights), false } },
-      { "get_blocks_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_hashes), false } },
-      { "get_transaction_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hashes), false } },
-      { "get_transaction_details_by_hash", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hash), false } },
-      { "get_transaction_hashes_by_payment_id", {makeMemberMethod(&RpcServer::on_get_transaction_hashes_by_paymentid), false } },
+      //{ "gettransaction", { makeMemberMethod(&RpcServer::on_get_transaction), false } },
+      //{ "gettransactions", { makeMemberMethod(&RpcServer::on_get_transactions), false } },
+      //{ "sendrawtransaction", { makeMemberMethod(&RpcServer::on_send_raw_tx), false } },
+      //{ "get_block_details_by_height", {makeMemberMethod(&RpcServer::on_get_block_details_by_height), false } },
+      //{ "get_block_details_by_hash", {makeMemberMethod(&RpcServer::on_get_block_details_by_hash), false } },
+      //{ "get_blocks_details_by_heights", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_heights), false } },
+      //{ "get_blocks_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_blocks_details_by_hashes), false } },
+      //{ "get_transaction_details_by_hashes", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hashes), false } },
+      //{ "get_transaction_details_by_hash", {makeMemberMethod(&RpcServer::on_get_transaction_details_by_hash), false } },
+      //{ "get_transaction_hashes_by_payment_id", {makeMemberMethod(&RpcServer::on_get_transaction_hashes_by_paymentid), false } },
 
       { "checktransactionproof", {makeMemberMethod(&RpcServer::on_check_transaction_proof), false } },
       { "checktransactionkey", {makeMemberMethod(&RpcServer::on_check_transaction_key), false } },
@@ -589,23 +592,38 @@ bool RpcServer::on_get_block_details_by_hash(const COMMAND_RPC_GET_BLOCK_DETAILS
 }
 
 bool RpcServer::on_get_transactions_pool_short(const COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT::response& res) {
-  auto pool = m_core.getPoolTransactionsWithReceiveTime();
 
-  logger(TRACE) << "memory pool size: " << pool.size();
+  //auto pool = m_core.getPoolTransactionsWithReceiveTime();
 
-  for (const auto txrt : pool) {
-	transaction_pool_response transaction_short;
-	Transaction tx = txrt.first;
-    uint64_t amount_in = getInputAmount(tx);
-    uint64_t amount_out = getOutputAmount(tx);
+  std::string sPool = m_core.print_pool(true);
+  std::stringstream ss;
+  ss.str(sPool);
 
-    transaction_short.hash = Common::podToHex(getObjectHash(tx));
-    transaction_short.fee = amount_in - amount_out;
-    transaction_short.amount_out = amount_out;
-    transaction_short.size = getObjectBinarySize(tx);
-    transaction_short.receive_time = txrt.second;
-    res.transactions.push_back(transaction_short);
+  logger(INFO) << sPool;
+
+  boost::property_tree::ptree pt;
+  boost::property_tree::read_json(ss, pt);
+  BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child("root.values"))
+  {
+    //assert(v.first.empty()); // array elements have no names
+    logger(INFO) << "name: " << v.first.data() << " value: " << v.second.data();
   }
+
+
+
+  //for (const auto txrt : pool) {
+//	transaction_pool_response transaction_short;
+//	Transaction tx = txrt.first;
+//    uint64_t amount_in = getInputAmount(tx);
+//    uint64_t amount_out = getOutputAmount(tx);
+//
+//    transaction_short.hash = Common::podToHex(getObjectHash(tx));
+//    transaction_short.fee = amount_in - amount_out;
+//    transaction_short.amount_out = amount_out;
+//    transaction_short.size = getObjectBinarySize(tx);
+//    transaction_short.receive_time = txrt.second;
+//    res.transactions.push_back(transaction_short);
+//  }
 
   res.status = CORE_RPC_STATUS_OK;
   return true;
@@ -655,7 +673,7 @@ bool RpcServer::on_get_transactions_pool(const COMMAND_RPC_GET_TRANSACTIONS_POOL
 bool RpcServer::on_get_transactions_pool_raw(const COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::response& res) {
   auto pool = m_core.getPoolTransactionsWithReceiveTime();
 
-  logger(TRACE) << "memory pool size: " << pool.size();
+  logger(INFO) << "memory pool size: " << pool.size();
 
   for (const auto txrt : pool) {
     try {

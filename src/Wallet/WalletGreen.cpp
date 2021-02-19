@@ -349,6 +349,19 @@ void WalletGreen::clearCaches() {
   m_blockchain.clear();
 }
 
+void WalletGreen::initTransactionPool()
+{
+  std::unordered_set<Crypto::Hash> uncommitedTransactionsSet;
+
+  std::transform(m_uncommitedTransactions.begin(), m_uncommitedTransactions.end(), 
+    std::inserter(uncommitedTransactionsSet, uncommitedTransactionsSet.end()),
+    [](const UncommitedTransactions::value_type &pair) {
+      return getObjectHash(pair.second);
+    });
+
+  m_synchronizer.initTransactionPool(uncommitedTransactionsSet);
+}
+
 void WalletGreen::initWithKeys(const Crypto::PublicKey& viewPublicKey, const Crypto::SecretKey& viewSecretKey, const std::string& password) {
   if (m_state != WalletState::NOT_INITIALIZED) {
     throw std::system_error(make_error_code(CryptoNote::error::ALREADY_INITIALIZED));
@@ -469,6 +482,8 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
 
   m_password = password;
   m_blockchainSynchronizer.addObserver(this);
+
+  initTransactionPool();
 }
 
 void WalletGreen::convertAndLoadWalletFile(std::istream& source, const std::string& password) {
