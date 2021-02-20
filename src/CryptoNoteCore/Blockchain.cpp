@@ -2533,10 +2533,10 @@ bool Blockchain::loadBlockchainIndices() {
   logger(INFO, BRIGHT_WHITE) << "Loading blockchain indices for BlockchainExplorer...";
   BlockchainIndicesSerializer indiceloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
 
-  if (!indiceloader.indice_loaded()) {
+  //if (!indiceloader.indice_loaded()) {
     BlockchainIndicesSerializer::m_indiceloaded =
       loadFromBinaryFile(indiceloader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
-  }
+  //}
 
   if (!indiceloader.indice_loaded()) {
 
