@@ -306,12 +306,12 @@ namespace CryptoNote {
       TransactionCheckInfo checkInfo(tx);
 	  if (m_validated_transactions.find(tx.id) != m_validated_transactions.end()) {
 		  ready_tx_ids.insert(tx.id);
-		  logger(INFO/*TRACE*/) << "MemPool - tx " << tx.id << " loaded from cache";
+		  //logger(INFO/*TRACE*/) << "MemPool - tx " << tx.id << " loaded from cache";
 	  }
 	  else if (is_transaction_ready_to_go(tx.tx, checkInfo)) {
 		  ready_tx_ids.insert(tx.id);
 		  m_validated_transactions.insert(tx.id);
-		  logger(INFO) << "MemPool - tx " << tx.id << " added to cache";
+		  //logger(INFO) << "MemPool - tx " << tx.id << " added to cache";
 	  }
     }
 
