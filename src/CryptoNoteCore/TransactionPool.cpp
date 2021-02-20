@@ -638,7 +638,7 @@ namespace CryptoNote {
     m_timestampIndex.remove(i->receiveTime, i->id);
     if (m_validated_transactions.find(i->id) != m_validated_transactions.end()) {
       m_validated_transactions.erase(i->id);
-      logger(INFO) << "Removing transaction from MemPool cache " << i->id << ". Cache size: " << m_validated_transactions.size();
+      //logger(INFO) << "Removing transaction from MemPool cache " << i->id << ". Cache size: " << m_validated_transactions.size();
     }
     return m_transactions.erase(i);
   }
