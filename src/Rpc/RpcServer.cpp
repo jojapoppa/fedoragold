@@ -271,7 +271,7 @@ bool RpcServer::isCoreReady() {
 
   try {
     bReady = m_core.currency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
-  } catch (e) { logger(Logging::INFO) << "exception in isCoreReady()"; }
+  } catch (...) { logger(Logging::INFO) << "exception in isCoreReady()"; }
 
   return bReady;
 }
@@ -390,7 +390,7 @@ bool RpcServer::on_query_blocks_lite(const COMMAND_RPC_QUERY_BLOCKS_LITE::reques
     res.currentHeight = currentHeight;
     res.fullOffset = fullOffset;
     res.status = CORE_RPC_STATUS_OK;
-  } catch (e) { logger(Logging::INFO) << "exception in on_query_blocks_lite"; }
+  } catch (...) { logger(Logging::INFO) << "exception in on_query_blocks_lite"; }
 
   return true;
 }
@@ -459,7 +459,7 @@ bool RpcServer::onGetPoolChangesLite(const COMMAND_RPC_GET_POOL_CHANGES_LITE::re
   try {
     rsp.status = CORE_RPC_STATUS_OK;
     rsp.isTailBlockActual = m_core.getPoolChangesLite(req.tailBlockId, req.knownTxsIds, rsp.addedTxs, rsp.deletedTxsIds);
-  } catch (e) { logger(Logging::INFO) << "exception in onGetPoolChangesLite()"; }
+  } catch (...) { logger(Logging::INFO) << "exception in onGetPoolChangesLite()"; }
 
   return true;
 }
@@ -876,7 +876,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
       throw JsonRpc::JsonRpcError{
         CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get last cumulative difficulty." };
     }
-  } catch (e) { logger(Logging::INFO) << "Exception in on_get_info()"; }
+  } catch (...) { logger(Logging::INFO) << "Exception in on_get_info()"; }
 
   res.status = CORE_RPC_STATUS_OK;
   return true;
@@ -885,7 +885,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
 bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAND_RPC_GET_HEIGHT::response& res) {
   try {
     res.height = m_core.get_current_blockchain_height();
-  } catch (e) { logger(Logging::INFO) << "Exception in on_get_height()"; }
+  } catch (...) { logger(Logging::INFO) << "Exception in on_get_height()"; }
 
   res.status = CORE_RPC_STATUS_OK;
   return true;
@@ -1372,7 +1372,7 @@ bool RpcServer::on_get_last_block_header(const COMMAND_RPC_GET_LAST_BLOCK_HEADER
     }
   
     fill_block_header_response(last_block, false, last_block_height, last_block_hash, res.block_header);
-  } catch (e) { logger(Logging::INFO) << "Exception in on_get_last_block_header()"; }
+  } catch (...) { logger(Logging::INFO) << "Exception in on_get_last_block_header()"; }
 
   res.status = CORE_RPC_STATUS_OK;
   return true;
