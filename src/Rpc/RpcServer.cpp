@@ -267,7 +267,13 @@ bool RpcServer::setContactInfo(const std::string& contact) {
 }
 
 bool RpcServer::isCoreReady() {
-  return m_core.currency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
+  bool bReady = false;
+
+  try {
+    bReady = m_core.currency().isTestnet() || m_p2p.get_payload_object().isSynchronized();
+  } catch (e) { logger(Logging::INFO) << "exception in isCoreReady()"; }
+
+  return bReady;
 }
 
 bool RpcServer::checkIncomingTransactionForFee(const BinaryArray& tx_blob) {
@@ -371,18 +377,21 @@ bool RpcServer::on_query_blocks(const COMMAND_RPC_QUERY_BLOCKS::request& req, CO
 }
 
 bool RpcServer::on_query_blocks_lite(const COMMAND_RPC_QUERY_BLOCKS_LITE::request& req, COMMAND_RPC_QUERY_BLOCKS_LITE::response& res) {
-  uint32_t startHeight;
-  uint32_t currentHeight;
-  uint32_t fullOffset;
-  if (!m_core.queryBlocksLite(req.blockIds, req.timestamp, startHeight, currentHeight, fullOffset, res.items)) {
-    res.status = "Failed to perform query";
-    return false;
-  }
+  try {
+    uint32_t startHeight;
+    uint32_t currentHeight;
+    uint32_t fullOffset;
+    if (!m_core.queryBlocksLite(req.blockIds, req.timestamp, startHeight, currentHeight, fullOffset, res.items)) {
+      res.status = "Failed to perform query";
+      return false;
+    }
 
-  res.startHeight = startHeight;
-  res.currentHeight = currentHeight;
-  res.fullOffset = fullOffset;
-  res.status = CORE_RPC_STATUS_OK;
+    res.startHeight = startHeight;
+    res.currentHeight = currentHeight;
+    res.fullOffset = fullOffset;
+    res.status = CORE_RPC_STATUS_OK;
+  } catch (e) { logger(Logging::INFO) << "exception in on_query_blocks_lite"; }
+
   return true;
 }
 
@@ -446,8 +455,11 @@ bool RpcServer::onGetPoolChanges(const COMMAND_RPC_GET_POOL_CHANGES::request& re
 
 
 bool RpcServer::onGetPoolChangesLite(const COMMAND_RPC_GET_POOL_CHANGES_LITE::request& req, COMMAND_RPC_GET_POOL_CHANGES_LITE::response& rsp) {
-  rsp.status = CORE_RPC_STATUS_OK;
-  rsp.isTailBlockActual = m_core.getPoolChangesLite(req.tailBlockId, req.knownTxsIds, rsp.addedTxs, rsp.deletedTxsIds);
+
+  try {
+    rsp.status = CORE_RPC_STATUS_OK;
+    rsp.isTailBlockActual = m_core.getPoolChangesLite(req.tailBlockId, req.knownTxsIds, rsp.addedTxs, rsp.deletedTxsIds);
+  } catch (e) { logger(Logging::INFO) << "exception in onGetPoolChangesLite()"; }
 
   return true;
 }
@@ -818,59 +830,63 @@ namespace {
 bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RPC_GET_INFO::response& res) {
   //logger(INFO) << "on_get_info() called";
 
-  res.height = m_core.get_current_blockchain_height();
-  res.difficulty = m_core.getNextBlockDifficulty();
-  res.tx_count = m_core.get_blockchain_total_transactions() - res.height; //without coinbase
-  res.tx_pool_size = m_core.get_pool_transactions_count();
-  res.alt_blocks_count = m_core.get_alternative_blocks_count();
-  uint64_t total_conn = m_p2p.get_connections_count();
-  res.outgoing_connections_count = m_p2p.get_outgoing_connections_count();
-  res.incoming_connections_count = total_conn - res.outgoing_connections_count;
+  try {
+    res.height = m_core.get_current_blockchain_height();
+    res.difficulty = m_core.getNextBlockDifficulty();
+    res.tx_count = m_core.get_blockchain_total_transactions() - res.height; //without coinbase
+    res.tx_pool_size = m_core.get_pool_transactions_count();
+    res.alt_blocks_count = m_core.get_alternative_blocks_count();
+    uint64_t total_conn = m_p2p.get_connections_count();
+    res.outgoing_connections_count = m_p2p.get_outgoing_connections_count();
+    res.incoming_connections_count = total_conn - res.outgoing_connections_count;
 
-  res.rpc_connections_count = get_connections_count();
-  res.white_peerlist_size = m_p2p.getPeerlistManager().get_white_peers_count();
-  res.grey_peerlist_size = m_p2p.getPeerlistManager().get_gray_peers_count();
-  res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocolQuery.getObservedHeight()) - 1;
-  Crypto::Hash last_block_hash = m_core.getBlockIdByHeight(res.height - 1);
-  res.top_block_hash = Common::podToHex(last_block_hash);
-  res.version = PROJECT_VERSION_LONG;
-  res.contact = m_contact_info.empty() ? std::string() : m_contact_info;
-  res.min_fee = m_core.getMinimalFee();
-  res.start_time = (uint64_t)m_core.getStartTime();
+    res.rpc_connections_count = get_connections_count();
+    res.white_peerlist_size = m_p2p.getPeerlistManager().get_white_peers_count();
+    res.grey_peerlist_size = m_p2p.getPeerlistManager().get_gray_peers_count();
+    res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocolQuery.getObservedHeight()) - 1;
+    Crypto::Hash last_block_hash = m_core.getBlockIdByHeight(res.height - 1);
+    res.top_block_hash = Common::podToHex(last_block_hash);
+    res.version = PROJECT_VERSION_LONG;
+    res.contact = m_contact_info.empty() ? std::string() : m_contact_info;
+    res.min_fee = m_core.getMinimalFee();
+    res.start_time = (uint64_t)m_core.getStartTime();
   
-  uint64_t alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
+    uint64_t alreadyGeneratedCoins = m_core.getTotalGeneratedAmount();
 
-  size_t medianSize=0;
-  m_core.getBlockSize(last_block_hash, medianSize);
+    size_t medianSize=0;
+    m_core.getBlockSize(last_block_hash, medianSize);
 
-  // the totalamt number can overflow a JSON value, so it needs to be passed as a string
-  std::ostringstream oss;
-  oss << alreadyGeneratedCoins;
-  std::string totalSuppl(oss.str()); 
-  res.already_generated_coins = totalSuppl;
+    // the totalamt number can overflow a JSON value, so it needs to be passed as a string
+    std::ostringstream oss;
+    oss << alreadyGeneratedCoins;
+    std::string totalSuppl(oss.str()); 
+    res.already_generated_coins = totalSuppl;
 
-  res.block_major_version = CryptoNote::BLOCK_MAJOR_VERSION_1; // no forks
-  res.max_cumulative_block_size = (uint64_t)m_core.currency().maxBlockCumulativeSize(res.height);
+    res.block_major_version = CryptoNote::BLOCK_MAJOR_VERSION_1; // no forks
+    res.max_cumulative_block_size = (uint64_t)m_core.currency().maxBlockCumulativeSize(res.height);
 
-  Block block;
-  if (! m_core.getBlockByHash(last_block_hash, block)) {
-    res.next_reward = 0; 
-  } else {
-    res.next_reward = get_block_reward(block);
-  }
+    Block block;
+    if (! m_core.getBlockByHash(last_block_hash, block)) {
+      res.next_reward = 0; 
+    } else {
+      res.next_reward = get_block_reward(block);
+    }
 
-  if (!m_core.getBlockCumulativeDifficulty(res.height - 1, res.cumulative_difficulty)) {
-    throw JsonRpc::JsonRpcError{
-      CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get last cumulative difficulty." };
-  }
+    if (!m_core.getBlockCumulativeDifficulty(res.height - 1, res.cumulative_difficulty)) {
+      throw JsonRpc::JsonRpcError{
+        CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get last cumulative difficulty." };
+    }
+  } catch (e) { logger(Logging::INFO) << "Exception in on_get_info()"; }
 
   res.status = CORE_RPC_STATUS_OK;
   return true;
 }
 
 bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAND_RPC_GET_HEIGHT::response& res) {
+  try {
+    res.height = m_core.get_current_blockchain_height();
+  } catch (e) { logger(Logging::INFO) << "Exception in on_get_height()"; }
 
-  res.height = m_core.get_current_blockchain_height();
   res.status = CORE_RPC_STATUS_OK;
   return true;
 }
@@ -1345,16 +1361,19 @@ void RpcServer::fill_block_header_response(const Block& blk, bool orphan_status,
 
 bool RpcServer::on_get_last_block_header(const COMMAND_RPC_GET_LAST_BLOCK_HEADER::request& req, COMMAND_RPC_GET_LAST_BLOCK_HEADER::response& res) {
 
-  uint32_t last_block_height;
-  Hash last_block_hash;
-  m_core.get_blockchain_top(last_block_height, last_block_hash);
+  try {
+    uint32_t last_block_height;
+    Hash last_block_hash;
+    m_core.get_blockchain_top(last_block_height, last_block_hash);
 
-  Block last_block;
-  if (!m_core.getBlockByHash(last_block_hash, last_block)) {
-    throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get last block hash." };
-  }
+    Block last_block;
+    if (!m_core.getBlockByHash(last_block_hash, last_block)) {
+      throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_INTERNAL_ERROR, "Internal error: can't get last block hash." };
+    }
   
-  fill_block_header_response(last_block, false, last_block_height, last_block_hash, res.block_header);
+    fill_block_header_response(last_block, false, last_block_height, last_block_hash, res.block_header);
+  } catch (e) { logger(Logging::INFO) << "Exception in on_get_last_block_header()"; }
+
   res.status = CORE_RPC_STATUS_OK;
   return true;
 }
