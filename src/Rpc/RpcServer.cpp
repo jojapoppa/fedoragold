@@ -106,10 +106,6 @@ std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction
   { "/getinfo", { jsonMethod<COMMAND_RPC_GET_INFO>(&RpcServer::on_get_info), true } },
   { "/getheight", { jsonMethod<COMMAND_RPC_GET_HEIGHT>(&RpcServer::on_get_height), true } },
   { "/iscoreready", { jsonMethod<COMMAND_RPC_GET_ISCOREREADY>(&RpcServer::on_get_iscoreready), true } },                        
-  //{ "/gettransactionspool", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT>(&RpcServer::on_get_transactions_pool_short), true } },
-  //{ "/gettransactionsinpool", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS_POOL>(&RpcServer::on_get_transactions_pool), true } },
-  //{ "/getrawtransactionspool", { jsonMethod<COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL>(&RpcServer::on_get_transactions_pool_raw), true } },
-
   //{ "/getblockchainindexes", { jsonMethod<COMMAND_RPC_GET_BLOCK_INDEXES>(&RpcServer::on_get_blockindexes), false } },
   //{ "/getblock", { jsonMethod<COMMAND_RPC_GET_BLOCK>(&RpcServer::on_get_block), false } },
 
@@ -211,8 +207,6 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "getblockheaderbyhash", { makeMemberMethod(&RpcServer::on_get_block_header_by_hash), false } },
       { "getblockheaderbyheight", { makeMemberMethod(&RpcServer::on_get_block_header_by_height), false } },
       { "gettransactionspool", { makeMemberMethod(&RpcServer::on_get_transactions_pool_short), false } },
-      { "gettransactionsinpool", { makeMemberMethod(&RpcServer::on_get_transactions_pool), false } },
-      { "getrawtransactionspool", { makeMemberMethod(&RpcServer::on_get_transactions_pool_raw), false } },
       //{ "gettransaction", { makeMemberMethod(&RpcServer::on_get_transaction), false } },
       //{ "gettransactions", { makeMemberMethod(&RpcServer::on_get_transactions), false } },
       //{ "sendrawtransaction", { makeMemberMethod(&RpcServer::on_send_raw_tx), false } },
@@ -605,109 +599,131 @@ bool RpcServer::on_get_block_details_by_hash(const COMMAND_RPC_GET_BLOCK_DETAILS
 
 bool RpcServer::on_get_transactions_pool_short(const COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT::response& res) {
 
-  //auto pool = m_core.getPoolTransactionsWithReceiveTime();
+  try {
+    std::string sPool = m_core.print_pool(true);
+    std::stringstream ss;
+    ss << sPool;
 
-  std::string sPool = m_core.print_pool(true);
-  std::stringstream ss;
-  ss.str(sPool);
+    //logger(INFO) << "on_get_transactions_pool_short: " << sPool;
 
-  logger(INFO) << sPool;
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(ss, pt);
+    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child("pool"))
+    {
+      transaction_pool_response transaction_short;
 
-  boost::property_tree::ptree pt;
-  boost::property_tree::read_json(ss, pt);
-  BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child("root.values"))
-  {
-    //assert(v.first.empty()); // array elements have no names
-    logger(INFO) << "name: " << v.first.data() << " value: " << v.second.data();
-  }
+      std::string sId = v.second.get<std::string>("id");
+      //logger(INFO) << "id: " << sId;
+      transaction_short.hash = sId;
 
+      float fFee = v.second.get<float>("fee");
+      //logger(INFO) << "fee: " << fFee;
+      transaction_short.fee = static_cast<uint64_t>(fFee*100000000);
 
+      uint64_t iAmtOut = v.second.get<uint64_t>("amount_out");
+      //logger(INFO) << "amount_out: " << iAmtOut;
+      transaction_short.amount_out = iAmtOut;
 
-  //for (const auto txrt : pool) {
-//	transaction_pool_response transaction_short;
-//	Transaction tx = txrt.first;
-//    uint64_t amount_in = getInputAmount(tx);
-//    uint64_t amount_out = getOutputAmount(tx);
+      uint64_t iBlobSize = v.second.get<uint64_t>("blobSize");
+      //logger(INFO) << "blob size: " << iBlobSize;
+      transaction_short.size = iBlobSize;
+
+      uint64_t iReceivedTime = v.second.get<uint64_t>("received_timestamp");
+      //logger(INFO) << "timestamp: " << iReceivedTime;
+      transaction_short.receive_time = iReceivedTime;
+
+      res.transactions.push_back(transaction_short);
+    }
+  } catch (...) {/* do nothing */ logger(INFO) << "error reading property tree";}
+
+  res.status = CORE_RPC_STATUS_OK;
+  return true;
+}
+
+//bool RpcServer::on_get_transactions_pool(const COMMAND_RPC_GET_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL::response& res) {
 //
-//    transaction_short.hash = Common::podToHex(getObjectHash(tx));
-//    transaction_short.fee = amount_in - amount_out;
-//    transaction_short.amount_out = amount_out;
-//    transaction_short.size = getObjectBinarySize(tx);
-//    transaction_short.receive_time = txrt.second;
-//    res.transactions.push_back(transaction_short);
+//  try {
+//    std::string sPool = m_core.print_pool(false);
+//    std::stringstream ss;
+//    ss << sPool;
+//
+//    logger(INFO) << "on_get_transactions_pool: " << sPool;
+//
+//    boost::property_tree::ptree pt;
+//    boost::property_tree::read_json(ss, pt);
+//    BOOST_FOREACH(boost::property_tree::ptree::value_type &v, pt.get_child("pool")) {
+//
+//      PoolTransactionDetailsData transaction_datum;
+//
+//      std::string sId = v.second.get<std::string>("id");
+//      //logger(INFO) << "id: " << sId;
+//
+//      Crypto::Hash tx_hash;
+//      if (parse_hash256(sId, tx_hash)) 
+//        transaction_datum.id = tx_hash;
+//
+//      float fFee = v.second.get<float>("fee");
+//      //logger(INFO) << "fee: " << fFee;
+//      transaction_datum.fee = static_cast<uint64_t>(fFee*100000000);
+//
+//      uint64_t iAmtOut = v.second.get<uint64_t>("amount_out");
+//      //logger(INFO) << "amount_out: " << iAmtOut;
+//      transaction_datum.amount_out = iAmtOut;
+//
+//      uint64_t iBlobSize = v.second.get<uint64_t>("blobSize");
+//      //logger(INFO) << "blob size: " << iBlobSize;
+//      transaction_datum.blobSize = iBlobSize;
+//
+//      uint64_t iReceivedTime = v.second.get<uint64_t>("received_timestamp");
+//      //logger(INFO) << "timestamp: " << iReceivedTime;
+//      transaction_datum.receiveTime = iReceivedTime;
+//
+//      bool bKeptByBlock = false;
+//      std::string sKeptByBlock = v.second.get<std::string>("keptByBlock");
+//      if (sKeptByBlock == "true") bKeptByBlock = true;
+//      transaction_datum.keptByBlock = bKeptByBlock;
+//
+//      // Transaction data... NOT IMPLEMENTED YET... jojapoppa
+//      //auto tx = v.second.get<boost::property_tree::ptree::value_type>("tx");
+//      //transaction_datum.tx = tx;
+//      transaction_datum.tx.extra = "";
+//      transaction_datum.tx.unlock_time = ""; 
+//      transaction_datum.tx.version = "";
+//
+//      res.transactions.push_back(transaction_datum);
+//    }
+//  } catch (...) {/* do nothing */ logger(INFO) << "error reading property tree";}
+//
+//  res.status = CORE_RPC_STATUS_OK;
+//  return true;
+//}
+
+//bool RpcServer::on_get_transactions_pool_raw(const COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::response& res) {
+//  auto pool = m_core.getPoolTransactionsWithReceiveTime();
+//
+//  logger(INFO) << "memory pool size: " << pool.size();
+//
+//  for (const auto txrt : pool) {
+//    try {
+//      res.transactions.push_back(tx_with_output_global_indexes());
+//      tx_with_output_global_indexes &e = res.transactions.back();
+//
+//      e.hash = getObjectHash(txrt.first);
+//      e.height = boost::value_initialized<uint32_t>();
+//      e.block_hash = boost::value_initialized<Crypto::Hash>();
+//      e.timestamp = txrt.second;
+//      e.transaction = *static_cast<const TransactionPrefix*>(&txrt.first);
+//      e.fee = getInputAmount(txrt.first) - getOutputAmount(txrt.first);
+//    }
+//    catch (std::exception& e) {
+//      throw JsonRpc::JsonRpcError(CORE_RPC_ERROR_CODE_INTERNAL_ERROR, std::string(e.what()));
+//      return true;
+//    }
 //  }
-
-  res.status = CORE_RPC_STATUS_OK;
-  return true;
-}
-
-bool RpcServer::on_get_transactions_pool(const COMMAND_RPC_GET_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_TRANSACTIONS_POOL::response& res) {
-
-  std::vector<Transaction> transactions;
-  transactions = m_core.getPoolTransactions();
-
-  for (const Transaction poolDetails: transactions) {
-
-    //CryptoNote::tx_memory_pool::PoolTransactionDetails poolDetails;
-    //poolDetails = m_core.getTransactionDetails(tx.getTransactionHash());
-
-    try {
-      PoolTransactionDetailsData datum;
-
-/*
-      uint64_t amount_in = getInputAmount(poolDetails.tx);
-      uint64_t amount_out = getOutputAmount(poolDetails.tx);
-
-      datum.id = podToHex(poolDetails.tx);
-      datum.tx = poolDetails.tx;
-      datum.blobSize = poolDetails.blobSize;
-
-      datum.fee = amount_in - amount_out;
-      //datum.fee = poolDetails.fee;
-
-      datum.keptByBlock = poolDetails.keptByBlock;
-      datum.receiveTime = poolDetails.receiveTime;
-      datum.amount_out = amount_out;
-*/
-
-      res.transactions.push_back(datum);
-    }
-    catch (std::exception& e) {
-      throw JsonRpc::JsonRpcError(CORE_RPC_ERROR_CODE_INTERNAL_ERROR, std::string(e.what()));
-      return true;
-    }
-  }
-
-  res.status = CORE_RPC_STATUS_OK;
-  return true;
-}
-
-bool RpcServer::on_get_transactions_pool_raw(const COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::request& req, COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL::response& res) {
-  auto pool = m_core.getPoolTransactionsWithReceiveTime();
-
-  logger(INFO) << "memory pool size: " << pool.size();
-
-  for (const auto txrt : pool) {
-    try {
-      res.transactions.push_back(tx_with_output_global_indexes());
-      tx_with_output_global_indexes &e = res.transactions.back();
-
-      e.hash = getObjectHash(txrt.first);
-      e.height = boost::value_initialized<uint32_t>();
-      e.block_hash = boost::value_initialized<Crypto::Hash>();
-      e.timestamp = txrt.second;
-      e.transaction = *static_cast<const TransactionPrefix*>(&txrt.first);
-      e.fee = getInputAmount(txrt.first) - getOutputAmount(txrt.first);
-    }
-    catch (std::exception& e) {
-      throw JsonRpc::JsonRpcError(CORE_RPC_ERROR_CODE_INTERNAL_ERROR, std::string(e.what()));
-      return true;
-    }
-  }
-
-  res.status = CORE_RPC_STATUS_OK;
-  return true;
-}
+//
+//  res.status = CORE_RPC_STATUS_OK;
+//  return true;
+//}
 
 bool RpcServer::on_get_transaction_details_by_hashes(const COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES::request& req, COMMAND_RPC_GET_TRANSACTIONS_DETAILS_BY_HASHES::response& rsp) {
   try {

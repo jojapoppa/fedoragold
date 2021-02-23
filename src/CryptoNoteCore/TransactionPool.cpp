@@ -256,6 +256,9 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::getTransaction(const Crypto::Hash& id, Transaction& tx) {
+
+    logger(INFO) << "getTransaction from pool";
+
     std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
     auto it = m_transactions.find(id);
     if (it == m_transactions.end()) {
@@ -271,6 +274,7 @@ namespace CryptoNote {
   //---------------------------------------------------------------------------------
   size_t tx_memory_pool::get_transactions_count() const {
     std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
+    //logger(INFO) << "pool transctions size: " << m_transactions.size();
     return m_transactions.size();
   }
   //---------------------------------------------------------------------------------
@@ -283,6 +287,7 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   void tx_memory_pool::getMemoryPool(std::list<tx_memory_pool::PoolTransactionDetails> txs) const {
+    //logger(INFO) << "get memory pool, with size: " << m_fee_index.size();
 	  std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
 	  for (const auto& txd : m_fee_index) {
 		  txs.push_back(txd);
@@ -290,6 +295,7 @@ namespace CryptoNote {
   }
 
   std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> tx_memory_pool::getMemoryPool() const {
+    //logger(INFO) << "get memory pool details, with size: " << m_fee_index.size();
 	  std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
 	  std::list<tx_memory_pool::PoolTransactionDetails> txs;
 	  for (const auto& txd : m_fee_index) {
@@ -300,6 +306,7 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   void tx_memory_pool::get_difference(const std::vector<Crypto::Hash>& known_tx_ids, std::vector<Crypto::Hash>& new_tx_ids, std::vector<Crypto::Hash>& deleted_tx_ids) const {
+
     std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
     std::unordered_set<Crypto::Hash> ready_tx_ids;
     for (const auto& tx : m_transactions) {
@@ -375,7 +382,6 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::is_transaction_ready_to_go(const Transaction& tx, TransactionCheckInfo& txd) const {
-
     if (!m_validator.checkTransactionInputs(tx, txd.maxUsedBlock, txd.lastFailedBlock)) {
       logger(INFO) << "checkTransactionInputs failed...";
       return false;
@@ -395,30 +401,34 @@ namespace CryptoNote {
     uint32_t item=1;
     std::string comma = ""; // initialize to blank
 
-    ss << "pool: {";
+    ss << "{\"pool\": [";
     for (const auto& txd : m_fee_index) {
-      ss << comma << "item: " << item++ << ", info: " << std::endl;
-      ss << "{id: " << txd.id;
-      
+
+      std::string sId = "\"" + Common::podToHex(txd.id) + "\"";
+      ss << comma << "{\"item\": " << item++ << ", \"id\": " << sId;
+
       if (!short_format) {
-        ss << ", " << std::endl << "txdetails: " << storeToJson(txd.tx);
+        ss << ", " << std::endl << "\"txdetails\": " << storeToJson(txd.tx);
       }
 
-      ss << ", " << std::endl << "blobSize: " << txd.blobSize << "," << std::endl <<
-        "fee: " << m_currency.formatAmount(txd.fee) << "," << std::endl <<
-        "keptByBlock: " << (txd.keptByBlock ? 'T' : 'F') << "," << std::endl <<
-        "max_used_block_height: " << txd.maxUsedBlock.height << "," << std::endl <<
-        "max_used_block_id: " << txd.maxUsedBlock.id << "," << std::endl <<
-        "last_failed_height: " << txd.lastFailedBlock.height << "," << std::endl <<
-        "last_failed_id: " << txd.lastFailedBlock.id << "," << std::endl <<
-        "amount_out: " << get_outs_money_amount(txd.tx) << "," << std::endl <<
-        "fee_atomic_units: " << txd.fee << "," << std::endl <<
-        "received_timestamp: " << txd.receiveTime << "," << std::endl <<
-        "received: " << std::ctime(&txd.receiveTime) << "}";
+      std::string sMaxUsedBlockId = "\"" + Common::podToHex(txd.maxUsedBlock.id) + "\"";
+      std::string sLastFailedBlockId = "\"" + Common::podToHex(txd.lastFailedBlock.id) + "\"";
+
+      ss << ", " << std::endl << 
+        "\"blobSize\": " << txd.blobSize << "," << std::endl <<
+        "\"fee\": " << m_currency.formatAmount(txd.fee) << "," << std::endl <<
+        "\"keptByBlock\": " << (txd.keptByBlock ? "\"T\"" : "\"F\"") << "," << std::endl <<
+        "\"max_used_block_height\": " << txd.maxUsedBlock.height << "," << std::endl <<
+        "\"max_used_block_id\": " << sMaxUsedBlockId << "," << std::endl <<
+        "\"last_failed_height\": " << txd.lastFailedBlock.height << "," << std::endl <<
+        "\"last_failed_id\": " << sLastFailedBlockId << "," << std::endl <<
+        "\"amount_out\": " << get_outs_money_amount(txd.tx) << "," << std::endl <<
+        "\"fee_atomic_units\": " << txd.fee << "," << std::endl <<
+        "\"received_timestamp\": " << txd.receiveTime << "}";
         comma = ",";
     }
 
-    ss << "}" << std::endl;
+    ss << "]}" << std::endl;
     return ss.str();
   }
   //---------------------------------------------------------------------------------
@@ -479,7 +489,7 @@ namespace CryptoNote {
       else if (is_transaction_ready_to_go(txd.tx, checkInfo)) {
         ready = true;
         m_validated_transactions.insert(txd.id);
-        logger(INFO/*DEBUGGING*/) << "Fill block template - tx added to cache: " << txd.id;
+        logger(DEBUGGING) << "Fill block template - tx added to cache: " << txd.id;
       }
 
       // update item state
@@ -595,6 +605,7 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::removeExpiredTransactions() {
+
     bool somethingRemoved = false;
     {
       std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
@@ -677,6 +688,7 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::addTransactionInputs(const Crypto::Hash& id, const Transaction& tx, bool keptByBlock) {
+
     // should not fail
     for (const auto& in : tx.inputs) {
       if (in.type() == typeid(KeyInput)) {
@@ -709,6 +721,7 @@ namespace CryptoNote {
 
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::haveSpentInputs(const Transaction& tx) const {
+
     for (const auto& in : tx.inputs) {
       if (in.type() == typeid(KeyInput)) {
         const auto& tokey_in = boost::get<KeyInput>(in);
@@ -744,8 +757,8 @@ namespace CryptoNote {
   bool tx_memory_pool::getTransactionIdsByPaymentId(const Crypto::Hash& paymentId, std::vector<Crypto::Hash>& transactionIds) {
     std::lock_guard<std::recursive_mutex> lock(m_transactions_lock);
     //return m_paymentIdIndex.find(paymentId, transactionIds);
-	transactionIds = m_paymentIdIndex.find(paymentId);
-	return true;
+	  transactionIds = m_paymentIdIndex.find(paymentId);
+	  return true;
   }
 
   bool tx_memory_pool::getTransactionIdsByTimestamp(uint64_t timestampBegin, uint64_t timestampEnd, uint32_t transactionsNumberLimit, std::vector<Crypto::Hash>& hashes, uint64_t& transactionsNumberWithinTimestamps) {

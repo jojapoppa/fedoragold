@@ -248,40 +248,40 @@ struct COMMAND_RPC_GET_TRANSACTIONS_POOL_SHORT {
   };
 };
 
-struct tx_with_output_global_indexes {
-  TransactionPrefix transaction;
-  Crypto::Hash hash;
-  Crypto::Hash block_hash;
-  uint32_t height;
-  uint64_t fee;
-  uint64_t timestamp;
-  std::vector<uint32_t> output_indexes;
-
-  void serialize(ISerializer &s)
-  {
-    KV_MEMBER(transaction)
-    KV_MEMBER(hash)
-    KV_MEMBER(block_hash)
-    KV_MEMBER(height)
-    KV_MEMBER(fee)
-    KV_MEMBER(timestamp)
-    KV_MEMBER(output_indexes)
-  }
-};
-
-struct COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL {
-  typedef EMPTY_STRUCT request;
-
-  struct response {
-    std::vector<tx_with_output_global_indexes> transactions;
-    std::string status;
-
-    void serialize(ISerializer &s) {
-      KV_MEMBER(transactions)
-      KV_MEMBER(status)
-    }
-  };
-};
+//struct tx_with_output_global_indexes {
+//  TransactionPrefix transaction;
+//  Crypto::Hash hash;
+//  Crypto::Hash block_hash;
+//  uint32_t height;
+//  uint64_t fee;
+//  uint64_t timestamp;
+//  std::vector<uint32_t> output_indexes;
+//
+//  void serialize(ISerializer &s)
+//  {
+//    KV_MEMBER(transaction)
+//    KV_MEMBER(hash)
+//    KV_MEMBER(block_hash)
+//    KV_MEMBER(height)
+//    KV_MEMBER(fee)
+//    KV_MEMBER(timestamp)
+//    KV_MEMBER(output_indexes)
+//  }
+//};
+//
+//struct COMMAND_RPC_GET_RAW_TRANSACTIONS_POOL {
+//  typedef EMPTY_STRUCT request;
+//
+//  struct response {
+//    std::vector<tx_with_output_global_indexes> transactions;
+//    std::string status;
+//
+//    void serialize(ISerializer &s) {
+//      KV_MEMBER(transactions)
+//      KV_MEMBER(status)
+//    }
+//  };
+//};
 
 struct PoolTransactionDetailsData {
   Crypto::Hash id;
