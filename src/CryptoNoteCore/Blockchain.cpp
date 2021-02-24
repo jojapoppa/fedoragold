@@ -1323,6 +1323,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
 
 bool Blockchain::getBlocks(uint32_t start_offset, uint32_t count, std::list<Block>& blocks, std::list<Transaction>& txs) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
+
   if (start_offset >= m_blocks.size())
     return false;
   for (size_t i = start_offset; i < start_offset + count && i < m_blocks.size(); i++) {
