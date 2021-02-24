@@ -49,7 +49,6 @@ namespace CryptoNote {
   class BlockTemplate {
   public:
 
-    bool addTransaction(const Crypto::Hash& txid, const Transaction& tx) {
       if (!canAdd(tx))
         return false;
 
@@ -626,7 +625,6 @@ namespace CryptoNote {
         bool remove = txAge > (it->keptByBlock ? m_currency.mempoolTxFromAltBlockLiveTime() : m_currency.mempoolTxLiveTime());
 
         if (remove) {
-          logger(INFO) << "Tx " << it->id << " removed from tx pool due to outdated, age: " << txAge;
           m_recentlyDeletedTransactions.emplace(it->id, now);
           it = removeTransaction(it);
           somethingRemoved = true;
