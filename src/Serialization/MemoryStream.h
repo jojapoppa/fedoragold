@@ -45,6 +45,8 @@ public:
     m_buffer.resize(0);
   }
 
+  void flush() override { /* do nothing */ }
+
 private:
   uint64_t m_writePos;
   std::vector<uint8_t> m_buffer;
