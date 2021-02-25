@@ -123,12 +123,13 @@ class BlockCacheSerializer {
 
 public:
   BlockCacheSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockCacheSerializer") {
+    m_bs(bs), m_lastBlockHash(lastBlockHash), m_cacheloaded(false), logger(logger, "BlockCacheSerializer") {
   }
 
   void load(const std::string& filename) {
 
     if (m_cacheloaded) {
+      logger(INFO) << "block cache already loaded... skipped";
       return;
     }
 
@@ -167,6 +168,8 @@ public:
       BinaryOutputStreamSerializer s(stream);
       logger(INFO) << "calling serialize for block cache save...";
       CryptoNote::serialize(*this, s);
+      stream.flush();
+      stream.close();
     } catch (std::exception& e) {
       logger(WARNING) << "exception while serializing cache: " << e.what();
       return false;
