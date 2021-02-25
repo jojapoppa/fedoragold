@@ -134,7 +134,9 @@ void Dispatcher::dispatch() {
       context = firstResumingContext;
       firstResumingContext = context->next;
 
-      assert(context->inExecutionQueue);
+      // user could have just exited as soon as system was run...
+      //assert(context->inExecutionQueue);
+      
       context->inExecutionQueue = false;
 
       break;
