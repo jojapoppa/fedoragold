@@ -49,6 +49,7 @@ namespace CryptoNote {
   class BlockTemplate {
   public:
 
+    bool addTransaction(const Crypto::Hash& txid, const Transaction& tx) {
       if (!canAdd(tx))
         return false;
 
