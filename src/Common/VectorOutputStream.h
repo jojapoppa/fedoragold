@@ -16,6 +16,8 @@ public:
   VectorOutputStream& operator=(const VectorOutputStream&) = delete;
   uint64_t writeSome(const void* data, uint64_t size) override;
 
+  void flush() override { /* do nothing */ }
+
 private:
   std::vector<uint8_t>& out;
 };
