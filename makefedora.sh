@@ -54,9 +54,10 @@ then
   export MACOSX_DEPLOYMENT_TARGET=10.11
   #export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
   export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
-  //make clean
+  #make clean
   cp CMakeListsMac.txt CMakeLists.txt
-  make build-release
+  #make build-release
+  make build-debug
   exit
 elif python -m platform | grep Windows > /dev/null
 then

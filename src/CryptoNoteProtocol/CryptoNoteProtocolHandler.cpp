@@ -556,7 +556,7 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
       it = context.m_needed_objects.erase(it);
     }
 
-    logger(DEBUGGING) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS ID: "<<NOTIFY_REQUEST_GET_OBJECTS::ID << " blocks.size()=" << req.blocks.size() << ", txs.size()=" << req.txs.size() << " : requesting objects: " << count;
+    logger(DEBUGGING) << context << " blocks.size()=" << req.blocks.size() << ", txs.size()=" << req.txs.size() << " : requesting objects: " << count;
     post_notify<NOTIFY_REQUEST_GET_OBJECTS>(*m_p2p, req, context);
   } else if (context.m_last_response_height < context.m_remote_blockchain_height - 1) {//we have to fetch more objects ids, request blockchain entry
 
