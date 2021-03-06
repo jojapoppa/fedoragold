@@ -128,10 +128,10 @@ public:
 
   void load(const std::string& filename) {
 
-    if (m_cacheloaded) {
-      logger(INFO) << "block cache already loaded... skipped";
-      return;
-    }
+    //if (m_cacheloaded) {
+    //  logger(INFO) << "block cache already loaded... skipped";
+    //  return;
+    //}
 
     try {
       std::ifstream stdStream(filename, std::ios::binary);
@@ -152,10 +152,10 @@ public:
 
   bool save(const std::string& filename) {
 
-    if (! m_cacheloaded) {
-      logger(INFO) << "save operations are skipped until cache is fully loaded...";
-      return true; // not a fatal error, normal...
-    }
+    //if (! m_cacheloaded) {
+    //  logger(INFO) << "save operations are skipped until cache is fully loaded...";
+    //  return true; // not a fatal error, normal...
+    //}
 
     try {
       std::ofstream file(filename, std::ios::binary);
