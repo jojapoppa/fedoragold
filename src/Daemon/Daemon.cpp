@@ -27,6 +27,7 @@
 
 #ifndef WIN32
 #include "execinfo.h"
+#include <dlfcn.h>     // for dladdr
 #endif
 
 #include "Logging/LoggerManager.h"
@@ -89,16 +90,50 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
 }
 
 #ifndef WIN32
+// This function produces a stack backtrace with demangled function & method names.
+std::string backTrace(int skip = 1)
+{
+	void *callstack[128];
+	const int nMaxFrames = sizeof(callstack) / sizeof(callstack[0]);
+	char buf[1024];
+	int nFrames = backtrace(callstack, nMaxFrames);
+	char **symbols = backtrace_symbols(callstack, nFrames);
+
+	std::ostringstream trace_buf;
+	for (int i = skip; i < nFrames; i++) {
+		Dl_info info;
+		if (dladdr(callstack[i], &info)) {
+			char *demangled = NULL;
+			int status;
+			demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
+			snprintf(buf, sizeof(buf), "%-3d %*p %s + %zd\n",
+					 i, (int)(2 + sizeof(void*) * 2), callstack[i],
+					 (char *)(status == 0 ? (long)demangled : (long)(info.dli_sname)),
+					 (char *)callstack[i] - (char *)info.dli_saddr);
+			free(demangled);
+		} else {
+			snprintf(buf, sizeof(buf), "%-3d %*p\n",
+					 i, (int)(2 + sizeof(void*) * 2), callstack[i]);
+		}
+		trace_buf << buf;
+
+		snprintf(buf, sizeof(buf), "%s\n", symbols[i]);
+		trace_buf << buf;
+	}
+	free(symbols);
+	if (nFrames == nMaxFrames)
+		trace_buf << "[truncated]\n";
+	return trace_buf.str();
+}
+
 void CrashHandler(int sig) {
-  void *array[10];
-  size_t size;
+//  void *array[10];
+//  size_t size;
+//  // get void*'s for all entries on the stack
+//  size = backtrace(array, 10);
 
-  // get void*'s for all entries on the stack
-  size = backtrace(array, 10);
-
-  // print out all the frames to stderr
   fprintf(stderr, "Error: signal %d:\n", sig);
-  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  std::cout << backTrace();
   exit(1);
 }
 #endif
