@@ -25,6 +25,10 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
+#ifndef WIN32
+#include "execinfo.h"
+#endif
+
 #include "Logging/LoggerManager.h"
 
 #if defined(WIN32)
@@ -84,11 +88,28 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   return loggerConfiguration;
 }
 
+#ifndef WIN32
+void CrashHandler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+#endif
+
 int main(int argc, char* argv[])
 {
 
 #ifdef WIN32
   _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#else
+  signal(SIGSEGV, CrashHandler);   // install our handler for debug build crashes
 #endif
 
   LoggerManager logManager;
