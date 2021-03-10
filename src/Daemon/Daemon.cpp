@@ -93,15 +93,21 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
 // This function produces a stack backtrace with demangled function & method names.
 std::string backTrace(int skip = 1)
 {
+        char buf[1024];
 	void *callstack[128];
+        std::ostringstream trace_buf;        
+
 	const int nMaxFrames = sizeof(callstack) / sizeof(callstack[0]);
-	char buf[1024];
+
+        snprintf(buf, sizeof(buf), "nMaxFrames: %d\n", nMaxFrames);
+        trace_buf << buf;
+
 	int nFrames = backtrace(callstack, nMaxFrames);
 	char **symbols = backtrace_symbols(callstack, nFrames);
 
-        fprintf(stderr, "nFrames: %d\n", nFrames);
+        snprintf(buf, sizeof(buf), "nFrames: %d\n", nFrames);
+        trace_buf << buf;
 
-	std::ostringstream trace_buf;
 	for (int i = skip; i < nFrames; i++) {
 		Dl_info info;
 		if (dladdr(callstack[i], &info)) {
@@ -121,8 +127,6 @@ std::string backTrace(int skip = 1)
 
 		snprintf(buf, sizeof(buf), "%s\n", symbols[i]);
 		trace_buf << buf;
-
-                fprintf(stderr, "buf: %s\n", buf);
 	}
 	free(symbols);
 	if (nFrames == nMaxFrames)
@@ -150,6 +154,7 @@ int main(int argc, char* argv[])
 #endif
 
 #if defined(__APPLE__)
+  //fprintf(stderr, "** define signal handler on Apple\n");
   signal(SIGSEGV, CrashHandler);   // install our handler for debug build crashes
 #endif
 
