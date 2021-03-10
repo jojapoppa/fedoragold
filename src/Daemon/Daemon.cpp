@@ -25,7 +25,7 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
-#ifndef WIN32
+#if defined(__APPLE__)
 #include "execinfo.h"
 #include <dlfcn.h>     // for dladdr
 #endif
@@ -89,7 +89,7 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   return loggerConfiguration;
 }
 
-#ifndef WIN32
+#if defined(__APPLE__)
 // This function produces a stack backtrace with demangled function & method names.
 std::string backTrace(int skip = 1)
 {
@@ -143,7 +143,9 @@ int main(int argc, char* argv[])
 
 #ifdef WIN32
   _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-#else
+#endif
+
+#if defined(__APPLE__)
   signal(SIGSEGV, CrashHandler);   // install our handler for debug build crashes
 #endif
 
