@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     System::Dispatcher localDispatcher;
     System::Dispatcher *dispatcher = &localDispatcher;
 
-    remote_fee_address = getFeeAddress(localDispatcher, config.host, config.port);
+    //remote_fee_address = getFeeAddress(localDispatcher, config.host, config.port);
 
     /* Our connection to the daemon */
     std::unique_ptr<CryptoNote::INode> node(new CryptoNote::NodeRpcProxy(config.host, config.port, fileLogger));
