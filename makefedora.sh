@@ -56,8 +56,8 @@ then
   export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
   #make clean
   cp CMakeListsMac.txt CMakeLists.txt
-  make build-release
-  #make build-debug
+  #make build-release
+  make build-debug
   exit
 elif python -m platform | grep Windows > /dev/null
 then
