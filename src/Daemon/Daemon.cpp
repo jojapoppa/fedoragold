@@ -25,6 +25,16 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
+#if defined(__APPLE__)
+#define _XOPEN_SOURCE
+#include <stdio.h>
+#include <signal.h>
+#include "execinfo.h"
+#include <ucontext.h>
+#include <unistd.h>
+#include <dlfcn.h>
+#endif
+
 #include "Logging/LoggerManager.h"
 
 #if defined(WIN32)
@@ -84,11 +94,126 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   return loggerConfiguration;
 }
 
+#if defined(__APPLE__)
+// This function produces a stack backtrace with demangled function & method names.
+std::string backTrace(int skip = 1)
+{
+        char buf[1024];
+	void *callstack[128];
+        std::ostringstream trace_buf;        
+
+	const int nMaxFrames = sizeof(callstack) / sizeof(callstack[0]);
+
+        snprintf(buf, sizeof(buf), "nMaxFrames: %d\n", nMaxFrames);
+        trace_buf << buf;
+
+	int nFrames = backtrace(callstack, nMaxFrames);
+	char **symbols = backtrace_symbols(callstack, nFrames);
+
+        snprintf(buf, sizeof(buf), "nFrames: %d\n", nFrames);
+        trace_buf << buf;
+
+	for (int i = skip; i < nFrames; i++) {
+		Dl_info info;
+		if (dladdr(callstack[i], &info)) {
+			char *demangled = NULL;
+			int status;
+			demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
+			snprintf(buf, sizeof(buf), "%-3d %*p %s + %zd\n",
+					 i, (int)(2 + sizeof(void*) * 2), callstack[i],
+					 (char *)(status == 0 ? (long)demangled : (long)(info.dli_sname)),
+					 (char *)callstack[i] - (char *)info.dli_saddr);
+			free(demangled);
+		} else {
+			snprintf(buf, sizeof(buf), "%-3d %*p\n",
+					 i, (int)(2 + sizeof(void*) * 2), callstack[i]);
+		}
+		trace_buf << buf;
+
+		snprintf(buf, sizeof(buf), "%s\n", symbols[i]);
+		trace_buf << buf;
+	}
+	free(symbols);
+	if (nFrames == nMaxFrames)
+		trace_buf << "[truncated]\n";
+	return trace_buf.str();
+}
+
+typedef ucontext_t sigcontext_t;
+typedef struct _sig_ucontext {
+ unsigned long     uc_flags;
+ ucontext_t        *uc_link;
+ stack_t           uc_stack;
+ sigcontext_t      uc_mcontext;
+ sigset_t          uc_sigmask;
+} sig_ucontext_t;
+void crit_err_hdlr(int sig_num, siginfo_t * info, void * ucontext)
+{
+ void *             array[50];
+ void *             caller_address = NULL;
+ char **            messages;
+ int                size, i;
+ sig_ucontext_t *   uc;
+
+ fprintf(stderr, "new crit_err_hdlr");
+ uc = (sig_ucontext_t *)ucontext;
+
+ /* Get the address at the time the signal was raised */
+//#if defined(__i386__) // gcc specific
+// caller_address = (void *) uc->uc_mcontext.eip; // EIP: x86 specific
+//#elif defined(__x86_64__) // gcc specific
+// caller_address = (void *) uc->uc_mcontext.rip; // RIP: x86_64 specific
+//#else
+//#error Unsupported architecture. // TODO: Add support for other arch.
+//#endif
+fprintf(stderr, "signal %d (%s), address is %p from %p\n", 
+  sig_num, strsignal(sig_num), info->si_addr, 
+  (void *)caller_address);
+
+ size = backtrace(array, 50);
+
+ /* overwrite sigaction with caller's address */
+ //array[1] = caller_address;
+
+ messages = backtrace_symbols(array, size);
+
+ /* skip first stack frame (points here) */
+ for (i = 1; i < size && messages != NULL; ++i)
+ {
+  fprintf(stderr, "[bt]: (%d) %s\n", i, messages[i]);
+ }
+
+ free(messages);
+
+ exit(EXIT_FAILURE);
+}
+
+void installSig() {
+ struct sigaction sigact;
+
+ sigact.sa_sigaction = crit_err_hdlr;
+ sigact.sa_flags = SA_RESTART | SA_SIGINFO;
+
+ if (sigaction(SIGSEGV, &sigact, (struct sigaction *)NULL) != 0)
+ {
+  fprintf(stderr, "error setting signal handler for %d (%s)\n",
+    SIGSEGV, strsignal(SIGSEGV));
+
+  exit(EXIT_FAILURE);
+ }
+}
+#endif
+
 int main(int argc, char* argv[])
 {
 
 #ifdef WIN32
   _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#endif
+
+#if defined(__APPLE__)
+  //signal(SIGSEGV, CrashHandler);   // install our handler for debug build crashes
+  installSig();
 #endif
 
   LoggerManager logManager;
