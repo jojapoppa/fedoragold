@@ -99,7 +99,7 @@ std::string backTrace(int skip = 1)
 	int nFrames = backtrace(callstack, nMaxFrames);
 	char **symbols = backtrace_symbols(callstack, nFrames);
 
-        fprintf(stderr, "nFrames: %d\n", nFrames);
+  fprintf(stderr, "backTrace nFrames: %d\n", nFrames);
 
 	std::ostringstream trace_buf;
 	for (int i = skip; i < nFrames; i++) {
@@ -131,11 +131,6 @@ std::string backTrace(int skip = 1)
 }
 
 void CrashHandler(int sig) {
-//  void *array[10];
-//  size_t size;
-//  // get void*'s for all entries on the stack
-//  size = backtrace(array, 10);
-
   fprintf(stderr, "Error: signal %d:\n", sig);
   fprintf(stderr, "Back Trace: \n%s", backTrace().c_str());
   exit(1);
