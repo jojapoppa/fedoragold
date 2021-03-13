@@ -111,6 +111,8 @@ int addr2line(char const * const program_name, void const * const addr)
   #else
     sprintf(addr2line_cmd,"addr2line -f -p -e %.256s %p", program_name, addr); 
   #endif
+
+  fprintf(stderr, "run this command: %s", addr2line_cmd);
  
   /* This will print a nicely formatted string specifying the
      function and source line of the address */
@@ -122,10 +124,11 @@ void posix_print_stack_trace()
 {
   int i, trace_size = 0;
   char **messages = (char **)NULL;
- 
-  trace_size = backtrace(stack_traces, MAX_STACK_FRAMES);
+
+  trace_size = backtrace(stack_traces, sizeof(stack_traces) / sizeof(void*));
+  fprintf(stderr, "posix_print_stack_trace, trace_size: %d", trace_size);
   messages = backtrace_symbols(stack_traces, trace_size);
- 
+
   /* skip the first couple stack frames (as they are this function and
      our handler) and also skip the last frame as it's (always?) junk. */
   // for (i = 3; i < (trace_size - 1); ++i)
@@ -134,7 +137,7 @@ void posix_print_stack_trace()
   {
     if (addr2line("fedoragold_daemon", stack_traces[i]) != 0)
     {
-      printf("  error determining line # for: %s\n", messages[i]);
+      fprintf(stderr, "  error determining line # for: %s\n", messages[i]);
     }
  
   }

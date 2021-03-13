@@ -100,7 +100,7 @@ else()
   endif()
 
   if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.8))
-    set(DEBUG_FLAGS "-g3 -Og -dynamic -fno-pie")
+    set(DEBUG_FLAGS "-g3 -Og -dynamic -funwind-tables -fno-pie")
   else()
     set(DEBUG_FLAGS "-g3 -O0 -dynamic -funwind-tables -fno-pie")
   endif()
