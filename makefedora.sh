@@ -53,7 +53,9 @@ then
   echo Mac OSX linux build platform...
   export MACOSX_DEPLOYMENT_TARGET=10.11
   #export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
-  export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
+  export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/include
+  export Boost_LIBRARY_DIR=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/lib
   #make clean
   cp CMakeListsMac.txt CMakeLists.txt
   #make build-release
