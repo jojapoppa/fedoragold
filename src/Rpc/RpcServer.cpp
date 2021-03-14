@@ -134,8 +134,8 @@ std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction
 
 RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, core& c, NodeServer& p2p, ICryptoNoteProtocolQuery& protocolQuery) : 
   HttpServer(dispatcher, log), logger(log, "RpcServer"), 
-  m_core(c), m_p2p(p2p), m_protocolQuery(protocolQuery),
-  blockchainExplorerDataBuilder(c, protocolQuery, logger) {
+  m_core(c), m_p2p(p2p), blockchainExplorerDataBuilder(c, protocolQuery, logger),
+  m_protocolQuery(protocolQuery) {
 }
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {

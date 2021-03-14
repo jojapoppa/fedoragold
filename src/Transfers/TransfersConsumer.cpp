@@ -99,7 +99,7 @@ std::vector<Crypto::Hash> getBlockHashes(const CryptoNote::CompleteBlock* blocks
 namespace CryptoNote {
 
 TransfersConsumer::TransfersConsumer(const CryptoNote::Currency& currency, INode& node, const SecretKey& viewSecret) :
-  m_node(node), m_viewSecret(viewSecret), m_currency(currency) {
+  m_viewSecret(viewSecret), m_node(node), m_currency(currency) {
   updateSyncStart();
 }
 

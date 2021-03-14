@@ -61,7 +61,7 @@ namespace Tools
     CryptoNote::INode& m_node;
     uint16_t m_port;
     std::string m_bind_ip;
-    CryptoNote::Currency& m_currency;
+    //CryptoNote::Currency& m_currency;
     const std::string m_walletFilename;
 
     System::Dispatcher& m_dispatcher;

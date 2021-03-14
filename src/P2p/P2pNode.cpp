@@ -108,7 +108,7 @@ P2pNode::P2pNode(const P2pNodeConfig& cfg, Dispatcher& dispatcher, Logging::ILog
   m_stopRequested(false),
   m_cfg(cfg),
   m_myPeerId(peerId),
-  m_genesisHash(genesisHash),
+  //m_genesisHash(genesisHash),
   m_genesisPayload(CORE_SYNC_DATA{ 1, genesisHash }),
   m_dispatcher(dispatcher),
   workingContextGroup(dispatcher),

@@ -66,13 +66,12 @@ namespace CryptoNote {
 
 WalletTransactionSender::WalletTransactionSender(const Currency& currency, WalletUserTransactionsCache& transactionsCache, AccountKeys keys, ITransfersContainer& transfersContainer) :
   m_currency(currency),
-  m_transactionsCache(transactionsCache),
-  m_isStoping(false),
   m_keys(keys),
-  m_transferDetails(transfersContainer),
-  
+  m_transactionsCache(transactionsCache),
   /*m_upperTransactionSizeLimit(m_currency.blockGrantedFullRewardZone() * 2 - m_currency.minerTxBlobReservedSize()*/
-  m_upperTransactionSizeLimit(m_currency.maxTransactionSizeLimit()) {}
+  m_upperTransactionSizeLimit(m_currency.maxTransactionSizeLimit()),
+  m_isStoping(false),
+  m_transferDetails(transfersContainer) {}
 
 void WalletTransactionSender::stop() {
   m_isStoping = true;

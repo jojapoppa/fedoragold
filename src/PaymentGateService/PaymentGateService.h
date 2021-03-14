@@ -20,7 +20,7 @@ using Common::JsonValue;
 class PaymentGateService {
 public:
 
-  PaymentGateService() : dispatcher(nullptr), stopEvent(nullptr), config(), service(nullptr), logger(), currencyBuilder(logger) {
+  PaymentGateService() : dispatcher(nullptr), stopEvent(nullptr), config(), service(nullptr), currencyBuilder(logger), logger() {
   }
 
   bool init(int argc, char** argv);

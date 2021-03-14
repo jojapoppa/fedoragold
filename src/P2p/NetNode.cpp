@@ -193,22 +193,22 @@ namespace CryptoNote
   }
 
   NodeServer::NodeServer(System::Dispatcher& dispatcher, CryptoNote::CryptoNoteProtocolHandler& payload_handler, Logging::ILogger& log) :
-    m_dispatcher(dispatcher),
-    m_workingContextGroup(dispatcher),
-    m_payload_handler(payload_handler),
     m_allow_local_ip(false),
     m_hide_my_port(false),
-    m_network_id(CRYPTONOTE_NETWORK),
-    logger(log, "node_server"),
+    m_dispatcher(dispatcher),
+    m_workingContextGroup(dispatcher),
     m_stopEvent(m_dispatcher),
     m_idleTimer(m_dispatcher),
-    m_timedSyncTimer(m_dispatcher),
     m_timeoutTimer(m_dispatcher),
+    logger(log, "node_server"),
     m_stop(false),
+    m_payload_handler(payload_handler),
+    m_connections_maker_interval(1),
+    m_peerlist_store_interval(60*30, false),
+    m_timedSyncTimer(m_dispatcher),
+    m_network_id(CRYPTONOTE_NETWORK) {
     // intervals
     // m_peer_handshake_idle_maker_interval(CryptoNote::P2P_DEFAULT_HANDSHAKE_INTERVAL),
-    m_connections_maker_interval(1),
-    m_peerlist_store_interval(60*30, false) {
   }
 
   void NodeServer::serialize(ISerializer& s) {

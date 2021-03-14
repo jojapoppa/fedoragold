@@ -2313,11 +2313,20 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
 
   /* logger won't work in this context as it's used by Simplewallet... */
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-lambda-capture"
   size_t id = WALLET_INVALID_TRANSACTION_ID;
   Tools::ScopeExit releaseContext([this, &id] {
     m_dispatcher.yield();
-    if (id != WALLET_INVALID_TRANSACTION_ID) { auto& tx = m_transactions[id]; }
+    //if (id != WALLET_INVALID_TRANSACTION_ID) {
+    //  auto& tx = m_transactions[id];
+    //  m_logger(INFO, BRIGHT_WHITE) << "Fusion transaction created and sent, ID " << id <<
+    //    ", hash " << m_transactions[id].hash <<
+    //    ", state " << tx.state <<
+    //    ", transfers: " << TransferListFormatter(m_currency, getTransactionTransfersRange(id));
+    //}
   });
+#pragma GCC diagnostic pop
 
   System::EventLock lk(m_readyEvent);
 

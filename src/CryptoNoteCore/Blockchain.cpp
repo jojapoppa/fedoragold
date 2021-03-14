@@ -123,7 +123,7 @@ class BlockCacheSerializer {
 
 public:
   BlockCacheSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockCacheSerializer") {
+    logger(logger, "BlockCacheSerializer"), m_bs(bs), m_lastBlockHash(lastBlockHash) {
   }
 
   void load(const std::string& filename) {
@@ -258,7 +258,7 @@ class BlockchainIndicesSerializer {
 
 public:
   BlockchainIndicesSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockchainIndicesSerializer") {
+    logger(logger, "BlockchainIndicesSerializer"), m_bs(bs), m_lastBlockHash(lastBlockHash) {
   }
 
   void serialize(ISerializer& s) {
@@ -364,7 +364,6 @@ bool BlockCacheSerializer::m_cacheloaded = false;
 bool BlockchainIndicesSerializer::m_indiceloaded = false;
 
 Blockchain::Blockchain(const Currency& currency, tx_memory_pool& tx_pool, ILogger& logger, bool blockchainIndexesEnabled) :
-logger(logger, "Blockchain"),
 m_currency(currency),
 m_tx_pool(tx_pool),
 m_current_block_cumul_sz_limit(0),
@@ -373,7 +372,8 @@ m_paymentIdIndex(blockchainIndexesEnabled),
 m_timestampIndex(blockchainIndexesEnabled),
 m_generatedTransactionsIndex(blockchainIndexesEnabled),
 m_orphanBlocksIndex(blockchainIndexesEnabled),
-m_blockchainIndexesEnabled(blockchainIndexesEnabled) {
+m_blockchainIndexesEnabled(blockchainIndexesEnabled),
+logger(logger, "Blockchain") {
 
   m_outputs.set_deleted_key(0);
   Crypto::KeyImage nullImage = boost::value_initialized<decltype(nullImage)>();

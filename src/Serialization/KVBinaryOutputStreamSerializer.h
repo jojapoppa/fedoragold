@@ -65,10 +65,10 @@ private:
     uint64_t count;
 
     Level(Common::StringView nm) :
-      name(nm), state(State::Object), count(0) {}
+      state(State::Object), name(nm), count(0) {}
 
     Level(Common::StringView nm, uint64_t arraySize) :
-      name(nm), state(State::ArrayPrefix), count(arraySize) {}
+      state(State::ArrayPrefix), name(nm), count(arraySize) {}
 
     Level(Level&& rv) {
       state = rv.state;

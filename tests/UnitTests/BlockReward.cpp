@@ -265,7 +265,7 @@ namespace
   const size_t testBlockSize = testMedian + testMedian * 8 / 10; // expected penalty 0.64 * reward
   const uint64_t testPenalty = 64; // percentage
   const uint64_t testMoneySupply = UINT64_C(1000000000);
-  const uint64_t expectedBaseReward = 62500000;  // testMoneySupply >> testEmissionSpeedFactor
+  //const uint64_t expectedBaseReward = 62500000;  // testMoneySupply >> testEmissionSpeedFactor
   const uint64_t expectedBlockReward = 22500000; // expectedBaseReward - expectedBaseReward * testPenalty / 100
   //--------------------------------------------------------------------------------------------------------------------
   class getBlockReward_fee_and_penalizeFee_test : public ::testing::Test {

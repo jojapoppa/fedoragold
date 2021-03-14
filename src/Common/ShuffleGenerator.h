@@ -12,7 +12,7 @@ class ShuffleGenerator {
 public:
 
   ShuffleGenerator(T n, const Gen& gen = Gen()) :
-    N(n), generator(gen), count(n) {}
+    count(n), N(n), generator(gen) {}
 
   T operator()() {
 

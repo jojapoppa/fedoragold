@@ -35,6 +35,8 @@
 #include <dlfcn.h>
 #endif
 
+//#include <sigsegv.h>
+
 #include "Logging/LoggerManager.h"
 
 #if defined(WIN32)
@@ -268,6 +270,34 @@ void set_signal_handler()
     if (sigaction(SIGABRT, &sig_action, NULL) != 0) { err(1, "sigaction"); }
   }
 }
+
+/*
+#define ALIGN_TO_PAGE_SIZE(x) (((x + filePageSize - 1) / filePageSize) *
+filePageSize)
+
+static volatile int count=0;
+static volatile int filePageSize;
+
+static void sigsegv_handler(void *failedAddress, unsigned x)
+{
+        (void) x;
+        unsigned pageAddr = ((unsigned) failedAddress & ~(filePageSize - 1));
+    mprotect((void *) pageAddr, filePageSize, PROT_WRITE | PROT_READ);
+        count++;
+}
+
+void initSig(void)
+{
+        if (sigsegv_install_handler((sigsegv_handler_t) & sigsegv_handler) <
+0)
+    {
+        fprintf(stderr, "ERROR: installing sigsegv handler failed\n ");
+        exit(-1);
+    }
+    filePageSize = sysconf(_SC_PAGESIZE);
+ }
+*/
+
 #endif
 
 int main(int argc, char* argv[])
@@ -278,7 +308,8 @@ int main(int argc, char* argv[])
 #endif
 
 #if defined(__APPLE__)
-  set_signal_handler();
+  //set_signal_handler();
+  //initSig();
 #endif
 
   LoggerManager logManager;

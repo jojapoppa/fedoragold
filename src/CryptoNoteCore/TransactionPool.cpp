@@ -110,14 +110,14 @@ namespace CryptoNote {
     Logging::ILogger& log,
     bool blockchainIndexesEnabled) :
     m_currency(currency),
-    m_validator(validator),
-    m_timeProvider(timeProvider), 
-    m_core(core),
+    //m_core(core),
     m_txCheckInterval(60, timeProvider),
+    m_validator(validator),
+    m_timeProvider(timeProvider),
+    m_fee_index(boost::get<1>(m_transactions)),
     logger(log, "txpool"),
     m_paymentIdIndex(blockchainIndexesEnabled),
-    m_timestampIndex(blockchainIndexesEnabled),
-    m_fee_index(boost::get<1>(m_transactions)) {
+    m_timestampIndex(blockchainIndexesEnabled) {
   }
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::add_tx(const Transaction &tx, /*const Crypto::Hash& tx_prefix_hash,*/ const Crypto::Hash &id, size_t blobSize, tx_verification_context& tvc, bool keptByBlock, uint32_t height) {

@@ -49,7 +49,7 @@ private:
   // HttpServer
   virtual void processRequest(const CryptoNote::HttpRequest& request, CryptoNote::HttpResponse& response) override;
 
-  System::Dispatcher& system;
+  //System::Dispatcher& system;
   System::Event& stopEvent;
   Logging::LoggerRef logger;
 };

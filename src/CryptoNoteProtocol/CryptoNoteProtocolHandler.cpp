@@ -37,15 +37,15 @@ void relay_post_notify(IP2pEndpoint& p2p, typename t_parametr::request& arg, con
 }
 
 CryptoNoteProtocolHandler::CryptoNoteProtocolHandler(const Currency& currency, System::Dispatcher& dispatcher, ICore& rcore, IP2pEndpoint* p_net_layout, Logging::ILogger& log) :
+  logger(log, "protocol"),
   m_dispatcher(dispatcher),
-  m_currency(currency),
   m_core(rcore),
+  m_currency(currency),
   m_p2p(p_net_layout),
   m_synchronized(false),
   m_stop(false),
   m_observedHeight(0),
-  m_peersCount(0),
-  logger(log, "protocol") {
+  m_peersCount(0) {
   
   if (!m_p2p) {
     m_p2p = &m_p2p_stub;

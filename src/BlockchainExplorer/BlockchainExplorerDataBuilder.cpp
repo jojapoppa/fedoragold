@@ -16,9 +16,9 @@
 namespace CryptoNote {
 
 BlockchainExplorerDataBuilder::BlockchainExplorerDataBuilder(CryptoNote::ICore& core, CryptoNote::ICryptoNoteProtocolQuery& protocol, Logging::LoggerRef logref) :
-core(core),
-protocol(protocol),
-logger(logref) {
+logger(logref),
+core(core) {
+//protocol(protocol) {
 }
 
 bool BlockchainExplorerDataBuilder::getMixin(const Transaction& transaction, uint64_t& mixin) {

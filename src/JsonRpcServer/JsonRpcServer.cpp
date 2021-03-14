@@ -26,7 +26,7 @@ namespace CryptoNote {
 
 JsonRpcServer::JsonRpcServer(System::Dispatcher& sys, System::Event& stopEvent, Logging::ILogger& loggerGroup) :
   HttpServer(sys, loggerGroup), 
-  system(sys),
+  //system(sys),
   stopEvent(stopEvent),
   logger(loggerGroup, "JsonRpcServer")
 {

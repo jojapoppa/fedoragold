@@ -21,7 +21,7 @@ namespace System {
 Timer::Timer() : dispatcher(nullptr) {
 }
 
-Timer::Timer(Dispatcher& dispatcher) : dispatcher(&dispatcher), context(nullptr), timer(-1) {
+Timer::Timer(Dispatcher& dispatcher) : dispatcher(&dispatcher), timer(-1), context(nullptr) {
 }
 
 Timer::Timer(Timer&& other) : dispatcher(other.dispatcher) {
