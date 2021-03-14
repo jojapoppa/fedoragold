@@ -2311,13 +2311,15 @@ void WalletGreen::validateChangeDestination(const std::vector<std::string>&
 size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
   const std::vector<std::string>& sourceAddresses, const std::string& destinationAddress) {
 
-  /* logger won't work in this context as it's used by Simplewallet... */
-
+#if defined(__APPLE__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-lambda-capture"
+#endif 
   size_t id = WALLET_INVALID_TRANSACTION_ID;
   Tools::ScopeExit releaseContext([this, &id] {
     m_dispatcher.yield();
+
+    //LOGGER CANNOT BE CALLED HERE - USED BY SIMPLEWALLET
     //if (id != WALLET_INVALID_TRANSACTION_ID) {
     //  auto& tx = m_transactions[id];
     //  m_logger(INFO, BRIGHT_WHITE) << "Fusion transaction created and sent, ID " << id <<
@@ -2326,7 +2328,9 @@ size_t WalletGreen::createFusionTransaction(uint64_t threshold, uint64_t mixin,
     //    ", transfers: " << TransferListFormatter(m_currency, getTransactionTransfersRange(id));
     //}
   });
+#if defined(__APPLE__)
 #pragma GCC diagnostic pop
+#endif
 
   System::EventLock lk(m_readyEvent);
 
