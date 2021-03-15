@@ -25,17 +25,25 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
-#if defined(__APPLE__)
-#define _XOPEN_SOURCE
-#include <stdio.h>
-#include <signal.h>
-#include "execinfo.h"
-#include <ucontext.h>
-#include <unistd.h>
-#include <dlfcn.h>
-#endif
+//#if defined(__APPLE__)
+//#define _XOPEN_SOURCE
+//#include <stdio.h>
+//#include <signal.h>
+//#include "execinfo.h"
+//#include <ucontext.h>
+//#include <unistd.h>
+//#include <dlfcn.h>
+//#endif
 
-//#include <sigsegv.h>
+#if defined(__APPLE__)
+#include <stdlib.h>
+#include <sigsegv.h>
+#include <stdio.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
 
 #include "Logging/LoggerManager.h"
 
@@ -97,18 +105,15 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
 }
 
 #if defined(__APPLE__)
+/*
 void err(int ernum, const char *s) {
   fprintf(stderr, "error %d: %s\n", ernum, s);
 }
-/* Resolve symbol name and source location given the path to the executable 
-   and an address */
 int addr2line(char const * const program_name, void const * const addr)
 {
   char addr2line_cmd[512] = {0};
  
-  /* have addr2line map the address to the relent line in the code */
   #ifdef __APPLE__
-    /* apple does things differently... */
     sprintf(addr2line_cmd,"atos -o %.256s %p", program_name, addr); 
   #else
     sprintf(addr2line_cmd,"addr2line -f -p -e %.256s %p", program_name, addr); 
@@ -116,8 +121,6 @@ int addr2line(char const * const program_name, void const * const addr)
 
   fprintf(stderr, "run this command: %s", addr2line_cmd);
  
-  /* This will print a nicely formatted string specifying the
-     function and source line of the address */
   return system(addr2line_cmd);
 }
 #define MAX_STACK_FRAMES 64
@@ -131,8 +134,6 @@ void posix_print_stack_trace()
   fprintf(stderr, "posix_print_stack_trace, trace_size: %d", trace_size);
   messages = backtrace_symbols(stack_traces, trace_size);
 
-  /* skip the first couple stack frames (as they are this function and
-     our handler) and also skip the last frame as it's (always?) junk. */
   // for (i = 3; i < (trace_size - 1); ++i)
   // we'll use this for now so you can see what's going on
   for (i = 0; i < trace_size; ++i)
@@ -236,11 +237,8 @@ void posix_signal_handler(int sig, siginfo_t *siginfo, void *context)
 static uint8_t alternate_stack[SIGSTKSZ];
 void set_signal_handler()
 {
-  /* setup alternate stack */
   {
     stack_t ss = {};
-    /* malloc is usually used here, I'm not 100% sure my static allocation
-       is valid but it seems to work just fine. */
     ss.ss_sp = (void*)alternate_stack;
     ss.ss_size = SIGSTKSZ;
     ss.ss_flags = 0;
@@ -248,15 +246,12 @@ void set_signal_handler()
     if (sigaltstack(&ss, NULL) != 0) { err(1, "sigaltstack"); }
   }
  
-  /* register our signal handlers */
   {
     struct sigaction sig_action = {};
     sig_action.sa_sigaction = posix_signal_handler;
     sigemptyset(&sig_action.sa_mask);
  
     #ifdef __APPLE__
-        /* for some reason we backtrace() doesn't work on osx
-           when we use an alternate stack */
         sig_action.sa_flags = SA_SIGINFO;
     #else
         sig_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
@@ -270,33 +265,32 @@ void set_signal_handler()
     if (sigaction(SIGABRT, &sig_action, NULL) != 0) { err(1, "sigaction"); }
   }
 }
+*/
 
-/*
-#define ALIGN_TO_PAGE_SIZE(x) (((x + filePageSize - 1) / filePageSize) *
-filePageSize)
+
 
 static volatile int count=0;
-static volatile int filePageSize;
+static volatile uint64_t filePageSize;
+//#define ALIGN_TO_PAGE_SIZE(x) (((x + filePageSize - 1) / filePageSize) * filePageSize)
 
 static void sigsegv_handler(void *failedAddress, unsigned x)
 {
-        (void) x;
-        unsigned pageAddr = ((unsigned) failedAddress & ~(filePageSize - 1));
-    mprotect((void *) pageAddr, filePageSize, PROT_WRITE | PROT_READ);
-        count++;
+  fprintf(stderr, "sigsegv_handler");
+  (void) x;
+  void *pageAddr = (void *)(((uint64_t) failedAddress & ~(filePageSize - 1)));
+  mprotect(pageAddr, filePageSize, PROT_WRITE | PROT_READ);
+  count++;
 }
 
 void initSig(void)
 {
-        if (sigsegv_install_handler((sigsegv_handler_t) & sigsegv_handler) <
-0)
-    {
-        fprintf(stderr, "ERROR: installing sigsegv handler failed\n ");
-        exit(-1);
-    }
-    filePageSize = sysconf(_SC_PAGESIZE);
+  if (sigsegv_install_handler((sigsegv_handler_t) & sigsegv_handler) < 0)
+  {
+    fprintf(stderr, "ERROR: installing sigsegv handler failed\n ");
+    exit(-1);
+  }
+  filePageSize = sysconf(_SC_PAGESIZE);
  }
-*/
 
 #endif
 
@@ -309,7 +303,7 @@ int main(int argc, char* argv[])
 
 #if defined(__APPLE__)
   //set_signal_handler();
-  //initSig();
+  initSig();
 #endif
 
   LoggerManager logManager;

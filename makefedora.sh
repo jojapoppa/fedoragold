@@ -52,6 +52,7 @@ elif python -m platform | grep Darwin > /dev/null
 then
   echo Mac OSX linux build platform...
   export MACOSX_DEPLOYMENT_TARGET=10.11
+  # location of libsigsev /usr/local/Cellar/libsigsegv/2.10
   #export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
   export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/include
