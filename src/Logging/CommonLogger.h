@@ -12,7 +12,8 @@ namespace Logging {
 class CommonLogger : public ILogger {
 public:
 
-  virtual ~CommonLogger()=0;
+  // You must implement an empty virtual contructor, otherwise you cannot call 'delete' on it later...
+  virtual ~CommonLogger() {};
 
   virtual void operator()(const std::string& category, Level level, boost::posix_time::ptime time, const std::string& body) override;
   virtual void enableCategory(const std::string& category);

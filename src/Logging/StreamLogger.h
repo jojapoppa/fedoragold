@@ -11,6 +11,7 @@ namespace Logging {
 
 class StreamLogger : public CommonLogger {
 public:
+  ~StreamLogger() {}; // must have this on classes with virtual methods or you can't call 'delete' later...
   StreamLogger(Level level = DEBUGGING);
   StreamLogger(std::ostream& stream, Level level = DEBUGGING);
   void attachToStream(std::ostream& stream);

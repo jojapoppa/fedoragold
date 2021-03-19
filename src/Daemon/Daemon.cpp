@@ -25,26 +25,6 @@
 #include "Rpc/RpcServerConfig.h"
 #include "version.h"
 
-//#if defined(__APPLE__)
-//#define _XOPEN_SOURCE
-//#include <stdio.h>
-//#include <signal.h>
-//#include "execinfo.h"
-//#include <ucontext.h>
-//#include <unistd.h>
-//#include <dlfcn.h>
-//#endif
-
-#if defined(__APPLE__)
-#include <stdlib.h>
-#include <sigsegv.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#endif
-
 #include "Logging/LoggerManager.h"
 
 #if defined(WIN32)
@@ -104,206 +84,11 @@ JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   return loggerConfiguration;
 }
 
-#if defined(__APPLE__)
-/*
-void err(int ernum, const char *s) {
-  fprintf(stderr, "error %d: %s\n", ernum, s);
-}
-int addr2line(char const * const program_name, void const * const addr)
-{
-  char addr2line_cmd[512] = {0};
- 
-  #ifdef __APPLE__
-    sprintf(addr2line_cmd,"atos -o %.256s %p", program_name, addr); 
-  #else
-    sprintf(addr2line_cmd,"addr2line -f -p -e %.256s %p", program_name, addr); 
-  #endif
-
-  fprintf(stderr, "run this command: %s", addr2line_cmd);
- 
-  return system(addr2line_cmd);
-}
-#define MAX_STACK_FRAMES 64
-static void *stack_traces[MAX_STACK_FRAMES];
-void posix_print_stack_trace()
-{
-  int i, trace_size = 0;
-  char **messages = (char **)NULL;
-
-  trace_size = backtrace(stack_traces, sizeof(stack_traces) / sizeof(void*));
-  fprintf(stderr, "posix_print_stack_trace, trace_size: %d", trace_size);
-  messages = backtrace_symbols(stack_traces, trace_size);
-
-  // for (i = 3; i < (trace_size - 1); ++i)
-  // we'll use this for now so you can see what's going on
-  for (i = 0; i < trace_size; ++i)
-  {
-    if (addr2line("fedoragold_daemon", stack_traces[i]) != 0)
-    {
-      fprintf(stderr, "  error determining line # for: %s\n", messages[i]);
-    }
- 
-  }
-  if (messages) { free(messages); } 
-}
-void posix_signal_handler(int sig, siginfo_t *siginfo, void *context)
-{
-  (void)context;
-  switch(sig)
-  {
-    case SIGSEGV:
-      fputs("Caught SIGSEGV: Segmentation Fault\n", stderr);
-      break;
-    case SIGINT:
-      fputs("Caught SIGINT: Interactive attention signal, (usually ctrl+c)\n",
-            stderr);
-      break;
-    case SIGFPE:
-      switch(siginfo->si_code)
-      {
-        case FPE_INTDIV:
-          fputs("Caught SIGFPE: (integer divide by zero)\n", stderr);
-          break;
-        case FPE_INTOVF:
-          fputs("Caught SIGFPE: (integer overflow)\n", stderr);
-          break;
-        case FPE_FLTDIV:
-          fputs("Caught SIGFPE: (floating-point divide by zero)\n", stderr);
-          break;
-        case FPE_FLTOVF:
-          fputs("Caught SIGFPE: (floating-point overflow)\n", stderr);
-          break;
-        case FPE_FLTUND:
-          fputs("Caught SIGFPE: (floating-point underflow)\n", stderr);
-          break;
-        case FPE_FLTRES:
-          fputs("Caught SIGFPE: (floating-point inexact result)\n", stderr);
-          break;
-        case FPE_FLTINV:
-          fputs("Caught SIGFPE: (floating-point invalid operation)\n", stderr);
-          break;
-        case FPE_FLTSUB:
-          fputs("Caught SIGFPE: (subscript out of range)\n", stderr);
-          break;
-        default:
-          fputs("Caught SIGFPE: Arithmetic Exception\n", stderr);
-          break;
-      }
-    case SIGILL:
-      switch(siginfo->si_code)
-      {
-        case ILL_ILLOPC:
-          fputs("Caught SIGILL: (illegal opcode)\n", stderr);
-          break;
-        case ILL_ILLOPN:
-          fputs("Caught SIGILL: (illegal operand)\n", stderr);
-          break;
-        case ILL_ILLADR:
-          fputs("Caught SIGILL: (illegal addressing mode)\n", stderr);
-          break;
-        case ILL_ILLTRP:
-          fputs("Caught SIGILL: (illegal trap)\n", stderr);
-          break;
-        case ILL_PRVOPC:
-          fputs("Caught SIGILL: (privileged opcode)\n", stderr);
-          break;
-        case ILL_PRVREG:
-          fputs("Caught SIGILL: (privileged register)\n", stderr);
-          break;
-        case ILL_COPROC:
-          fputs("Caught SIGILL: (coprocessor error)\n", stderr);
-          break;
-        case ILL_BADSTK:
-          fputs("Caught SIGILL: (internal stack error)\n", stderr);
-          break;
-        default:
-          fputs("Caught SIGILL: Illegal Instruction\n", stderr);
-          break;
-      }
-      break;
-    case SIGTERM:
-      fputs("Caught SIGTERM: a termination request was sent to the program\n",
-            stderr);
-      break;
-    case SIGABRT:
-      fputs("Caught SIGABRT: usually caused by an abort() or assert()\n", stderr);
-      break;
-    default:
-      break;
-  }
-  posix_print_stack_trace();
-  _Exit(1);
-}
-static uint8_t alternate_stack[SIGSTKSZ];
-void set_signal_handler()
-{
-  {
-    stack_t ss = {};
-    ss.ss_sp = (void*)alternate_stack;
-    ss.ss_size = SIGSTKSZ;
-    ss.ss_flags = 0;
- 
-    if (sigaltstack(&ss, NULL) != 0) { err(1, "sigaltstack"); }
-  }
- 
-  {
-    struct sigaction sig_action = {};
-    sig_action.sa_sigaction = posix_signal_handler;
-    sigemptyset(&sig_action.sa_mask);
- 
-    #ifdef __APPLE__
-        sig_action.sa_flags = SA_SIGINFO;
-    #else
-        sig_action.sa_flags = SA_SIGINFO | SA_ONSTACK;
-    #endif
- 
-    if (sigaction(SIGSEGV, &sig_action, NULL) != 0) { err(1, "sigaction"); }
-    if (sigaction(SIGFPE,  &sig_action, NULL) != 0) { err(1, "sigaction"); }
-    if (sigaction(SIGINT,  &sig_action, NULL) != 0) { err(1, "sigaction"); }
-    if (sigaction(SIGILL,  &sig_action, NULL) != 0) { err(1, "sigaction"); }
-    if (sigaction(SIGTERM, &sig_action, NULL) != 0) { err(1, "sigaction"); }
-    if (sigaction(SIGABRT, &sig_action, NULL) != 0) { err(1, "sigaction"); }
-  }
-}
-*/
-
-
-
-static volatile int count=0;
-static volatile uint64_t filePageSize;
-//#define ALIGN_TO_PAGE_SIZE(x) (((x + filePageSize - 1) / filePageSize) * filePageSize)
-
-static void sigsegv_handler(void *failedAddress, unsigned x)
-{
-  fprintf(stderr, "sigsegv_handler");
-  (void) x;
-  void *pageAddr = (void *)(((uint64_t) failedAddress & ~(filePageSize - 1)));
-  mprotect(pageAddr, filePageSize, PROT_WRITE | PROT_READ);
-  count++;
-}
-
-void initSig(void)
-{
-  if (sigsegv_install_handler((sigsegv_handler_t) & sigsegv_handler) < 0)
-  {
-    fprintf(stderr, "ERROR: installing sigsegv handler failed\n ");
-    exit(-1);
-  }
-  filePageSize = sysconf(_SC_PAGESIZE);
- }
-
-#endif
-
 int main(int argc, char* argv[])
 {
 
 #ifdef WIN32
   _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-#endif
-
-#if defined(__APPLE__)
-  //set_signal_handler();
-  initSig();
 #endif
 
   LoggerManager logManager;
@@ -392,6 +177,7 @@ int main(int argc, char* argv[])
       logManager.configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile));
     }
 
+    logger(INFO) << "running Daemon main...";
     logger(INFO) << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG;
 
     if (command_line_preprocessor(vm, logger)) {

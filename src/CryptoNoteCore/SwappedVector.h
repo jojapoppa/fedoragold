@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <exception>
 
 #include "Common/StdInputStream.h"
 #include "Common/StdOutputStream.h"
@@ -135,7 +136,7 @@ public:
   ~SwappedVector();
   //SwappedVector& operator=(const SwappedVector&) = delete;
 
-  bool open(const std::string& itemFileName, const std::string& indexFileName, size_t poolSize);
+  bool open(const std::string& itemFileName, const std::string& indexFileName, uint64_t poolSize); //size_t poolSize);
   void close();
 
   bool empty() const;
@@ -166,7 +167,8 @@ private:
 
   std::fstream m_itemsFile;
   std::fstream m_indexesFile;
-  size_t m_poolSize;
+  //size_t m_poolSize;
+  uint64_t m_poolSize;
   std::vector<uint64_t> m_offsets;
   uint64_t m_itemsFileSize;
   std::map<uint64_t, ItemEntry> m_items;
@@ -184,7 +186,7 @@ template<class T> SwappedVector<T>::~SwappedVector() {
   close();
 }
 
-template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, const std::string& indexFileName, size_t poolSize) {
+template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, const std::string& indexFileName, uint64_t poolSize) { //size_t poolSize) {
   if (poolSize == 0) {
     fprintf(stderr, "\nFedoragold: The file pool size is zero.\n");
     return false;
@@ -193,6 +195,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
   m_itemsFile.open(itemFileName, std::ios::in | std::ios::out | std::ios::binary);
   m_indexesFile.open(indexFileName, std::ios::in | std::ios::out | std::ios::binary);
   if (m_itemsFile && m_indexesFile) {
+
     uint64_t count;
     m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
     if (!m_indexesFile) {
@@ -200,23 +203,52 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
       return false;
     }
 
+    fprintf(stderr, "indexes count is: %llu\n", count);
+
     std::vector<uint64_t> offsets;
+    offsets.reserve(count);
     uint64_t itemsFileSize = 0;
+
     for (uint64_t i = 0; i < count; ++i) {
-      uint32_t itemSize;
-      m_indexesFile.read(reinterpret_cast<char*>(&itemSize), sizeof itemSize);
-      if (!m_indexesFile) {
-        fprintf(stderr, "\nFedoragold could not read from indexes file.\n");
-        return false;
+      uint32_t itemSize=0;
+
+      try {
+        m_indexesFile.read(reinterpret_cast<char*>(&itemSize), sizeof itemSize);
+        //fprintf(stderr, "itemSize: %u, iteration: %llu, of: %llu\n", itemSize, i, count);
+        offsets.push_back(itemsFileSize);
+      } catch(std::exception& e) {
+        fprintf(stderr, "exception reading indexes: %s\n", e.what());
+
+        if (!m_indexesFile.eof()) {
+          fprintf(stderr, "\nFedoragold could not read from indexes file.\n");
+          return false;
+        }
+        else {
+          fprintf(stderr, "Blockchain indexes file appears to be corrupted. Attempting automatic recovery\n");
+          fprintf(stderr, " by rewinding to %s\n", std::to_string(i).c_str());
+          m_indexesFile.clear(); //clear the error
+          m_indexesFile.seekp(0); //retain compability with C98
+          m_indexesFile.write(reinterpret_cast<char*>(&i), sizeof i); //update the count
+          m_indexesFile.flush(); //commit
+          break;
+        }
       }
 
-      offsets.emplace_back(itemsFileSize);
       itemsFileSize += itemSize;
     }
 
+    fprintf(stderr, "m_itemsFileSize: %llu\n", itemsFileSize);
+
     m_offsets.swap(offsets);
+
+    fprintf(stderr, "after swap...\n");
+
     m_itemsFileSize = itemsFileSize;
+
   } else {
+
+    fprintf(stderr, "\nClose cases here...\n");
+
     m_itemsFile.open(itemFileName, std::ios::out | std::ios::binary);
     m_itemsFile.close();
     m_indexesFile.close();
@@ -236,10 +268,14 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
   }
 
   m_poolSize = poolSize;
+  fprintf(stderr, "poolsize is: %llu\n", m_poolSize);
+
   m_items.clear();
   m_cache.clear();
   m_cacheHits = 0;
   m_cacheMisses = 0;
+
+  fprintf(stderr, "\nSwapVector.open completed\n");
   return true;
 }
 

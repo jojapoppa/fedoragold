@@ -12,6 +12,7 @@ namespace Logging {
 class LoggerGroup : public CommonLogger {
 public:
   LoggerGroup(Level level = DEBUGGING);
+  ~LoggerGroup() {}
 
   void addLogger(ILogger& logger);
   void removeLogger(ILogger& logger);

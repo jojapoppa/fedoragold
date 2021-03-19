@@ -27,7 +27,7 @@ std::string formatPattern(const std::string& pattern, const std::string& categor
         s << time.time_of_day();
         break;
       case 'L':
-        s << ILogger::LEVEL_NAMES[level];
+        s << std::setw(7) << std::left << ILogger::LEVEL_NAMES[level];
         break;
       default:
         s << *p;
@@ -42,9 +42,6 @@ std::string formatPattern(const std::string& pattern, const std::string& categor
 
 }
 
-CommonLogger::~CommonLogger() {
-}
-
 void CommonLogger::operator()(const std::string& category, Level level, boost::posix_time::ptime time, const std::string& body) {
   if (level <= logLevel && disabledCategories.count(category) == 0) {
     std::string body2 = body;
@@ -52,6 +49,7 @@ void CommonLogger::operator()(const std::string& category, Level level, boost::p
       size_t insertPos = 0;
       if (!body2.empty() && body2[0] == ILogger::COLOR_DELIMETER) {
         size_t delimPos = body2.find(ILogger::COLOR_DELIMETER, 1);
+
         if (delimPos != std::string::npos) {
           insertPos = delimPos + 1;
         }

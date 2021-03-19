@@ -128,10 +128,10 @@ public:
 
   void load(const std::string& filename) {
 
-    //if (m_cacheloaded) {
-    //  logger(INFO) << "block cache already loaded... skipped";
-    //  return;
-    //}
+    if (m_cacheloaded) {
+      logger(INFO) << "block cache already loaded... skipped";
+      return;
+    }
 
     try {
       std::ifstream stdStream(filename, std::ios::binary);
@@ -152,10 +152,10 @@ public:
 
   bool save(const std::string& filename) {
 
-    //if (! m_cacheloaded) {
-    //  logger(INFO) << "save operations are skipped until cache is fully loaded...";
-    //  return true; // not a fatal error, normal...
-    //}
+    if (! m_cacheloaded) {
+      logger(INFO) << "save operations are skipped until cache is fully loaded...";
+      return true; // not a fatal error, normal...
+    }
 
     try {
       std::ofstream file(filename, std::ios::binary);
@@ -235,8 +235,6 @@ public:
 
     logger(INFO) << "Serialization time: " << 
       std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
-
-    m_cacheloaded = true;
   }
 
   static bool m_cacheloaded;
@@ -307,8 +305,6 @@ public:
 
     logger(INFO) << operation << "generated transactions index...";
     s(m_bs.m_generatedTransactionsIndex, "generatedTransactionsIndex");
-
-    m_indiceloaded = true;
   }
 
   template<class Archive> void serialize(Archive& ar, unsigned int version) {
@@ -340,8 +336,6 @@ public:
 
     logger(INFO) << operation << "generated transactions index...";
     ar & m_bs.m_generatedTransactionsIndex;
-
-    m_indiceloaded = true;
   }
 
   static bool m_indiceloaded;
@@ -477,7 +471,6 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
         logger(DEBUGGING) << "Rebuild of cache failed.";
         results = false;
       }
-      cacheloader.m_cacheloaded = true;
     }
 
     if (m_blockchainIndexesEnabled) {
@@ -658,6 +651,7 @@ bool Blockchain::rebuildCache() {
     return false;
   }
 
+  BlockCacheSerializer::m_cacheloaded = true;
   std::chrono::duration<double> duration = std::chrono::steady_clock::now() - timePoint;
   logger(INFO, BRIGHT_WHITE) << "Rebuilding internal structures took: " << duration.count();
   return true;

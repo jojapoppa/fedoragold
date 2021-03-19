@@ -61,11 +61,25 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
   // Add UPnP port mapping
   logger(INFO) << "Attempting to add IGD port mapping.";
   int result;
-  UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, 0, &result);
+  UPNPDev* deviceList;
+
+  #if MINIUPNPC_API_VERSION >= 14
+    logger(INFO) << "upnpDiscover version >=14";
+    deviceList = upnpDiscover(2000, NULL/*multicast interface*/, NULL/*minissdpd socket path*/,
+      0/*sameport*/, 0/*ipv6*/, 2/*ttl*/, &result);
+  #else
+    logger(INFO) << "upnpDiscover version <14";
+    deviceList = upnpDiscover(2000, NULL/*multicast interface*/, NULL/*minissdpd socket path*/,
+      0/*sameport*/, 0/*ipv6*/, &result);
+  #endif
+
   UPNPUrls urls;
   IGDdatas igdData;
   char lanAddress[64];
+
   result = UPNP_GetValidIGD(deviceList, &urls, &igdData, lanAddress, sizeof lanAddress);
+  logger(INFO) << "UPNP_GetValidIGD: " << result;
+
   freeUPNPDevlist(deviceList);
   if (result != 0) {
     if (result == 1) {
@@ -84,6 +98,8 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
     } else {
       logger((Logging::Level)ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
     }
+
+    logger(INFO) << "FreeUPNPUrls...";
 
     FreeUPNPUrls(&urls);
   } else {
@@ -506,8 +522,7 @@ namespace CryptoNote
 
     logger(INFO) << "Stopping NodeServer and its " << m_connections.size() << " connections...";
     m_workingContextGroup.interrupt();
-
-    //m_workingContextGroup.wait();
+    m_workingContextGroup.wait();
 
     logger(INFO) << "NodeServer loop stopped";
     return true;

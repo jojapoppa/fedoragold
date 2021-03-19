@@ -43,6 +43,7 @@ static void generate_system_random_bytes(size_t n, void *result) {
     fprintf(stderr, "EXIT_FAILURE, open /dev/urandom\n");
     //err(EXIT_FAILURE, "open /dev/urandom");
   }
+
   for (;;) {
     ssize_t res = read(fd, result, n);
     if ((size_t) res == n) {
@@ -61,6 +62,7 @@ static void generate_system_random_bytes(size_t n, void *result) {
       n -= (size_t) res;
     }
   }
+
   if (close(fd) < 0) {
     fprintf(stderr, "EXIT_FAILURE, close /dev/urandom\n");
     //err(EXIT_FAILURE, "close /dev/urandom");

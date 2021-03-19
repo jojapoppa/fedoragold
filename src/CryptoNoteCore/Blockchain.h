@@ -251,14 +251,15 @@ namespace CryptoNote {
     Checkpoints m_checkpoints;
     std::atomic<bool> m_is_in_checkpoint_zone;
 
-    typedef SwappedVector<BlockEntry> Blocks;
     typedef std::unordered_map<Crypto::Hash, uint32_t> BlockMap;
     typedef std::unordered_map<Crypto::Hash, TransactionIndex> TransactionMap;
 
     friend class BlockCacheSerializer;
     friend class BlockchainIndicesSerializer;
 
+    typedef SwappedVector<BlockEntry> Blocks;
     Blocks m_blocks;
+
     CryptoNote::BlockIndex m_blockIndex;
     TransactionMap m_transactionMap;
     MultisignatureOutputsContainer m_multisignatureOutputs;

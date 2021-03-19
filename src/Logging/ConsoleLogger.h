@@ -12,6 +12,7 @@ namespace Logging {
 class ConsoleLogger : public CommonLogger {
 public:
   ConsoleLogger(Level level = DEBUGGING);
+  ~ConsoleLogger() {}; // must have this on class with virtual methods or you can't call 'delete'
 
 protected:
   virtual void doLogString(const std::string& message) override;
