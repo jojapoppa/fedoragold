@@ -203,7 +203,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
       return false;
     }
 
-    fprintf(stderr, "indexes count is: %llu\n", count);
+    //fprintf(stderr, "indexes count is: %llu\n", count);
 
     std::vector<uint64_t> offsets;
     offsets.reserve(count);
@@ -237,12 +237,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
       itemsFileSize += itemSize;
     }
 
-    fprintf(stderr, "m_itemsFileSize: %llu\n", itemsFileSize);
-
     m_offsets.swap(offsets);
-
-    fprintf(stderr, "after swap...\n");
-
     m_itemsFileSize = itemsFileSize;
 
   } else {
@@ -268,14 +263,14 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
   }
 
   m_poolSize = poolSize;
-  fprintf(stderr, "poolsize is: %llu\n", m_poolSize);
+  //fprintf(stderr, "poolsize is: %llu\n", m_poolSize);
 
   m_items.clear();
   m_cache.clear();
   m_cacheHits = 0;
   m_cacheMisses = 0;
 
-  fprintf(stderr, "\nSwapVector.open completed\n");
+  //fprintf(stderr, "\nSwapVector.open completed\n");
   return true;
 }
 

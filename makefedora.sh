@@ -109,7 +109,8 @@ else
   export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
   cp CMakeListsUbuntu18.txt CMakeLists.txt
-  make build-release
+  #make build-release
+  make build-debug
   exit
 fi
 
