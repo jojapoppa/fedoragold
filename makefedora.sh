@@ -59,8 +59,8 @@ then
   export Boost_LIBRARY_DIR=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/lib
   #make clean
   cp CMakeListsMac.txt CMakeLists.txt
-  #make build-release
-  make build-debug
+  make build-release
+  #make build-debug
   exit
 elif python -m platform | grep Windows > /dev/null
 then
