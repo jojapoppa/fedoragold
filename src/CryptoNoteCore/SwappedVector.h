@@ -188,7 +188,7 @@ template<class T> SwappedVector<T>::~SwappedVector() {
 
 template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, const std::string& indexFileName, uint64_t poolSize) { //size_t poolSize) {
   if (poolSize == 0) {
-    fprintf(stderr, "\nFedoragold: The file pool size is zero.\n");
+    //fprintf(stderr, "\nFedoragold: The file pool size is zero.\n");
     return false;
   }
 
@@ -199,7 +199,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
     uint64_t count;
     m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
     if (!m_indexesFile) {
-      fprintf(stderr, "\nFedoragold could not open indexes file or block file.\n");
+      //fprintf(stderr, "\nFedoragold could not open indexes file or block file.\n");
       return false;
     }
 
@@ -217,15 +217,15 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
         //fprintf(stderr, "itemSize: %u, iteration: %llu, of: %llu\n", itemSize, i, count);
         offsets.push_back(itemsFileSize);
       } catch(std::exception& e) {
-        fprintf(stderr, "exception reading indexes: %s\n", e.what());
+        //fprintf(stderr, "exception reading indexes: %s\n", e.what());
 
         if (!m_indexesFile.eof()) {
-          fprintf(stderr, "\nFedoragold could not read from indexes file.\n");
+          //fprintf(stderr, "\nFedoragold could not read from indexes file.\n");
           return false;
         }
         else {
-          fprintf(stderr, "Blockchain indexes file appears to be corrupted. Attempting automatic recovery\n");
-          fprintf(stderr, " by rewinding to %s\n", std::to_string(i).c_str());
+          //fprintf(stderr, "Blockchain indexes file appears to be corrupted. Attempting automatic recovery\n");
+          //fprintf(stderr, " by rewinding to %s\n", std::to_string(i).c_str());
           m_indexesFile.clear(); //clear the error
           m_indexesFile.seekp(0); //retain compability with C98
           m_indexesFile.write(reinterpret_cast<char*>(&i), sizeof i); //update the count
@@ -242,7 +242,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
 
   } else {
 
-    fprintf(stderr, "\nClose cases here...\n");
+    //fprintf(stderr, "\nClose cases here...\n");
 
     m_itemsFile.open(itemFileName, std::ios::out | std::ios::binary);
     m_itemsFile.close();
@@ -252,7 +252,7 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
     uint64_t count = 0;
     m_indexesFile.write(reinterpret_cast<char*>(&count), sizeof count);
     if (!m_indexesFile) {
-      fprintf(stderr, "\nFedoragold could not create indexes file.\n");
+      //fprintf(stderr, "\nFedoragold could not create indexes file.\n");
       return false;
     }
 
