@@ -86,8 +86,8 @@ then
   rm -r build
   export CC=arm-linux-gnueabi-gcc
   export CXX=arm-linux-gnueabi-g++
-  export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora_android
-  export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora_android/include
+  export BOOST_ROOT=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora_android
+  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora_android/include
   rm CMakeCache.txt
   cp CMakeListsAndroid.txt CMakeLists.txt
   make build-release
@@ -106,10 +106,11 @@ else
   echo non-debian platform...
   export CC=gcc-8
   export CXX=g++-8
-  export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora
-  export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora/include
+  export BOOST_ROOT=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/include
   cp CMakeListsUbuntu18.txt CMakeLists.txt
-  make build-release
+  #make build-release
+  make build-debug
   exit
 fi
 

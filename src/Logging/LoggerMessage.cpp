@@ -69,7 +69,7 @@ LoggerMessage::LoggerMessage(LoggerMessage&& other)
 
     //streambuf swap
     char *_Pfirst = pbase();
-    char *_Pnext = pptr();
+    //char *_Pnext = pptr();
     char *_Pend = epptr();
     char *_Gfirst = eback();
     char *_Gnext = gptr();
@@ -106,6 +106,7 @@ LoggerMessage::LoggerMessage(LoggerMessage&& other)
 
 LoggerMessage::~LoggerMessage()
 {
+  if (m_bGotText) (*this) << "\n";
   flush();
 }
 
@@ -121,6 +122,8 @@ std::streamsize LoggerMessage::xsputn(const char* s, std::streamsize n)
 {
 	m_bGotText = true;
 	m_sMessage.append(s, n);
+
+        //m_sMessage += "\n";
 	return n;
 }
 

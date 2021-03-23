@@ -60,9 +60,11 @@ union cn_slow_hash_state
 #define VARIANT1_CHECK() \
   do if (length < 43) \
   { \
-    fprintf(stderr, "Cryptonight variant 1 need at least 43 bytes of data"); \
     abort(); \
   } while(0)
+
+//abort case above...
+//fprintf(stderr, "Cryptonight variant 1 need at least 43 bytes of data"); \
 
 #define NONCE_POINTER (((const uint8_t*)data)+35)
 
