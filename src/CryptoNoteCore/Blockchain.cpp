@@ -128,6 +128,8 @@ public:
 
   void load(const std::string& filename) {
 
+    logger(INFO) << "BlockCacheSerializer::load...";
+
     if (m_cacheloaded) {
       logger(INFO) << "block cache already loaded... skipped";
       return;
@@ -189,10 +191,13 @@ public:
       return;
     }
 
+    logger(INFO) << "cache serialization in process...";
+
     std::string operation;
 
     if (s.type() == ISerializer::INPUT) {
       operation = "- loading ";
+      logger(INFO) << "  loading...";
 
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
@@ -213,6 +218,7 @@ public:
 
     } else {
       operation = "- saving ";
+      logger(INFO) << "  saving...";
       s(m_lastBlockHash, "last_block");
     }
 
@@ -235,6 +241,8 @@ public:
 
     logger(INFO) << "Serialization time: " << 
       std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
+
+    m_cacheloaded = true;
   }
 
   static bool m_cacheloaded;
