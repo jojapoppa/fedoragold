@@ -106,11 +106,11 @@ else
   echo non-debian platform...
   export CC=gcc-8
   export CXX=g++-8
-  export BOOST_ROOT=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora
-  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/include
+  export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
   cp CMakeListsUbuntu18.txt CMakeLists.txt
-  #make build-release
-  make build-debug
+  make build-release
+  #make build-debug
   exit
 fi
 
