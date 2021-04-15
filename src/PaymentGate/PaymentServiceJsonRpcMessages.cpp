@@ -20,6 +20,12 @@ void Stop::Request::serialize(CryptoNote::ISerializer& serializer) {
 void Stop::Response::serialize(CryptoNote::ISerializer& serializer) {
 }
 
+void Resume::Request::serialize(CryptoNote::ISerializer& serializer) {
+}
+
+void Resume::Response::serialize(CryptoNote::ISerializer& serializer) {
+}
+
 void GetViewKey::Request::serialize(CryptoNote::ISerializer& serializer) {
 }
 

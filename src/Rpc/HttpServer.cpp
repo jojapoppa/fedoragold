@@ -103,13 +103,17 @@ void HttpServer::acceptLoop() {
 	  resp.addHeader("content-type", "application/json");
 	
       parser.receiveRequest(stream, req);
-				if (authenticate(req)) {
-					processRequest(req, resp);
-				}
-				else {
-					logger(WARNING) << "Authorization required " << addr.first.toDottedDecimal() << ":" << addr.second;
-					fillUnauthorizedResponse(resp);
-				}
+      //logger(INFO) << "++++ parser got req.method: " << req.method;
+ 
+	if (authenticate(req)) {
+		processRequest(req, resp);
+	}
+	else {
+		logger(WARNING) << "Authorization required " << addr.first.toDottedDecimal() << ":" << addr.second;
+		fillUnauthorizedResponse(resp);
+	}
+
+      //logger(INFO) << "++++ RpcServer: writing response: " << resp;
 
       stream << resp;
       stream.flush();

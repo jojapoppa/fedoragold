@@ -143,7 +143,7 @@ void RpcServer::processRequest(const HttpRequest& request, HttpResponse& respons
   lastUrl = getHostnm(request);
 
   auto url = request.getUrl();
-  logger(INFO) << "processRequest: " << url;
+  //logger(INFO) << "processRequest: " << url;
 
   auto it = s_handlers.find(url);
   if (it == s_handlers.end()) {
@@ -212,7 +212,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
       { "checktransactionviewkey", {makeMemberMethod(&RpcServer::on_check_transaction_view_key), false } }
     };
 
-    logger(INFO) << "jsonRequst: " << jsonRequest.getMethod();
+    //logger(INFO) << "jsonRequest: " << jsonRequest.getMethod();
 
     auto it = jsonRpcHandlers.find(jsonRequest.getMethod());
     if (it == jsonRpcHandlers.end()) {

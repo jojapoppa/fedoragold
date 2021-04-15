@@ -22,10 +22,11 @@ namespace CryptoNote {
     void setBody(const std::string& b);
     void setUrl(const std::string& uri);
 
+    std::string method;
+
   private:
     friend class HttpParser;
 
-    std::string method;
     std::string url;
     Headers headers;
     std::string body;
