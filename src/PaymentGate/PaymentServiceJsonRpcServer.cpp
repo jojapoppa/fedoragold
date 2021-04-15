@@ -47,12 +47,15 @@ PaymentServiceJsonRpcServer::PaymentServiceJsonRpcServer(System::Dispatcher& sys
   handlers.emplace("estimateFusion", jsonHandler<EstimateFusion::Request, EstimateFusion::Response>(std::bind(&PaymentServiceJsonRpcServer::handleEstimateFusion, this, std::placeholders::_1, std::placeholders::_2)));
 
   handlers.emplace("stop", jsonHandler<Stop::Request, Stop::Response>(std::bind(&PaymentServiceJsonRpcServer::handleStop, this, std::placeholders::_1, std::placeholders::_2)));
+  handlers.emplace("resume", jsonHandler<Resume::Request, Resume::Response>(std::bind(&PaymentServiceJsonRpcServer::handleResume, this, std::placeholders::_1, std::placeholders::_2)));
 }
 
 void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue& req, Common::JsonValue& resp) {
   try {
     prepareJsonResponse(req, resp);
     std::string method = req("method").getString();
+
+    logger(Logging::INFO) << "PaymentGate eval method: " << method; 
 
     if (!req.contains("method")) {
       logger(Logging::WARNING) << "Field \"method\" is not found in json request: " << req;
@@ -74,14 +77,16 @@ void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue&
       return;
     }
 
-    logger(Logging::DEBUGGING) << method << " request came";
+    logger(Logging::DEBUGGING) << method << " request arrived at PaymentGateService ****";
 
     Common::JsonValue params(Common::JsonValue::OBJECT);
     if (req.contains("params")) {
       params = req("params");
     }
 
+    logger(Logging::INFO) << "calling handler for: " << method;
     it->second(params, resp);
+    logger(Logging::INFO) << "handler completed...";
   } catch (std::exception& e) {
     logger(Logging::WARNING) << "Error occurred while processing JsonRpc request: " << e.what();
     makeGenericErrorReponse(resp, e.what());
@@ -105,6 +110,13 @@ std::error_code PaymentServiceJsonRpcServer::handleReset(const Reset::Request& r
 std::error_code PaymentServiceJsonRpcServer::handleStop(const Stop::Request& request, Stop::Response& response)
 {
   service.stop();
+  return std::error_code();
+}
+
+std::error_code PaymentServiceJsonRpcServer::handleResume(const Resume::Request& request, Resume::Response& response)
+{
+  logger(Logging::INFO) << "***** got a walletservice resume...";
+  service.start();
   return std::error_code();
 }
 

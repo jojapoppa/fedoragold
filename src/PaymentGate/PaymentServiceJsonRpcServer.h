@@ -61,6 +61,7 @@ private:
   std::error_code handleSave(const Reset::Request& request, Reset::Response& response);
   std::error_code handleReset(const Reset::Request& request, Reset::Response& response);
   std::error_code handleStop(const Stop::Request& request, Stop::Response& response);
+  std::error_code handleResume(const Resume::Request& request, Resume::Response& response);
   std::error_code handleCreateAddress(const CreateAddress::Request& request, CreateAddress::Response& response);
   std::error_code handleDeleteAddress(const DeleteAddress::Request& request, DeleteAddress::Response& response);
   std::error_code handleGetSpendKeys(const GetSpendKeys::Request& request, GetSpendKeys::Response& response);

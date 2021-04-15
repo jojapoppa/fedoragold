@@ -52,15 +52,11 @@ elif python -m platform | grep Darwin > /dev/null
 then
   echo Mac OSX linux build platform...
   export MACOSX_DEPLOYMENT_TARGET=10.11
-  # location of libsigsev /usr/local/Cellar/libsigsegv/2.10
   #export BOOST_ROOT=/home/fork/fedoragold-release/boostfedora
-  export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora
-  export Boost_INCLUDE_DIR=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/include
-  export Boost_LIBRARY_DIR=/Users/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/lib
-  #make clean
+  export BOOST_ROOT=/Users/jojapoppa/Desktop/FEDG/fedoragold-release/boostfedora_mac
+  make clean
   cp CMakeListsMac.txt CMakeLists.txt
-  #make build-release
-  make build-debug
+  make build-release
   exit
 elif python -m platform | grep Windows > /dev/null
 then
@@ -86,8 +82,8 @@ then
   rm -r build
   export CC=arm-linux-gnueabi-gcc
   export CXX=arm-linux-gnueabi-g++
-  export BOOST_ROOT=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora_android
-  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora_android/include
+  export BOOST_ROOT=/home/jojapoppa/fedoragold/boostfedora_android
+  export Boost_INCLUDE_DIR=/home/jojapoppa/fedoragold/boostfedora_android/include
   rm CMakeCache.txt
   cp CMakeListsAndroid.txt CMakeLists.txt
   make build-release
@@ -106,11 +102,10 @@ else
   echo non-debian platform...
   export CC=gcc-8
   export CXX=g++-8
-  export BOOST_ROOT=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora
-  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FEDG/fedoragold/boostfedora/include
-  cp CMakeListsUbuntu18.txt CMakeLists.txt
-  #make build-release
-  make build-debug
+  export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
+  export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
+  cp CMakeListsLinux.txt CMakeLists.txt
+  make build-release
   exit
 fi
 

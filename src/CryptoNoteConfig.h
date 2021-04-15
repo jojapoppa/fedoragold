@@ -129,7 +129,7 @@ const std::initializer_list<const char*> SEED_NODES = {
   "45.76.106.169:30158",    // fedswap-test
   "172.86.75.248:30158",    // fedoragold.com
   "192.248.165.242:30158",  // fedswap
-  "45.32.248.218:30158"     // email-fedoragold.com
+  "172.86.75.202:30158"     // email-fedoragold.com
 };
 
 struct CheckpointData {
