@@ -146,6 +146,58 @@ bool addExtraNonceToTransactionExtra(std::vector<uint8_t>& tx_extra, const Binar
   return true;
 }
 
+
+//bool append_message_to_extra(std::vector<uint8_t> &tx_extra, const tx_extra_message &message)
+//{
+//  BinaryArray blob;
+//  if (!toBinaryArray(message, blob))
+//  {
+//    return false;
+//  }
+//
+//  tx_extra.reserve(tx_extra.size() + 1 + blob.size());
+//  tx_extra.push_back(TX_EXTRA_MESSAGE_TAG);
+//  std::copy(reinterpret_cast<const uint8_t *>(blob.data()), reinterpret_cast<const uint8_t *>(blob.data() + blob.size()), std::back_inserter(tx_extra));
+//
+//  return true;
+//}
+
+//std::vector<std::string> get_messages_from_extra(const std::vector<uint8_t> &extra, const Crypto::PublicKey &txkey, const Crypto::SecretKey *recepient_secret_key)
+//{
+//  std::vector<TransactionExtraField> tx_extra_fields;
+//  std::vector<std::string> result;
+//  if (!parseTransactionExtra(extra, tx_extra_fields))
+//  {
+//    return result;
+//  }
+//  size_t i = 0;
+//  for (const auto &f : tx_extra_fields)
+//  {
+//    if (f.type() != typeid(tx_extra_message))
+//    {
+//      continue;
+//    }
+//    std::string res;
+//    if (boost::get<tx_extra_message>(f).decrypt(i, txkey, recepient_secret_key, res))
+//    {
+//      result.push_back(res);
+//    }
+//    ++i;
+//  }
+//  return result;
+//}
+
+//void appendTTLToExtra(std::vector<uint8_t> &tx_extra, uint64_t ttl)
+//{
+//  std::string ttlData = Tools::get_varint_data(ttl);
+//  std::string extraFieldSize = Tools::get_varint_data(ttlData.size());
+//
+//  tx_extra.reserve(tx_extra.size() + 1 + extraFieldSize.size() + ttlData.size());
+//  tx_extra.push_back(TX_EXTRA_TTL);
+//  std::copy(extraFieldSize.begin(), extraFieldSize.end(), std::back_inserter(tx_extra));
+//  std::copy(ttlData.begin(), ttlData.end(), std::back_inserter(tx_extra));
+//}
+
 void setPaymentIdToTransactionExtraNonce(std::vector<uint8_t>& extra_nonce, const Hash& payment_id) {
   extra_nonce.clear();
   extra_nonce.push_back(TX_EXTRA_NONCE_PAYMENT_ID);

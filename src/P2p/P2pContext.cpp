@@ -36,7 +36,6 @@ P2pContext::P2pContext(
   const CORE_SYNC_DATA& timedSyncData,
   Logging::LoggerRef &logger)
   :
-  m_logger(logger),
   incoming(isIncoming),
   remoteAddress(remoteAddress),
   dispatcher(dispatcher),
@@ -48,7 +47,8 @@ P2pContext::P2pContext(
   timedSyncFinished(dispatcher),
   connection(std::move(conn)),
   writeEvent(dispatcher),
-  readEvent(dispatcher) {
+  readEvent(dispatcher),
+  m_logger(logger) {
   writeEvent.set();
   readEvent.set();
   lastReadTime = timeStarted; // use current time

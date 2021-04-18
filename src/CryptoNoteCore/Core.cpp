@@ -162,6 +162,8 @@ bool core::deinit() {
 size_t core::addChain(const std::vector<const IBlock*>& chain) {
   size_t blocksCounter = 0;
 
+  logger(INFO) << "addChain...";
+
   for (const IBlock* block : chain) {
     bool allTransactionsAdded = true;
     for (size_t txNumber = 0; txNumber < block->getTransactionCount(); ++txNumber) {
@@ -172,7 +174,7 @@ size_t core::addChain(const std::vector<const IBlock*>& chain) {
       getObjectHash(tx, txHash, blobSize);
       tx_verification_context tvc = boost::value_initialized<tx_verification_context>();
 
-      if (!handleIncomingTransaction(tx, txHash, blobSize, tvc, true)) {
+      if (!handleIncomingTransaction(tx, txHash, blobSize, tvc, true, get_block_height(block->getBlock()))) {
         logger(ERROR, BRIGHT_RED) << "core::addChain() failed to handle transaction " << txHash << " from block " << blocksCounter << "/" << chain.size();
         allTransactionsAdded = false;
         break;
@@ -220,7 +222,11 @@ bool core::handle_incoming_tx(const BinaryArray& tx_blob, tx_verification_contex
   }
   //std::cout << "!"<< tx.inputs.size() << std::endl;
 
-  return handleIncomingTransaction(tx, tx_hash, tx_blob.size(), tvc, keeped_by_block);
+  Crypto::Hash blockId;
+  uint32_t blockHeight;
+  bool ok = getBlockContainingTx(tx_hash, blockId, blockHeight);
+  if (!ok) blockHeight = this->get_current_blockchain_height(); //this assumption fails for withdrawals
+  return handleIncomingTransaction(tx, tx_hash, tx_blob.size(), tvc, keeped_by_block, blockHeight);
 }
 
 bool core::get_stat_info(core_stat_info& st_inf) {
@@ -271,8 +277,9 @@ bool core::check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_v
 
   Crypto::Hash h = NULL_HASH;
   getObjectHash(tx, h, blobSize);
-  const uint64_t fee = inputs_amount - outputs_amount;
-  bool isFusionTransaction = fee == 0 && m_currency.isFusionTransaction(tx, blobSize);
+
+  //const uint64_t fee = inputs_amount - outputs_amount;
+  //bool isFusionTransaction = fee == 0 && m_currency.isFusionTransaction(tx, blobSize);
  
   //check for minimal fee (is this needed?  ... i think not) 
   //bool enough = true;
@@ -364,7 +371,11 @@ bool core::check_tx_inputs_keyimages_diff(const Transaction& tx) {
   // Now ALSO defined in CryptoTypes.h
   // parameters used for the additional key_image check
   struct KeyImageStruct { uint8_t data[32]; };
+
+#if !defined(__APPLE__)
   const struct KeyImageStruct ZZ  = { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
+#endif
+
   const struct KeyImageStruct II = { { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } };
   const struct KeyImageStruct LL = { { 0xed, 0xd3, 0xf5, 0x5c, 0x1a, 0x63, 0x12, 0x58, 0xd6, 0x9c, 0xf7, 0xa2, 0xde, 0xf9, 0xde, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10 } };
 
@@ -416,7 +427,7 @@ bool core::transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTransacti
 //  return m_blockchain.get_outs(amount, pkeys);
 //}
 
-bool core::add_new_tx(const Transaction& tx, const Crypto::Hash& tx_hash, size_t blob_size, tx_verification_context& tvc, bool keeped_by_block) {
+bool core::add_new_tx(const Transaction& tx, const Crypto::Hash& tx_hash, size_t blob_size, tx_verification_context& tvc, bool keeped_by_block, uint32_t height) {
   //Locking on m_mempool and m_blockchain closes possibility to add tx to memory pool which is already in blockchain 
   std::lock_guard<decltype(m_mempool)> lk(m_mempool);
   LockedBlockchainStorage lbs(m_blockchain);
@@ -431,7 +442,7 @@ bool core::add_new_tx(const Transaction& tx, const Crypto::Hash& tx_hash, size_t
     return true;
   }
 
-  return m_mempool.add_tx(tx, tx_hash, blob_size, tvc, keeped_by_block);
+  return m_mempool.add_tx(tx, tx_hash, blob_size, tvc, keeped_by_block, height);
 }
 
 uint64_t core::getcurrentmediansize() {
@@ -444,6 +455,7 @@ bool core::get_block_template(Block& b, const AccountPublicAddress& adr, difficu
 
   {
     LockedBlockchainStorage blockchainLock(m_blockchain);
+
     height = m_blockchain.getCurrentBlockchainHeight();
     diffic = m_blockchain.getDifficultyForNextBlock();
     if (!(diffic)) {
@@ -464,8 +476,7 @@ bool core::get_block_template(Block& b, const AccountPublicAddress& adr, difficu
 
   size_t txs_size;
   uint64_t fee;
-  if (!m_mempool.fill_block_template(b, median_size, m_currency.maxBlockCumulativeSize(height), already_generated_coins,
-    txs_size, fee)) {
+  if (!m_mempool.fill_block_template(b, median_size, m_currency.maxBlockCumulativeSize(height), already_generated_coins, txs_size, fee, height)) {
     return false;
   }
 
@@ -1120,7 +1131,7 @@ uint64_t core::getTotalGeneratedAmount() {
   return m_blockchain.getCoinsInCirculation();
 }
 
-bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& txHash, size_t blobSize, tx_verification_context& tvc, bool keptByBlock) {
+bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& txHash, size_t blobSize, tx_verification_context& tvc, bool keptByBlock, uint32_t height) {
   if (!check_tx_syntax(tx)) {
     logger(INFO) << "WRONG TRANSACTION BLOB, Failed to check tx " << txHash << " syntax, rejected";
     tvc.m_verifivation_failed = true;
@@ -1130,27 +1141,17 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
   // is not in checkpoint zone
   if (!m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
     if (blobSize > m_currency.maxTxSize()) {
-      logger(INFO) << "Transaction verification failed: too big size " << blobSize << " of transaction " << txHash << ", rejected";
+      logger(INFO) << "Transaction verification failed: too big size " <<
+        blobSize << " of transaction " << txHash << ", rejected";
       tvc.m_verifivation_failed = true;
       return false;
     }
 
     if (!check_tx_fee(tx, blobSize, tvc)) {
+      logger(INFO) << "Transaction verification failed: insufficient fee";
       tvc.m_verifivation_failed = true;
       return false;
     }
-
-    //jojapoppa, Karbo added these additional checks... eval this later (is this needed?)
-    //if (!check_tx_mixin(tx)) {
-    //  logger(INFO) << "Transaction verification failed: mixin count for transaction " << txHash << " is too large, rejected";
-    //  tvc.m_verifivation_failed = true;
-    //  return false;
-    //}
-    //if (!check_tx_unmixable(tx)) {
-    //  logger(ERROR) << "Transaction verification failed: unmixable output for transaction " << txHash << ", rejected";
-    //  tvc.m_verifivation_failed = true;
-    //  return false;
-    //}
   }
 
   if (!check_tx_semantic(tx, keptByBlock)) {
@@ -1159,9 +1160,9 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
     return false;
   }
 
-  logger(DEBUGGING) << "Core.cpp: calling add_new_tx: " << txHash;
+  //logger(INFO) << "Core.cpp handleIncomingTransaction: calling add_new_tx: " << txHash;
 
-  bool r = add_new_tx(tx, txHash, blobSize, tvc, keptByBlock);
+  bool r = add_new_tx(tx, txHash, blobSize, tvc, keptByBlock, height);
   if (tvc.m_verifivation_failed) {
     if (!tvc.m_tx_fee_too_small) {
       logger(ERROR) << "Transaction verification failed: " << txHash;
@@ -1169,11 +1170,10 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
       logger(INFO) << "Transaction verification failed (fee too small): " << txHash;
     }
   } else if (tvc.m_verifivation_impossible) {
-    logger(DEBUGGING) << "Transaction verification impossible: " << txHash << " result: " << r;
+    logger(INFO) << "Transaction verification impossible: " << txHash << " result: " << r;
   }
  
   if (tvc.m_added_to_pool) {
-    logger(DEBUGGING) << "tx added: " << txHash;
     poolUpdated();
   }
 

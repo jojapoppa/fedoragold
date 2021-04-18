@@ -64,7 +64,7 @@ public:
 class INodeTrivialRefreshStub : public INodeDummyStub {
 public:
   INodeTrivialRefreshStub(TestBlockchainGenerator& generator, bool consumerTests = false) :
-    m_lastHeight(1), m_blockchainGenerator(generator), m_nextTxError(false), m_getMaxBlocks(std::numeric_limits<size_t>::max()), m_nextTxToPool(false), m_synchronized(false), consumerTests(consumerTests) {
+    m_getMaxBlocks(std::numeric_limits<size_t>::max()), m_lastHeight(1), m_blockchainGenerator(generator), m_nextTxError(false), m_nextTxToPool(false), m_synchronized(false), consumerTests(consumerTests) {
   };
 
   void setGetNewBlocksLimit(size_t maxBlocks) { m_getMaxBlocks = maxBlocks; }

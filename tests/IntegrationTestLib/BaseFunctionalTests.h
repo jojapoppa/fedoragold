@@ -169,7 +169,7 @@ namespace Tests {
       BaseFunctionalTestsConfig m_config;
       std::string m_dataDir;
       std::string m_daemonDir;
-      uint16_t m_mainDaemonRPCPort;
+      //uint16_t m_mainDaemonRPCPort;
     };
   }
 }

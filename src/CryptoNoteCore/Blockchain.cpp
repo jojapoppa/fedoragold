@@ -123,12 +123,15 @@ class BlockCacheSerializer {
 
 public:
   BlockCacheSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockCacheSerializer") {
+    logger(logger, "BlockCacheSerializer"), m_bs(bs), m_lastBlockHash(lastBlockHash) {
   }
 
   void load(const std::string& filename) {
 
+    logger(INFO) << "BlockCacheSerializer::load...";
+
     if (m_cacheloaded) {
+      logger(INFO) << "block cache already loaded... skipped";
       return;
     }
 
@@ -167,6 +170,7 @@ public:
       BinaryOutputStreamSerializer s(stream);
       logger(INFO) << "calling serialize for block cache save...";
       CryptoNote::serialize(*this, s);
+      stream.flush();
     } catch (std::exception& e) {
       logger(WARNING) << "exception while serializing cache: " << e.what();
       return false;
@@ -187,10 +191,13 @@ public:
       return;
     }
 
+    logger(INFO) << "cache serialization in process...";
+
     std::string operation;
 
     if (s.type() == ISerializer::INPUT) {
       operation = "- loading ";
+      logger(INFO) << "  loading...";
 
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
@@ -211,6 +218,7 @@ public:
 
     } else {
       operation = "- saving ";
+      logger(INFO) << "  saving...";
       s(m_lastBlockHash, "last_block");
     }
 
@@ -256,7 +264,7 @@ class BlockchainIndicesSerializer {
 
 public:
   BlockchainIndicesSerializer(Blockchain& bs, const Crypto::Hash lastBlockHash, ILogger& logger) :
-    m_bs(bs), m_lastBlockHash(lastBlockHash), logger(logger, "BlockchainIndicesSerializer") {
+    logger(logger, "BlockchainIndicesSerializer"), m_bs(bs), m_lastBlockHash(lastBlockHash) {
   }
 
   void serialize(ISerializer& s) {
@@ -305,8 +313,6 @@ public:
 
     logger(INFO) << operation << "generated transactions index...";
     s(m_bs.m_generatedTransactionsIndex, "generatedTransactionsIndex");
-
-    m_indiceloaded = true;
   }
 
   template<class Archive> void serialize(Archive& ar, unsigned int version) {
@@ -338,8 +344,6 @@ public:
 
     logger(INFO) << operation << "generated transactions index...";
     ar & m_bs.m_generatedTransactionsIndex;
-
-    m_indiceloaded = true;
   }
 
   static bool m_indiceloaded;
@@ -362,7 +366,6 @@ bool BlockCacheSerializer::m_cacheloaded = false;
 bool BlockchainIndicesSerializer::m_indiceloaded = false;
 
 Blockchain::Blockchain(const Currency& currency, tx_memory_pool& tx_pool, ILogger& logger, bool blockchainIndexesEnabled) :
-logger(logger, "Blockchain"),
 m_currency(currency),
 m_tx_pool(tx_pool),
 m_current_block_cumul_sz_limit(0),
@@ -371,7 +374,8 @@ m_paymentIdIndex(blockchainIndexesEnabled),
 m_timestampIndex(blockchainIndexesEnabled),
 m_generatedTransactionsIndex(blockchainIndexesEnabled),
 m_orphanBlocksIndex(blockchainIndexesEnabled),
-m_blockchainIndexesEnabled(blockchainIndexesEnabled) {
+m_blockchainIndexesEnabled(blockchainIndexesEnabled),
+logger(logger, "Blockchain") {
 
   m_outputs.set_deleted_key(0);
   Crypto::KeyImage nullImage = boost::value_initialized<decltype(nullImage)>();
@@ -475,7 +479,6 @@ bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
         logger(DEBUGGING) << "Rebuild of cache failed.";
         results = false;
       }
-      cacheloader.m_cacheloaded = true;
     }
 
     if (m_blockchainIndexesEnabled) {
@@ -528,25 +531,34 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     cachePath = appendPath(config_folder, m_currency.blocksCacheFileName());
     cacheloader.load(cachePath);
 
-    if (cacheloader.loaded()) {
-      if (m_blockchainIndexesEnabled) {
-        loadBlockchainIndices();
-      }
-    } else {
-      logger(INFO) << "Block cache not loaded from: " + cachePath;
-      if (! loadIndexes(config_folder, load_existing)) {
-        logger(INFO) << "Failed to load indexes, resetting indexes file now...";
-        // force resync now
-        remove(blockFilePath.c_str());
-        remove(indexesPath.c_str());
-        if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
-          logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
-          return false;
-        }
-
-        loadIndexes(config_folder, false);
-      }
+    if (!cacheloader.loaded()) {
+      logger(INFO) << "No actual blockchain cache found, rebuilding internal structures...";
+      rebuildCache();
     }
+
+    if (m_blockchainIndexesEnabled) {
+      loadBlockchainIndices();
+    }
+
+    //if (cacheloader.loaded()) {
+    //  if (m_blockchainIndexesEnabled) {
+    //    loadBlockchainIndices();
+    //  }
+    //} else {
+    //  logger(INFO) << "Block cache not loaded from: " + cachePath;
+    //  if (! loadIndexes(config_folder, load_existing)) {
+    //    logger(INFO) << "Failed to load indexes, resetting indexes file now...";
+    //    // force resync now
+    //    remove(blockFilePath.c_str());
+    //    remove(indexesPath.c_str());
+    //    if (!m_blocks.open(blockFilePath, indexesPath, 1024)) {
+    //      logger(ERROR, BRIGHT_RED) << "Failed to open the block file for resync " << blockFilePath << " with indexes path " << indexesPath << " after append of config folder path: " << m_config_folder;
+    //      return false;
+    //    }
+    // 
+    //    loadIndexes(config_folder, false);
+    //  }
+    //}
   } else {
     m_blocks.clear();
   }
@@ -558,7 +570,8 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
       << "Generating genesis block because blockchain not loaded at: " << blockFilePath;
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
     logger(INFO, BRIGHT_WHITE) << "pushBlock into context now...";
-    pushBlock(m_currency.genesisBlock(), bvc);
+    uint32_t height=0;
+    pushBlock(m_currency.genesisBlock(), bvc, height);
     if (bvc.m_verifivation_failed) {
       logger(ERROR, BRIGHT_RED) << "Failed to add genesis block to blockchain";
       return false;
@@ -646,6 +659,7 @@ bool Blockchain::rebuildCache() {
     return false;
   }
 
+  BlockCacheSerializer::m_cacheloaded = true;
   std::chrono::duration<double> duration = std::chrono::steady_clock::now() - timePoint;
   logger(INFO, BRIGHT_WHITE) << "Rebuilding internal structures took: " << duration.count();
   return true;
@@ -882,11 +896,13 @@ bool Blockchain::rollback_blockchain_switching(std::list<Block> &original_chain,
     popBlock(get_block_hash(m_blocks.back().bl));
   }
 
+  uint32_t height = static_cast<uint32_t>(rollback_height - 1);
+
   // return back original chain
   for (auto &bl : original_chain) {
     block_verification_context bvc =
       boost::value_initialized<block_verification_context>();
-    bool r = pushBlock(bl, bvc);
+    bool r = pushBlock(bl, bvc, ++height);
     if (!(r && bvc.m_added_to_main_chain)) {
       logger(ERROR, BRIGHT_RED) << "PANIC!!! failed to add (again) block while "
         "chain switching during the rollback!";
@@ -937,11 +953,13 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<blocks_ext_by_hash::
     disconnected_chain.push_front(b);
   }
 
+  uint32_t height = static_cast<uint32_t>(split_height - 1);
+
   //connecting new alternative chain
   for (auto alt_ch_iter = alt_chain.begin(); alt_ch_iter != alt_chain.end(); alt_ch_iter++) {
     auto ch_ent = *alt_ch_iter;
     block_verification_context bvc = boost::value_initialized<block_verification_context>();
-    bool r = pushBlock(ch_ent->second.bl, bvc);
+    bool r = pushBlock(ch_ent->second.bl, bvc, ++height);
     if (!r || !bvc.m_added_to_main_chain) {
       logger(INFO, BRIGHT_WHITE) << "Failed to switch to alternative blockchain";
       rollback_blockchain_switching(disconnected_chain, split_height);
@@ -1318,6 +1336,7 @@ bool Blockchain::handle_alternative_block(const Block& b, const Crypto::Hash& id
 
 bool Blockchain::getBlocks(uint32_t start_offset, uint32_t count, std::list<Block>& blocks, std::list<Transaction>& txs) {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
+
   if (start_offset >= m_blocks.size())
     return false;
   for (size_t i = start_offset; i < start_offset + count && i < m_blocks.size(); i++) {
@@ -1883,13 +1902,15 @@ bool Blockchain::addNewBlock(const Block& bl_, block_verification_context& bvc) 
       return false;
     }
 
+    uint32_t height = m_blocks.size();
+
     //check that block refers to chain tail
     if (!(bl.previousBlockHash == getTailId())) {
       //chain switching or wrong block
       bvc.m_added_to_main_chain = false;
       add_result = handle_alternative_block(bl, id, bvc);
     } else {
-      add_result = pushBlock(bl, bvc);
+      add_result = pushBlock(bl, bvc, ++height);
       logger(DEBUGGING) << "...check add_result";
       if (add_result) {
         sendMessage(BlockchainMessage(NewBlockMessage(id)));
@@ -1926,11 +1947,11 @@ bool Blockchain::transactionByOrdinal(uint64_t ordinalBlock, uint64_t ordinalTra
   return true; 
 }
 
-bool Blockchain::pushBlock(const Block& blockData, block_verification_context& bvc) {
+bool Blockchain::pushBlock(const Block& blockData, block_verification_context& bvc, uint32_t& height) {
   std::vector<Transaction> transactions;
 
   //logger(INFO, BRIGHT_WHITE) << "Loading transactions...";
-  if (!loadTransactions(blockData, transactions)) {
+  if (!loadTransactions(blockData, transactions, height)) {
     logger(INFO, BRIGHT_WHITE) << "failed to load transactions.";
     bvc.m_verifivation_failed = true;
     return false;
@@ -1938,7 +1959,7 @@ bool Blockchain::pushBlock(const Block& blockData, block_verification_context& b
 
   if (!pushBlock(blockData, transactions, bvc)) {
     logger(INFO, BRIGHT_WHITE) << "pushBlock failed, saving transactions...";
-    saveTransactions(transactions);
+    saveTransactions(transactions, height);
     return false;
   }
 
@@ -2099,6 +2120,7 @@ bool Blockchain::pushBlock(const Block& blockData, const std::vector<Transaction
 }
 
 bool Blockchain::pushBlock(BlockEntry& block) {
+
   Crypto::Hash blockHash = get_block_hash(block.bl);
 
   m_blocks.push_back(block);
@@ -2107,12 +2129,15 @@ bool Blockchain::pushBlock(BlockEntry& block) {
   m_timestampIndex.add(block.bl.timestamp, blockHash);
   m_generatedTransactionsIndex.add(block.bl);
 
+  //m_tx_pool.on_blockchain_inc(m_blocks.size(), blockHash);
+
   assert(m_blockIndex.size() == m_blocks.size());
 
   return true;
 }
 
 void Blockchain::popBlock(const Crypto::Hash& blockHash) {
+
   if (m_blocks.empty()) {
     logger(ERROR, BRIGHT_RED) <<
       "Attempt to pop block from empty blockchain.";
@@ -2124,7 +2149,8 @@ void Blockchain::popBlock(const Crypto::Hash& blockHash) {
     transactions[i] = m_blocks.back().transactions[1 + i].tx;
   }
 
-  saveTransactions(transactions);
+  uint32_t height = m_blocks.size();
+  saveTransactions(transactions, height);
 
   popTransactions(m_blocks.back(), getObjectHash(m_blocks.back().bl.baseTransaction));
 
@@ -2133,6 +2159,8 @@ void Blockchain::popBlock(const Crypto::Hash& blockHash) {
 
   m_blocks.pop_back();
   m_blockIndex.pop();
+
+  //m_tx_pool.on_blockchain_dec(m_blocks.size(), blockHash);
 
   assert(m_blockIndex.size() == m_blocks.size());
 }
@@ -2519,10 +2547,10 @@ bool Blockchain::loadBlockchainIndices() {
   logger(INFO, BRIGHT_WHITE) << "Loading blockchain indices for BlockchainExplorer...";
   BlockchainIndicesSerializer indiceloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
 
-  if (!indiceloader.indice_loaded()) {
+  //if (!indiceloader.indice_loaded()) {
     BlockchainIndicesSerializer::m_indiceloaded =
       loadFromBinaryFile(indiceloader, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()));
-  }
+  //}
 
   if (!indiceloader.indice_loaded()) {
 
@@ -2572,7 +2600,8 @@ bool Blockchain::getTransactionIdsByPaymentId(const Crypto::Hash& paymentId, std
   return m_paymentIdIndex.find(paymentId, transactionHashes);
 }
 
-bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& transactions) {
+bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& transactions, uint32_t height) {
+
   transactions.resize(block.transactionHashes.size());
   size_t transactionSize;
   uint64_t fee;
@@ -2580,7 +2609,7 @@ bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& 
     if (!m_tx_pool.take_tx(block.transactionHashes[i], transactions[i], transactionSize, fee)) {
       tx_verification_context context;
       for (size_t j = 0; j < i; ++j) {
-        if (!m_tx_pool.add_tx(transactions[i - 1 - j], context, true)) {
+        if (!m_tx_pool.add_tx(transactions[i - 1 - j], context, true, height)) {
           throw std::runtime_error("Blockchain::loadTransactions, failed to add transaction to pool");
         }
       }
@@ -2592,10 +2621,10 @@ bool Blockchain::loadTransactions(const Block& block, std::vector<Transaction>& 
   return true;
 }
 
-void Blockchain::saveTransactions(const std::vector<Transaction>& transactions) {
+void Blockchain::saveTransactions(const std::vector<Transaction>& transactions, uint32_t height) {
   tx_verification_context context;
   for (size_t i = 0; i < transactions.size(); ++i) {
-    if (!m_tx_pool.add_tx(transactions[transactions.size() - 1 - i], context, true)) {
+    if (!m_tx_pool.add_tx(transactions[transactions.size() - 1 - i], context, true, height)) {
       throw std::runtime_error("Blockchain::saveTransactions, failed to add transaction to pool");
     }
   }

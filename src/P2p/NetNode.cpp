@@ -61,11 +61,25 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
   // Add UPnP port mapping
   logger(INFO) << "Attempting to add IGD port mapping.";
   int result;
-  UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, 0, &result);
+  UPNPDev* deviceList;
+
+  #if MINIUPNPC_API_VERSION >= 14
+    logger(INFO) << "upnpDiscover version >=14";
+    deviceList = upnpDiscover(2000, NULL/*multicast interface*/, NULL/*minissdpd socket path*/,
+      0/*sameport*/, 0/*ipv6*/, 2/*ttl*/, &result);
+  #else
+    logger(INFO) << "upnpDiscover version <14";
+    deviceList = upnpDiscover(2000, NULL/*multicast interface*/, NULL/*minissdpd socket path*/,
+      0/*sameport*/, 0/*ipv6*/, &result);
+  #endif
+
   UPNPUrls urls;
   IGDdatas igdData;
   char lanAddress[64];
+
   result = UPNP_GetValidIGD(deviceList, &urls, &igdData, lanAddress, sizeof lanAddress);
+  logger(INFO) << "UPNP_GetValidIGD: " << result;
+
   freeUPNPDevlist(deviceList);
   if (result != 0) {
     if (result == 1) {
@@ -84,6 +98,8 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
     } else {
       logger((Logging::Level)ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
     }
+
+    logger(INFO) << "FreeUPNPUrls...";
 
     FreeUPNPUrls(&urls);
   } else {
@@ -193,22 +209,22 @@ namespace CryptoNote
   }
 
   NodeServer::NodeServer(System::Dispatcher& dispatcher, CryptoNote::CryptoNoteProtocolHandler& payload_handler, Logging::ILogger& log) :
-    m_dispatcher(dispatcher),
-    m_workingContextGroup(dispatcher),
-    m_payload_handler(payload_handler),
     m_allow_local_ip(false),
     m_hide_my_port(false),
-    m_network_id(CRYPTONOTE_NETWORK),
-    logger(log, "node_server"),
+    m_dispatcher(dispatcher),
+    m_workingContextGroup(dispatcher),
     m_stopEvent(m_dispatcher),
     m_idleTimer(m_dispatcher),
-    m_timedSyncTimer(m_dispatcher),
     m_timeoutTimer(m_dispatcher),
+    logger(log, "node_server"),
     m_stop(false),
+    m_payload_handler(payload_handler),
+    m_connections_maker_interval(1),
+    m_peerlist_store_interval(60*30, false),
+    m_timedSyncTimer(m_dispatcher),
+    m_network_id(CRYPTONOTE_NETWORK) {
     // intervals
     // m_peer_handshake_idle_maker_interval(CryptoNote::P2P_DEFAULT_HANDSHAKE_INTERVAL),
-    m_connections_maker_interval(1),
-    m_peerlist_store_interval(60*30, false) {
   }
 
   void NodeServer::serialize(ISerializer& s) {
@@ -506,8 +522,7 @@ namespace CryptoNote
 
     logger(INFO) << "Stopping NodeServer and its " << m_connections.size() << " connections...";
     m_workingContextGroup.interrupt();
-
-    //m_workingContextGroup.wait();
+    m_workingContextGroup.wait();
 
     logger(INFO) << "NodeServer loop stopped";
     return true;
@@ -1290,15 +1305,6 @@ namespace CryptoNote
   
   void NodeServer::on_connection_close(P2pConnectionContext& context)
   {
-    if (!m_stopEvent.get() && !context.m_is_income) {
-      NetworkAddress na;
-      na.ip = context.m_remote_ip;
-      na.port = context.m_remote_port;
-
-      //FED doesn't use the 'anchor' peerlist algo from Karbo
-      //m_peerlist.remove_from_peer_anchor(na);
-    }
-
     logger(TRACE) << context << "CLOSE CONNECTION";
     m_payload_handler.onConnectionClosed(context);
   }

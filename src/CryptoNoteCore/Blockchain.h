@@ -251,14 +251,15 @@ namespace CryptoNote {
     Checkpoints m_checkpoints;
     std::atomic<bool> m_is_in_checkpoint_zone;
 
-    typedef SwappedVector<BlockEntry> Blocks;
     typedef std::unordered_map<Crypto::Hash, uint32_t> BlockMap;
     typedef std::unordered_map<Crypto::Hash, TransactionIndex> TransactionMap;
 
     friend class BlockCacheSerializer;
     friend class BlockchainIndicesSerializer;
 
+    typedef SwappedVector<BlockEntry> Blocks;
     Blocks m_blocks;
+
     CryptoNote::BlockIndex m_blockIndex;
     TransactionMap m_transactionMap;
     MultisignatureOutputsContainer m_multisignatureOutputs;
@@ -301,7 +302,7 @@ namespace CryptoNote {
     bool checkTransactionInputs(const Transaction& tx, const Crypto::Hash& tx_prefix_hash, uint32_t* pmax_used_block_height = NULL);
     bool checkTransactionInputs(const Transaction& tx, uint32_t* pmax_used_block_height = NULL);
     bool have_tx_keyimg_as_spent(const Crypto::KeyImage &key_im);
-    bool pushBlock(const Block& blockData, block_verification_context& bvc);
+    bool pushBlock(const Block& blockData, block_verification_context& bvc, uint32_t& height);
     bool pushBlock(const Block& blockData, const std::vector<Transaction>& transactions, block_verification_context& bvc);
     bool pushBlock(BlockEntry& block);
     void popBlock(const Crypto::Hash& blockHash);
@@ -313,8 +314,8 @@ namespace CryptoNote {
     bool storeBlockchainIndices();
     bool loadBlockchainIndices();
 
-    bool loadTransactions(const Block& block, std::vector<Transaction>& transactions);
-    void saveTransactions(const std::vector<Transaction>& transactions);
+    bool loadTransactions(const Block& block, std::vector<Transaction>& transactions, uint32_t height);
+    void saveTransactions(const std::vector<Transaction>& transactions, uint32_t height);
 
     void sendMessage(const BlockchainMessage& message);
 

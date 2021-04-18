@@ -32,7 +32,7 @@ struct ConnectorContext : public OperationContext {
 TcpConnector::TcpConnector() : dispatcher(nullptr) {
 }
 
-TcpConnector::TcpConnector(Dispatcher& dispatcher) : dispatcher(&dispatcher), context(nullptr) {
+TcpConnector::TcpConnector(Dispatcher& dispatcher) : context(nullptr), dispatcher(&dispatcher) {
 }
 
 TcpConnector::TcpConnector(TcpConnector&& other) : dispatcher(other.dispatcher) {

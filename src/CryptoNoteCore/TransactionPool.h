@@ -101,8 +101,8 @@ namespace CryptoNote {
     bool deinit();
 
     bool have_tx(const Crypto::Hash &id) const;
-    bool add_tx(const Transaction &tx, const Crypto::Hash &id, size_t blobSize, tx_verification_context& tvc, bool keeped_by_block);
-    bool add_tx(const Transaction &tx, tx_verification_context& tvc, bool keeped_by_block);
+    bool add_tx(const Transaction &tx, const Crypto::Hash &id, size_t blobSize, tx_verification_context& tvc, bool keeped_by_block, uint32_t height);
+    bool add_tx(const Transaction &tx, tx_verification_context& tvc, bool keeped_by_block, uint32_t height);
     //gets tx and remove it from pool
     bool take_tx(const Crypto::Hash &id, Transaction &tx, size_t& blobSize, uint64_t& fee);
 
@@ -113,7 +113,7 @@ namespace CryptoNote {
     void unlock() const;
     std::unique_lock<std::recursive_mutex> obtainGuard() const;
 
-    bool fill_block_template(Block &bl, size_t median_size, size_t maxCumulativeSize, uint64_t already_generated_coins, size_t &total_size, uint64_t &fee);
+    bool fill_block_template(Block &bl, size_t median_size, size_t maxCumulativeSize, uint64_t already_generated_coins, size_t &total_size, uint64_t &fee, uint32_t &height);
 
     void get_transactions(std::list<Transaction>& txs) const;
     void get_difference(const std::vector<Crypto::Hash>& known_tx_ids, std::vector<Crypto::Hash>& new_tx_ids, std::vector<Crypto::Hash>& deleted_tx_ids) const;
@@ -156,8 +156,8 @@ namespace CryptoNote {
       time_t receiveTime;
     };
 
-	void getMemoryPool(std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> txs) const;
-	std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> getMemoryPool() const;
+    void getMemoryPool(std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> txs) const;
+    std::list<CryptoNote::tx_memory_pool::PoolTransactionDetails> getMemoryPool() const;
 
   private:
 
@@ -207,7 +207,7 @@ namespace CryptoNote {
 
     Tools::ObserverManager<ITxPoolObserver> m_observerManager;
     const CryptoNote::Currency& m_currency;
-    CryptoNote::ICore& m_core;
+    //CryptoNote::ICore& m_core;
     OnceInTimeInterval m_txCheckInterval;
     mutable std::recursive_mutex m_transactions_lock;
     key_images_container m_spent_key_images;

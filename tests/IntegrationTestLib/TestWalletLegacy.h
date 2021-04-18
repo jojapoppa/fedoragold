@@ -37,7 +37,7 @@ private:
 
   mutable Logging::LoggerRef m_logger;
 
-  CryptoNote::INode& m_node;
+  //CryptoNote::INode& m_node;
   const CryptoNote::Currency& m_currency;
   std::unique_ptr<CryptoNote::IWalletLegacy> m_wallet;
   std::unique_ptr<CryptoNote::IWalletLegacyObserver> m_walletObserver;

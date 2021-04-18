@@ -296,19 +296,19 @@ std::unique_ptr<ITransactionReader> FusionTransactionBuilder::buildReader() cons
     }
   }
 
-  AccountPublicAddress address = generateAddress();
+  //AccountPublicAddress address = generateAddress();
   std::vector<uint64_t> outputAmounts;
   assert(m_amount >= m_firstOutput + m_fee);
   decomposeAmount(m_amount - m_firstOutput - m_fee, m_currency.defaultDustThreshold(), outputAmounts);
   std::sort(outputAmounts.begin(), outputAmounts.end());
 
-  if (m_firstOutput != 0) {
-    builder.addOutput(m_firstOutput, address);
-  }
+  //if (m_firstOutput != 0) {
+  //  builder.addOutput(m_firstOutput, address);
+ // }
 
-  for (auto outAmount : outputAmounts) {
-    builder.addOutput(outAmount, address);
-  }
+  //for (auto outAmount : outputAmounts) {
+  //  builder.addOutput(outAmount, address);
+ // }
 
   return builder.build();
 }

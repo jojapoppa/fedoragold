@@ -17,21 +17,21 @@ using namespace Logging;
 
 namespace {
 
-inline std::vector<uint8_t> stringToVector(const std::string& s) {
+/*inline std::vector<uint8_t> stringToVector(const std::string& s) {
   std::vector<uint8_t> vec(
     reinterpret_cast<const uint8_t*>(s.data()),
     reinterpret_cast<const uint8_t*>(s.data()) + s.size());
   return vec;
-}
+}*/
 
 }
 
 namespace CryptoNote {
 
 BlockchainSynchronizer::BlockchainSynchronizer(INode& node, Logging::LoggerRef logger, const Hash& genesisBlockHash) :
-  m_logger(logger),
   m_node(node),
   m_genesisBlockHash(genesisBlockHash),
+  m_logger(logger),
   m_currentState(State::stopped),
   m_futureState(State::stopped) {
 }

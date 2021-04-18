@@ -155,8 +155,8 @@ size_t SpentOutputDescriptor::hash() const {
 
 TransfersContainer::TransfersContainer(const Currency& currency, size_t transactionSpendableAge) :
   m_currentHeight(0),
-  m_currency(currency),
-  m_transactionSpendableAge(transactionSpendableAge) {
+  m_transactionSpendableAge(transactionSpendableAge),
+  m_currency(currency) {
 }
 
 bool TransfersContainer::addTransaction(const TransactionBlockInfo& block, const ITransactionReader& tx,

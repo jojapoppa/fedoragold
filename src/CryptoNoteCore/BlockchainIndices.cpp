@@ -29,7 +29,7 @@ namespace {
   const size_t DEFAULT_BUCKET_COUNT = 5;
 }
 
-PaymentIdIndex::PaymentIdIndex(bool _enabled) : enabled(_enabled), index(DEFAULT_BUCKET_COUNT, paymentIdHash) {
+PaymentIdIndex::PaymentIdIndex(bool _enabled) : index(DEFAULT_BUCKET_COUNT, paymentIdHash), enabled(_enabled) {
 }
 
 bool PaymentIdIndex::add(const Transaction& transaction) {

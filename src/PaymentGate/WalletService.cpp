@@ -536,6 +536,10 @@ void WalletService::stop() {
   }
 }
 
+void WalletService::start() {
+    wallet.start();
+}
+
 void WalletService::init() {
   loadWallet();
   loadTransactionIdIndex();
@@ -1339,6 +1343,12 @@ std::error_code WalletService::getStatus(uint32_t& blockCount, uint32_t& knownBl
     logger(Logging::WARNING) << ermsg;
     return make_error_code(CryptoNote::error::INTERNAL_WALLET_ERROR, ermsg);
   }
+
+  logger(Logging::INFO) << "getStatus completed: " <<
+    "knownBlockCount: " << knownBlockCount <<
+    " peerCount: " << peerCount <<
+    " blockCount: " << blockCount <<
+    " localDaemonBlockCount: " << localDaemonBlockCount;
 
   return std::error_code();
 }

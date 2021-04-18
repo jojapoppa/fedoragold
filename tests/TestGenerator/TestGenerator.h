@@ -51,7 +51,7 @@ public:
 
   test_generator(const CryptoNote::Currency& currency, uint8_t majorVersion = CryptoNote::BLOCK_MAJOR_VERSION_1,
                  uint8_t minorVersion = CryptoNote::BLOCK_MINOR_VERSION_0)
-    : m_currency(currency), defaultMajorVersion(majorVersion), defaultMinorVersion(minorVersion) {
+    : defaultMajorVersion(majorVersion), defaultMinorVersion(minorVersion), m_currency(currency) {
   }
 
 

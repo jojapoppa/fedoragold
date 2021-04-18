@@ -268,6 +268,8 @@ protected:
   void addUnconfirmedTransaction(const ITransactionReader& transaction);
   void removeUnconfirmedTransaction(const Crypto::Hash& transactionHash);
 
+  void initTransactionPool();
+
   void unsafeLoad(std::istream& source, const std::string& password);
   void unsafeSave(std::ostream& destination, bool saveDetails, bool saveCache);
 

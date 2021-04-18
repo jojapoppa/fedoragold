@@ -177,6 +177,7 @@ int main(int argc, char* argv[])
       logManager.configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile));
     }
 
+    logger(INFO) << "running Daemon main...";
     logger(INFO) << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG;
 
     if (command_line_preprocessor(vm, logger)) {
@@ -305,10 +306,10 @@ int main(int argc, char* argv[])
 
     logger(INFO) << "p2p config has been serialized to disk...";
 
-//    logger(INFO) << "remove protocol";
-//    ccore.set_cryptonote_protocol(NULL);
-//    logger(INFO) << "remove endpoint";
-//    cprotocol.set_p2p_endpoint(NULL);
+    logger(INFO) << "remove protocol";
+    ccore.set_cryptonote_protocol(NULL);
+    logger(INFO) << "remove endpoint";
+    cprotocol.set_p2p_endpoint(NULL);
 
     logger(INFO) << "exiting...";
 

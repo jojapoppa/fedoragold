@@ -42,6 +42,8 @@ public:
   virtual std::error_code addUnconfirmedTransaction(const ITransactionReader& transaction) override;
   virtual void removeUnconfirmedTransaction(const Crypto::Hash& transactionHash) override;
 
+  void addPublicKeysSeen(const Crypto::Hash& transactionHash, const Crypto::PublicKey& outputKey);
+
 private:
 
   template <typename F>

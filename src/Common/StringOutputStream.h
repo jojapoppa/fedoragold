@@ -14,6 +14,8 @@ public:
   StringOutputStream(std::string& out);
   uint64_t writeSome(const void* data, uint64_t size) override;
 
+  void flush() override { /* do nothing */ }
+
 private:
   std::string& out;
 };

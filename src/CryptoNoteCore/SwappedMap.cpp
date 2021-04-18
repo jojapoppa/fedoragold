@@ -4,6 +4,8 @@
 
 #include "SwappedMap.h"
 
+#if !defined(__APPLE__)
 namespace {
 char suppressMSVCWarningLNK4221;
 }
+#endif

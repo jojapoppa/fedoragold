@@ -40,7 +40,7 @@ void JsonRpcServer::start(const std::string& bindAddress, uint16_t bindPort, con
 
 void JsonRpcServer::processRequest(const CryptoNote::HttpRequest& req, CryptoNote::HttpResponse& resp) {
   try {
-    logger(Logging::TRACE) << "HTTP request came: \n" << req;
+    logger(Logging::INFO) << "JsonRpcServer::HTTP request came in: \n" << req;
 
     if (req.getUrl() == "/json_rpc") {
       std::istringstream jsonInputStream(req.getBody());
@@ -140,7 +140,9 @@ void JsonRpcServer::makeMethodNotFoundResponse(Common::JsonValue& resp) {
   JsonValue error(JsonValue::OBJECT);
 
   JsonValue code;
-  code = static_cast<int64_t>(-32601); //ambigous declaration of JsonValue::operator= (between int and JsonValue)
+
+  //ambigous declaration of JsonValue::operator= (between int and JsonValue)
+  code = static_cast<int64_t>(-32601);
 
   JsonValue message;
   message = "Method not found";
@@ -164,9 +166,11 @@ void JsonRpcServer::makeJsonParsingErrorResponse(Common::JsonValue& resp) {
 
   JsonValue error(JsonValue::OBJECT);
   JsonValue code;
-  code = static_cast<int64_t>(-32700); //ambigous declaration of JsonValue::operator= (between int and JsonValue)
 
-  JsonValue message = "Parse error";
+  //ambigous declaration of JsonValue::operator= (between int and JsonValue)
+  code = static_cast<int64_t>(-32700);
+
+  JsonValue message = "Parse error in JsonRpcServer";
 
   error.insert("code", code);
   error.insert("message", message);

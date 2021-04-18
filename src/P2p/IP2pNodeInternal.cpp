@@ -4,6 +4,8 @@
 
 #include "IP2pNodeInternal.h"
 
+#if !defined(__APPLE__)
 namespace {
 char suppressMSVCWarningLNK4221;
 }
+#endif

@@ -40,9 +40,10 @@ static void generate_system_random_bytes(size_t n, void *result) {
 static void generate_system_random_bytes(size_t n, void *result) {
   int fd;
   if ((fd = open("/dev/urandom", O_RDONLY | O_NOCTTY | O_CLOEXEC)) < 0) {
-    fprintf(stderr, "EXIT_FAILURE, open /dev/urandom\n");
-    //err(EXIT_FAILURE, "open /dev/urandom");
+    //fprintf(stderr, "EXIT_FAILURE, open /dev/urandom\n");
+    err(EXIT_FAILURE, "open /dev/urandom");
   }
+
   for (;;) {
     ssize_t res = read(fd, result, n);
     if ((size_t) res == n) {
@@ -50,20 +51,21 @@ static void generate_system_random_bytes(size_t n, void *result) {
     }
     if (res < 0) {
       if (errno != EINTR) {
-        fprintf(stderr, "EXIT_FAILURE, read /dev/urandom\n");
-        //err(EXIT_FAILURE, "read /dev/urandom");
+        //fprintf(stderr, "EXIT_FAILURE, read /dev/urandom\n");
+        err(EXIT_FAILURE, "read /dev/urandom");
       }
     } else if (res == 0) {
-      fprintf(stderr, "EXIT_FAILURE, read /dev/urandom: end of file\n");
-      //errx(EXIT_FAILURE, "read /dev/urandom: end of file");
+      //fprintf(stderr, "EXIT_FAILURE, read /dev/urandom: end of file\n");
+      errx(EXIT_FAILURE, "read /dev/urandom: end of file");
     } else {
       result = padd(result, (size_t) res);
       n -= (size_t) res;
     }
   }
+
   if (close(fd) < 0) {
-    fprintf(stderr, "EXIT_FAILURE, close /dev/urandom\n");
-    //err(EXIT_FAILURE, "close /dev/urandom");
+    //fprintf(stderr, "EXIT_FAILURE, close /dev/urandom\n");
+    err(EXIT_FAILURE, "close /dev/urandom");
   }
 }
 

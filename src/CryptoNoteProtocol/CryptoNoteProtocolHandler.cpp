@@ -37,15 +37,15 @@ void relay_post_notify(IP2pEndpoint& p2p, typename t_parametr::request& arg, con
 }
 
 CryptoNoteProtocolHandler::CryptoNoteProtocolHandler(const Currency& currency, System::Dispatcher& dispatcher, ICore& rcore, IP2pEndpoint* p_net_layout, Logging::ILogger& log) :
+  logger(log, "protocol"),
   m_dispatcher(dispatcher),
-  m_currency(currency),
   m_core(rcore),
+  m_currency(currency),
   m_p2p(p_net_layout),
   m_synchronized(false),
   m_stop(false),
   m_observedHeight(0),
-  m_peersCount(0),
-  logger(log, "protocol") {
+  m_peersCount(0) {
   
   if (!m_p2p) {
     m_p2p = &m_p2p_stub;
@@ -556,7 +556,7 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
       it = context.m_needed_objects.erase(it);
     }
 
-    logger(DEBUGGING) << context << "-->>NOTIFY_REQUEST_GET_OBJECTS ID: "<<NOTIFY_REQUEST_GET_OBJECTS::ID << " blocks.size()=" << req.blocks.size() << ", txs.size()=" << req.txs.size() << " : requesting objects: " << count;
+    logger(DEBUGGING) << context << " blocks.size()=" << req.blocks.size() << ", txs.size()=" << req.txs.size() << " : requesting objects: " << count;
     post_notify<NOTIFY_REQUEST_GET_OBJECTS>(*m_p2p, req, context);
   } else if (context.m_last_response_height < context.m_remote_blockchain_height - 1) {//we have to fetch more objects ids, request blockchain entry
 
