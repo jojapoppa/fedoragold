@@ -125,7 +125,8 @@ const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 // Add here your network seed nodes
 const std::initializer_list<const char*> SEED_NODES = {
   "202.182.106.252:30158",  // blockexplorer & seed
-  "213.136.89.252:30158",   // pool seed
+  "cryptonoteclub.fedoragold:30158",   // pool seed
+  "5.189.155.88:30158",     // pool seed (no dns)
   "45.76.106.169:30158",    // fedswap-test
   "172.86.75.248:30158",    // fedoragold.com
   "192.248.165.242:30158",  // fedswap
