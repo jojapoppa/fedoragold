@@ -256,6 +256,7 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
     for (const auto& address: addresses) {
       std::cout << "Address: " << address << std::endl;
     }
+    fclose(stdout);  // only way to force output buffer prior to exit on Windows...
   } else {
 
     PaymentService::PaymentServiceJsonRpcServer rpcServer(*dispatcher, 
