@@ -93,6 +93,7 @@ void wallet_rpc_server::processRequest(const CryptoNote::HttpRequest& request, C
       { "transfer", makeMemberMethod(&wallet_rpc_server::on_transfer) },
       { "store", makeMemberMethod(&wallet_rpc_server::on_store) },
       { "get_payments", makeMemberMethod(&wallet_rpc_server::on_get_payments) },
+      { "generatePaymentId", makeMemberMethod(&wallet_rpc_server::on_generate_payment_id) },
       { "get_transfers", makeMemberMethod(&wallet_rpc_server::on_get_transfers) },
       { "get_height", makeMemberMethod(&wallet_rpc_server::on_get_height) },
       { "reset", makeMemberMethod(&wallet_rpc_server::on_reset) }
@@ -276,6 +277,18 @@ bool wallet_rpc_server::on_get_height(const wallet_rpc::COMMAND_RPC_GET_HEIGHT::
 
 bool wallet_rpc_server::on_reset(const wallet_rpc::COMMAND_RPC_RESET::request& req, wallet_rpc::COMMAND_RPC_RESET::response& res) {
   m_wallet.reset();
+  return true;
+}
+
+bool wallet_rpc_server::on_generate_payment_id(const wallet_rpc::COMMAND_RPC_GENERATE_PAYMENT_ID::request& req, w    allet_rpc::COMMAND_RPC_GENERATE_PAYMENT_ID::response& res) {
+  std::string randomPID;
+  try {
+    randomPID = Common::podToHex(Crypto::rand<Crypto::Hash>());
+  }
+  catch (const std::exception& e) {
+    throw JsonRpc::JsonRpcError(WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR, std::string("Internal error: can't generate     Payment ID: ") + e.what());
+  }
+  res.randomPaymentID = randomPID;
   return true;
 }
 
