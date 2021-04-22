@@ -169,5 +169,18 @@ using CryptoNote::ISerializer;
     typedef CryptoNote::EMPTY_STRUCT request;
     typedef CryptoNote::EMPTY_STRUCT response;
   };
+
+  struct COMMAND_RPC_GENERATE_PAYMENT_ID {
+    typedef CryptoNote::EMPTY_STRUCT request;
+
+    struct response {
+      std::string randomPaymentID;
+
+      void serialize(ISerializer& s) {
+        KV_MEMBER(randomPaymentID)
+      }
+    };
+  };
+
 }
 }
