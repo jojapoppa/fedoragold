@@ -442,6 +442,8 @@ bool core::add_new_tx(const Transaction& tx, const Crypto::Hash& tx_hash, size_t
     return true;
   }
 
+  logger(DEBUGGING) << "calling m_mempool.add_tx...";
+
   return m_mempool.add_tx(tx, tx_hash, blob_size, tvc, keeped_by_block, height);
 }
 
@@ -1132,11 +1134,16 @@ uint64_t core::getTotalGeneratedAmount() {
 }
 
 bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& txHash, size_t blobSize, tx_verification_context& tvc, bool keptByBlock, uint32_t height) {
+
+  logger(DEBUGGING) << "handleIncomingTransaction...";
+
   if (!check_tx_syntax(tx)) {
     logger(INFO) << "WRONG TRANSACTION BLOB, Failed to check tx " << txHash << " syntax, rejected";
     tvc.m_verifivation_failed = true;
     return false;
   }
+
+  logger(DEBUGGING) << "checkpoints...";
 
   // is not in checkpoint zone
   if (!m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
@@ -1154,13 +1161,15 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
     }
   }
 
+  logger(DEBUGGING) << "check semantic";
+
   if (!check_tx_semantic(tx, keptByBlock)) {
     logger(INFO) << "WRONG TRANSACTION BLOB, Failed to check tx " << txHash << " semantic, rejected";
     tvc.m_verifivation_failed = true;
     return false;
   }
 
-  //logger(INFO) << "Core.cpp handleIncomingTransaction: calling add_new_tx: " << txHash;
+  logger(DEBUGGING) << "Core.cpp handleIncomingTransaction: calling add_new_tx: " << txHash;
 
   bool r = add_new_tx(tx, txHash, blobSize, tvc, keptByBlock, height);
   if (tvc.m_verifivation_failed) {
@@ -1176,6 +1185,8 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
   if (tvc.m_added_to_pool) {
     poolUpdated();
   }
+
+  logger(DEBUGGING) << "incoming transaction processed... success";
 
   return r;
 }

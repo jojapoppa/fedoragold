@@ -474,8 +474,13 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       logger(DEBUGGING) << "transaction " << transactionHash << " came in processObjects";
 
       tx_verification_context tvc = boost::value_initialized<decltype(tvc)>();
+
+      logger(DEBUGGING) << "got verification context";
+
       m_core.handle_incoming_tx(transactionBinary, tvc, true);
-      
+     
+      logger(DEBUGGING) << "returned from handle_incoming_tx";
+ 
       if (tvc.m_verifivation_failed || tvc.m_verifivation_impossible) {
         logger(Logging::DEBUGGING) << context << "transaction verification failed on NOTIFY_RESPONSE_GET_OBJECTS, \r\ntx_id = " << Common::podToHex(getBinaryArrayHash(asBinaryArray(tx_blob))) << ", dropping connection";
         context.m_state = CryptoNoteConnectionContext::state_shutdown;
