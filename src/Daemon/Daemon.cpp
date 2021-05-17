@@ -247,19 +247,14 @@ int main(int argc, char* argv[])
     DaemonCommandsHandler dch(ccore, p2psrv, logManager);
 
     // initialize objects
+    logger(INFO) << "init daemon p2p server";
     if (!p2psrv.init(netNodeConfig)) {
       logger(static_cast<Level>(1), BRIGHT_RED) << "Failed to initialize p2p server.";  // ERROR is 1
       return 1;
     }
 
-    //logger(INFO) << "Initializing core rpc server...";
-    //if (!rpc_server.init(vm)) {
-    //  logger(ERROR, BRIGHT_RED) << "Failed to initialize core rpc server.";
-    //  return 1;
-    //}
-    // logger(INFO, BRIGHT_GREEN) << "Core rpc server initialized OK on port: " << rpc_server.get_binded_port();
-
     // initialize core here
+    logger(INFO) << "init daemon core";
     if (!ccore.init(coreConfig, minerConfig, true)) {
       logger(INFO) << "Failed to initialize core"; 
       return 1;
@@ -274,6 +269,7 @@ int main(int argc, char* argv[])
       rpcServer.setContactInfo(rpcConfig.contactInfo);
     }
 
+    logger(INFO) << "rpcServer.start";
     rpcServer.start(rpcConfig.bindIp, rpcConfig.bindPort);
 
     Tools::SignalHandler::install([&dch, &p2psrv] {
@@ -281,6 +277,7 @@ int main(int argc, char* argv[])
       p2psrv.sendStopSignal();
     });
 
+    logger(INFO) << "p2psrv.run()";
     p2psrv.run();
 
     logger(INFO) << "stop dch handler";

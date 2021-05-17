@@ -484,7 +484,7 @@ namespace CryptoNote
     // m_net_server.get_config_object().m_invoke_timeout = CryptoNote::P2P_DEFAULT_INVOKE_TIMEOUT;
 
     //try to bind
-    //logger(INFO) << "Binding on " << m_bind_ip << ":" << m_port;
+    logger(INFO) << "Node svr binding on " << m_bind_ip << ":" << m_port;
     m_listeningPort = Common::fromString<uint16_t>(m_port);
 
     m_listener = System::TcpListener(m_dispatcher, System::IpAddress(m_bind_ip), static_cast<uint16_t>(m_listeningPort));
@@ -513,6 +513,8 @@ namespace CryptoNote
     m_workingContextGroup.spawn(std::bind(&NodeServer::onIdle, this));
     m_workingContextGroup.spawn(std::bind(&NodeServer::timedSyncLoop, this));
     m_workingContextGroup.spawn(std::bind(&NodeServer::timeoutLoop, this));
+
+    logger(INFO) << "NodeServer::run()";
 
     m_stopEvent.wait();
 
