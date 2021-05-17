@@ -126,15 +126,15 @@ std::time_t core::getStartTime() const {
 bool core::init(const CoreConfig& config, const MinerConfig& minerConfig, bool load_existing) {
   m_config_folder = config.configFolder;
 
-  logger(INFO) << "Initialize memory pool...";
+  //logger(INFO) << "Initialize memory pool...";
   bool r = m_mempool.init(m_config_folder);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize memory pool"; return false; }
 
-  logger(INFO) << "Initialize block chain...";
+  //logger(INFO) << "Initialize block chain...";
   r = m_blockchain.init(m_config_folder, load_existing);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage"; return false; }
 
-  logger(INFO) << "Miner state init...";
+  //logger(INFO) << "Miner state init...";
   r = m_miner->init(minerConfig);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage for miner"; return false; }
 
@@ -153,9 +153,13 @@ bool core::load_state_data() {
 }
 
 bool core::deinit() {
+logger(INFO) << "core deinit()";
   m_miner->stop();
+logger(INFO) << "miner stopped";
   m_mempool.deinit();
+logger(INFO) << "mempool deinit completed";
   m_blockchain.deinit();
+logger(INFO) << "blockchain deinit completed"; // never got here!!!!
   return true;
 }
 

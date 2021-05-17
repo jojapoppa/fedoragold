@@ -8,6 +8,7 @@
 
 #include "google/sparse_hash_set"
 #include "google/sparse_hash_map"
+#include <parallel_hashmap/phmap.h>
 
 #include "Common/ObserverManager.h"
 #include "Common/Util.h"
@@ -28,6 +29,7 @@
 #include <Logging/LoggerRef.h>
 
 #undef ERROR
+using phmap::parallel_flat_hash_map;
 
 namespace CryptoNote {
   struct NOTIFY_REQUEST_GET_OBJECTS_request;
@@ -229,7 +231,9 @@ namespace CryptoNote {
       }
     };
 
-    typedef google::sparse_hash_set<Crypto::KeyImage> key_images_container;
+    //typedef google::sparse_hash_set<Crypto::KeyImage> key_images_container;
+    typedef parallel_flat_hash_map<Crypto::KeyImage, uint32_t> key_images_container;
+
     typedef std::unordered_map<Crypto::Hash, BlockEntry> blocks_ext_by_hash;
     typedef google::sparse_hash_map<uint64_t, std::vector<std::pair<TransactionIndex, uint16_t>>> outputs_container; //Crypto::Hash - tx hash, size_t - index of out in transaction
     typedef google::sparse_hash_map<uint64_t, std::vector<MultisignatureOutputUsage>> MultisignatureOutputsContainer;
@@ -252,7 +256,9 @@ namespace CryptoNote {
     std::atomic<bool> m_is_in_checkpoint_zone;
 
     typedef std::unordered_map<Crypto::Hash, uint32_t> BlockMap;
-    typedef std::unordered_map<Crypto::Hash, TransactionIndex> TransactionMap;
+
+    //typedef std::unordered_map<Crypto::Hash, TransactionIndex> TransactionMap;
+    typedef parallel_flat_hash_map<Crypto::Hash, TransactionIndex> TransactionMap;
 
     friend class BlockCacheSerializer;
     friend class BlockchainIndicesSerializer;

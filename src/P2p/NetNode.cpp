@@ -59,16 +59,16 @@ size_t get_random_index_with_fixed_probability(size_t max_index) {
 
 void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
   // Add UPnP port mapping
-  logger(INFO) << "Attempting to add IGD port mapping.";
+  //logger(INFO) << "Attempting to add IGD port mapping.";
   int result;
   UPNPDev* deviceList;
 
   #if MINIUPNPC_API_VERSION >= 14
-    logger(INFO) << "upnpDiscover version >=14";
+    //logger(INFO) << "upnpDiscover version >=14";
     deviceList = upnpDiscover(2000, NULL/*multicast interface*/, NULL/*minissdpd socket path*/,
       0/*sameport*/, 0/*ipv6*/, 2/*ttl*/, &result);
   #else
-    logger(INFO) << "upnpDiscover version <14";
+    //logger(INFO) << "upnpDiscover version <14";
     deviceList = upnpDiscover(2000, NULL/*multicast interface*/, NULL/*minissdpd socket path*/,
       0/*sameport*/, 0/*ipv6*/, &result);
   #endif
@@ -78,7 +78,7 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
   char lanAddress[64];
 
   result = UPNP_GetValidIGD(deviceList, &urls, &igdData, lanAddress, sizeof lanAddress);
-  logger(INFO) << "UPNP_GetValidIGD: " << result;
+  //logger(INFO) << "UPNP_GetValidIGD: " << result;
 
   freeUPNPDevlist(deviceList);
   if (result != 0) {
@@ -89,21 +89,21 @@ void addPortMapping(Logging::LoggerRef& logger, uint32_t port) {
         portString.str().c_str(), lanAddress, CryptoNote::CRYPTONOTE_NAME, "TCP", 0, "0") != 0) {
         logger((Logging::Level)ERROR) << "UPNP_AddPortMapping failed.";
       } else {
-        logger(INFO, BRIGHT_GREEN) << "Added IGD port mapping.";
+        //logger(INFO, BRIGHT_GREEN) << "Added IGD port mapping.";
       }
     } else if (result == 2) {
-      logger(INFO) << "IGD was found but reported as not connected.";
+      //logger(INFO) << "IGD was found but reported as not connected.";
     } else if (result == 3) {
-      logger(INFO) << "UPnP device was found but not recoginzed as IGD.";
+      //logger(INFO) << "UPnP device was found but not recoginzed as IGD.";
     } else {
-      logger((Logging::Level)ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
+      //logger((Logging::Level)ERROR) << "UPNP_GetValidIGD returned an unknown result code.";
     }
 
-    logger(INFO) << "FreeUPNPUrls...";
+    //logger(INFO) << "FreeUPNPUrls...";
 
     FreeUPNPUrls(&urls);
   } else {
-    logger(INFO) << "No IGD was found.";
+    //logger(INFO) << "No IGD was found.";
   }
 }
 
@@ -484,12 +484,12 @@ namespace CryptoNote
     // m_net_server.get_config_object().m_invoke_timeout = CryptoNote::P2P_DEFAULT_INVOKE_TIMEOUT;
 
     //try to bind
-    logger(INFO) << "Binding on " << m_bind_ip << ":" << m_port;
+    //logger(INFO) << "Binding on " << m_bind_ip << ":" << m_port;
     m_listeningPort = Common::fromString<uint16_t>(m_port);
 
     m_listener = System::TcpListener(m_dispatcher, System::IpAddress(m_bind_ip), static_cast<uint16_t>(m_listeningPort));
 
-    logger(INFO, BRIGHT_GREEN) << "Net service binded on " << m_bind_ip << ":" << m_listeningPort;
+    //logger(INFO, BRIGHT_GREEN) << "Net service binded on " << m_bind_ip << ":" << m_listeningPort;
 
     if(m_external_port)
       logger(INFO) << "External port defined as " << m_external_port;
@@ -507,24 +507,20 @@ namespace CryptoNote
   //-----------------------------------------------------------------------------------
   
   bool NodeServer::run() {
-    logger(INFO) << "Starting node_server";
+    //logger(INFO) << "Starting node_server";
 
     m_workingContextGroup.spawn(std::bind(&NodeServer::acceptLoop, this));
-    logger(INFO) << "  acceptLoop started...";
     m_workingContextGroup.spawn(std::bind(&NodeServer::onIdle, this));
-    logger(INFO) << "  onIdle started...";
     m_workingContextGroup.spawn(std::bind(&NodeServer::timedSyncLoop, this));
-    logger(INFO) << "  timedSyncLoop started...";
     m_workingContextGroup.spawn(std::bind(&NodeServer::timeoutLoop, this));
-    logger(INFO) << "  timeoutLoop started...";
 
     m_stopEvent.wait();
 
-    logger(INFO) << "Stopping NodeServer and its " << m_connections.size() << " connections...";
+    //logger(INFO) << "Stopping NodeServer and its " << m_connections.size() << " connections...";
     m_workingContextGroup.interrupt();
     m_workingContextGroup.wait();
 
-    logger(INFO) << "NodeServer loop stopped";
+    //logger(INFO) << "NodeServer loop stopped";
     return true;
   }
 
@@ -583,12 +579,14 @@ namespace CryptoNote
   bool NodeServer::sendStopSignal()  {
     m_stop = true;
 
-    m_dispatcher.remoteSpawn([this] {
-      m_stopEvent.set();
-      m_payload_handler.stop();
-    });
+    try {
+      m_dispatcher.remoteSpawn([this] {
+        m_stopEvent.set();
+        m_payload_handler.stopHandler();
+      });
+    } catch(...) { /* do nothing... sometimes process does not exit clean on program exit */ }
 
-    logger(INFO, BRIGHT_YELLOW) << "Stop signal sent";
+    //logger(INFO, BRIGHT_YELLOW) << "Stop signal sent";
     return true;
   }
 
@@ -600,7 +598,7 @@ namespace CryptoNote
     m_payload_handler.get_payload_sync_data(arg.payload_data);
 
     if (!proto.invoke(COMMAND_HANDSHAKE::ID, arg, rsp, logger)) {
-      logger((Logging::Level)ERROR) << context << "Failed to invoke COMMAND_HANDSHAKE, closing connection.";
+      //logger((Logging::Level)ERROR) << context << "Failed to invoke COMMAND_HANDSHAKE, closing connection.";
       return false;
     }
 
@@ -731,22 +729,24 @@ namespace CryptoNote
 
     try {
       System::TcpConnection connection;
+      System::Context<System::TcpConnection> connectionContext(m_dispatcher, [&] {
+        System::TcpConnector connector(m_dispatcher);
+        return connector.connect(System::IpAddress(Common::ipAddressToString(na.ip)),
+          static_cast<uint16_t>(na.port));
+      });
 
       try {
-        System::Context<System::TcpConnection> connectionContext(m_dispatcher, [&] {
-          System::TcpConnector connector(m_dispatcher);
-          return connector.connect(System::IpAddress(Common::ipAddressToString(na.ip)), static_cast<uint16_t>(na.port));
-        });
-
         System::Context<> timeoutContext(m_dispatcher, [&] {
-          System::Timer(m_dispatcher).sleep(std::chrono::milliseconds(m_config.m_net_config.connection_timeout));
+          System::Timer(m_dispatcher).sleep(std::chrono::milliseconds(
+            m_config.m_net_config.connection_timeout));
           connectionContext.interrupt();
-          logger(DEBUGGING) << "Connection to " << na <<" timed out, interrupt it";
+          //logger(DEBUGGING) << "Connection to " << na <<" timed out, interrupt it";
         });
 
         connection = std::move(connectionContext.get());
       } catch (System::InterruptedException&) {
-        logger(DEBUGGING) << "Connection timed out";
+        //logger(INFO) << "NodeServer: Connection timed out";
+        connectionContext.interrupt();
         return false;
       }
 
@@ -780,11 +780,11 @@ namespace CryptoNote
               return false;
             }
           }
-          logger(WARNING) << "Failed to HANDSHAKE with peer " << na;
+          //logger(WARNING) << "Failed to HANDSHAKE with peer " << na;
           return false;
         }
       } catch (System::InterruptedException&) {
-        logger(DEBUGGING) << "Handshake timed out";
+        //logger(INFO) << "Handshake timed out";
         return false;
       }
 
@@ -800,14 +800,15 @@ namespace CryptoNote
       m_peerlist.append_with_peer_white(pe_local);
 
       if (m_stop) {
+        logger(Logging::DEBUGGING) << "NodeServer throwing InterruptedException...";
         throw System::InterruptedException();
       }
 
       auto iter = m_connections.emplace(ctx.m_connection_id, std::move(ctx)).first;
       const boost::uuids::uuid& connectionId = iter->first;
-      P2pConnectionContext& connectionContext = iter->second;
+      P2pConnectionContext& p2pConnectionContext = iter->second;
 
-      m_workingContextGroup.spawn(std::bind(&NodeServer::connectionHandler, this, std::cref(connectionId), std::ref(connectionContext)));
+      m_workingContextGroup.spawn(std::bind(&NodeServer::connectionHandler, this, std::cref(connectionId), std::ref(p2pConnectionContext)));
 
       logger(DEBUGGING) << "Connection established with new peer";
 

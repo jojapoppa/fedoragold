@@ -67,6 +67,9 @@ void JsonRpcServer::processRequest(const CryptoNote::HttpRequest& req, CryptoNot
 
     } else {
       logger(Logging::WARNING) << "Requested url \"" << req.getUrl() << "\" is not found";
+      logger(Logging::WARNING) << "Method " << req.getMethod();
+      logger(Logging::WARNING) << "Body " << req.getBody();  
+
       resp.setStatus(CryptoNote::HttpResponse::STATUS_404);
       return;
     }

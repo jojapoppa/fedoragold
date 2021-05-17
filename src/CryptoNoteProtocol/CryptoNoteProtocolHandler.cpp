@@ -88,8 +88,8 @@ void CryptoNoteProtocolHandler::onConnectionClosed(CryptoNoteConnectionContext& 
   }
 }
 
-void CryptoNoteProtocolHandler::stop() {
-  logger(INFO) << "stopping CN protocol handler";
+void CryptoNoteProtocolHandler::stopHandler() {
+  //logger(INFO) << "stopping CN protocol handler";
   m_stop = true;
 }
 
@@ -507,7 +507,7 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       context.m_requested_objects.clear();
       return 1;
     }
-    
+
     m_dispatcher.yield();
   }
   return 0;
@@ -605,7 +605,7 @@ bool CryptoNoteProtocolHandler::on_connection_not_synchronized() {
 bool CryptoNoteProtocolHandler::on_connection_synchronized() {
   bool val_expected = false;
   if (m_synchronized.compare_exchange_strong(val_expected, true)) {
-    logger(Logging::INFO) << "reload complete!";
+    //logger(Logging::INFO) << "reload complete!";
     m_core.on_synchronized();
 
     uint32_t height;
