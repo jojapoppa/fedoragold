@@ -96,6 +96,7 @@ void PaymentServiceJsonRpcServer::processJsonRpcRequest(const Common::JsonValue&
 }
 
 std::error_code PaymentServiceJsonRpcServer::handleSave(const Reset::Request& request, Reset::Response& response) {
+  logger(Logging::INFO) << "saving wallet to wallet file...";
   return service.saveWalletNoThrow();
 }
 

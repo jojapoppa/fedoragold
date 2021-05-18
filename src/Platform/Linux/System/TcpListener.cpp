@@ -38,16 +38,26 @@ TcpListener::TcpListener() : dispatcher(nullptr) {
 
 TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t port) : dispatcher(&dispatcher) {
   std::string message;
-  listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  listener = -1;
+  try{listener=socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);}catch(...){listener=-1;}
   if (listener == -1) {
     message = "socket failed, " + lastErrorMessage();
   } else {
-    int flags = fcntl(listener, F_GETFL, 0);
-    if (flags == -1 || fcntl(listener, F_SETFL, flags | O_NONBLOCK) == -1) {
+    int flags = -1;
+    try{flags=fcntl(listener, F_GETFL, 0);}catch(...){flags=-1;}
+    int flags2 = -1;
+    if (flags != -1) try{flags2=fcntl(listener, F_SETFL, 
+      flags | O_NONBLOCK);}catch(...){flags2=-1;}
+
+    if (flags == -1 || flags2 == -1) {
       message = "fcntl failed, " + lastErrorMessage();
     } else {
       int on = 1;
-      if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR|SO_REUSEPORT, &on, sizeof on) == -1) {
+      int sres = -1;
+      try{sres=setsockopt(listener, SOL_SOCKET,
+        SO_REUSEADDR|SO_REUSEPORT, &on, sizeof on);}catch(...){sres=-1;}
+
+      if (sres == -1) {
         message = "setsockopt failed, " + lastErrorMessage();
       } else {
         sockaddr_in address;
@@ -63,7 +73,11 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
           listenEvent.events = EPOLLONESHOT;
           listenEvent.data.ptr = nullptr;
 
-          if (epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, listener, &listenEvent) == -1) {
+          int pres = -1;
+          try{pres=epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD,
+            listener, &listenEvent);}catch(...){pres=-1;}
+
+          if (pres == -1) {
             message = "epoll_ctl failed, " + lastErrorMessage();
           } else {
             context = nullptr;
@@ -73,7 +87,8 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
       }
     }
 
-    int result = close(listener);
+    int result = -1;
+    try{result=close(listener);}catch(...){result=-1;}
     if (result) {}
     assert(result != -1);
   }
@@ -93,7 +108,8 @@ TcpListener::TcpListener(TcpListener&& other) : dispatcher(other.dispatcher) {
 TcpListener::~TcpListener() {
   if (dispatcher != nullptr) {
     assert(context == nullptr);
-    int result = close(listener);
+    int result = -1;
+    try{result=close(listener);}catch(...){result=-1;}
     if (result) {}
     assert(result != -1);
   }
@@ -102,7 +118,10 @@ TcpListener::~TcpListener() {
 TcpListener& TcpListener::operator=(TcpListener&& other) {
   if (dispatcher != nullptr) {
     assert(context == nullptr);
-    if (close(listener) == -1) {
+
+    int cres = -1;
+    try{cres=close(listener);}catch(...){cres=-1;}
+    if (cres == -1) {
       throw std::runtime_error("TcpListener::operator=, close failed, " + lastErrorMessage());
     }
   }
@@ -137,7 +156,12 @@ TcpConnection TcpListener::accept() {
   listenEvent.events = EPOLLIN | EPOLLONESHOT;
   listenEvent.data.ptr = &contextPair;
   std::string message;
-  if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener, &listenEvent) == -1) {
+
+  int eres = -1;
+  try{eres=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener,
+    &listenEvent);}catch(...){eres=-1;}
+
+  if (eres == -1) {
     message = "epoll_ctl failed, " + lastErrorMessage();
   } else {
     context = &listenerContext;
@@ -150,7 +174,11 @@ TcpConnection TcpListener::accept() {
           listenEvent.events = EPOLLONESHOT;
           listenEvent.data.ptr = nullptr;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener, &listenEvent) == -1) {
+          int eres = -1;
+          try{eres=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, listener,
+            &listenEvent);}catch(...){eres=-1;}
+
+          if (eres == -1) {
             throw std::runtime_error("TcpListener::accept, interrupt procedure, epoll_ctl failed, " + lastErrorMessage() );
           }
 
@@ -177,18 +205,26 @@ TcpConnection TcpListener::accept() {
 
     sockaddr inAddr;
     socklen_t inLen = sizeof(inAddr);
-    int connection = ::accept(listener, &inAddr, &inLen);
+    int connection = -1;
+    try{connection=::accept(listener, &inAddr, &inLen);}catch(...){connection=-1;}
     if (connection == -1) {
       message = "accept failed, " + lastErrorMessage();
     } else {
-      int flags = fcntl(connection, F_GETFL, 0);
-      if (flags == -1 || fcntl(connection, F_SETFL, flags | O_NONBLOCK) == -1) {
+
+      int flags=-1;
+      try{flags=fcntl(connection, F_GETFL, 0);}catch(...){flags=-1;}
+      int flags2=-1;
+      if (flags != -1)try{flags2=fcntl(connection, F_SETFL,
+        flags | O_NONBLOCK);}catch(...){flags2=-1;}
+
+      if (flags == -1 || flags2 == -1) {
         message = "fcntl failed, " + lastErrorMessage();
       } else {
         return TcpConnection(*dispatcher, connection);
       }
 
-      int result = close(connection);
+      int result = -1;
+      try{result=close(connection);}catch(...){result=-1;}
       if (result) {}
       assert(result != -1);
     }

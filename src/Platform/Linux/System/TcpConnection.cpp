@@ -45,7 +45,8 @@ TcpConnection::~TcpConnection() {
   if (dispatcher != nullptr) {
     assert(contextPair.readContext == nullptr);
     assert(contextPair.writeContext == nullptr);
-    int result = close(connection);
+    int result = -1;
+    try{result=close(connection);}catch(...){result=-1;}
     if (result) {}
     assert(result != -1);
   }
@@ -55,7 +56,9 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& other) {
   if (dispatcher != nullptr) {
     assert(contextPair.readContext == nullptr);
     assert(contextPair.writeContext == nullptr);
-    if (close(connection) == -1) {
+    int result = -1;
+    try{result=close(connection);}catch(...){result=-1;}
+    if (result == -1) {
       throw std::runtime_error("TcpConnection::operator=, close failed, " + lastErrorMessage());
     }
   }
@@ -82,7 +85,8 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
   // Note: the bSynchronous flag is not needed on Linux...
 
   std::string message;
-  ssize_t transferred = ::recv(connection, (void *)data, size, 0);
+  ssize_t transferred = -1;
+  try{transferred=::recv(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
   if (transferred == -1) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wlogical-op"
@@ -103,7 +107,10 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
         connectionEvent.events = EPOLLIN | EPOLLONESHOT;
       }
 
-      if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+      int eresult = -1;
+      try{eresult=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent);}
+        catch(...){eresult=-1;}
+      if (eresult == -1) {
         message = "epoll_ctl failed, " + lastErrorMessage();
       } else {
         dispatcher->getCurrentContext()->interruptProcedure = [&]() {
@@ -113,7 +120,11 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
             connectionEvent.events = EPOLLONESHOT;
             connectionEvent.data.ptr = nullptr;
 
-            if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+            int presult = -1;
+            try{presult=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection,
+              &connectionEvent);}catch(...){presult=-1;}
+
+            if (presult == -1) {
               throw std::runtime_error("TcpConnection::read, interrupt procedure, epoll_ctl failed, " + lastErrorMessage());
             }
 
@@ -138,7 +149,10 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
           connectionEvent.events = EPOLLOUT | EPOLLONESHOT;
           connectionEvent.data.ptr = &contextPair;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+          int rslt=-1;
+          try{rslt=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD,
+            connection, &connectionEvent);}catch(...){rslt=-1;}
+          if (rslt == -1) {
             message = "epoll_ctl failed, " + lastErrorMessage();
             throw std::runtime_error("TcpConnection::read");
           }
@@ -148,7 +162,8 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
           throw std::runtime_error("TcpConnection::read");
         }
 
-        ssize_t transferred = ::recv(connection, (void *)data, size, 0);
+        ssize_t transferred = -1;
+        try{transferred=::recv(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
         if (transferred == -1) {
           message = "recv failed, " + lastErrorMessage();
         } else {
@@ -174,14 +189,18 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::Logg
 
   std::string message;
   if(size == 0) {
-    if(shutdown(connection, SHUT_WR) == -1) {
+    int sresult=-1;
+    try{sresult=shutdown(connection, SHUT_WR);}catch(...){sresult=-1;}
+    if(sresult == -1) {
       throw std::runtime_error("TcpConnection::write, shutdown failed, " + lastErrorMessage());
     }
 
     return 0;
   }
 
-  ssize_t transferred = ::send(connection, (void *)data, size, MSG_NOSIGNAL);
+  ssize_t transferred = -1;
+  try{transferred=::send(connection,
+    (void *)data, size, MSG_NOSIGNAL);}catch(...){transferred=-1;}
   if (transferred == -1) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wlogical-op"
@@ -202,7 +221,11 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::Logg
         connectionEvent.events = EPOLLOUT | EPOLLONESHOT;
       }
 
-      if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+      int oresult=-1;
+      try{oresult=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD,
+        connection, &connectionEvent);}catch(...){oresult=-1;}
+
+      if (oresult == -1) {
         message = "epoll_ctl failed, " + lastErrorMessage();
       } else {
         dispatcher->getCurrentContext()->interruptProcedure = [&]() {
@@ -212,7 +235,11 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::Logg
             connectionEvent.events = EPOLLONESHOT;
             connectionEvent.data.ptr = nullptr;
 
-            if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+            int tresult=-1;
+            try{tresult=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD,
+              connection, &connectionEvent);}catch(...){tresult=-1;}
+
+            if (tresult == -1) {
               throw std::runtime_error("TcpConnection::write, interrupt procedure, epoll_ctl failed, " + lastErrorMessage());
             }
 
@@ -237,7 +264,11 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::Logg
           connectionEvent.events = EPOLLIN | EPOLLONESHOT;
           connectionEvent.data.ptr = &contextPair;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, connection, &connectionEvent) == -1) {
+          int lreslt=-1;
+          try{lreslt=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD,
+            connection, &connectionEvent);}catch(...){lreslt=-1;}
+
+          if (lreslt == -1) {
             message = "epoll_ctl failed, " + lastErrorMessage();
             throw std::runtime_error("TcpConnection::write, " + message);
           }
@@ -247,7 +278,8 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::Logg
           throw std::runtime_error("TcpConnection::write, events & (EPOLLERR | EPOLLHUP) != 0");
         }
 
-        ssize_t transferred = ::send(connection, (void *)data, size, 0);
+        ssize_t transferred = -1;
+        try{transferred=::send(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
         if (transferred == -1) {
           message = "send failed, "  + lastErrorMessage();
         } else {
@@ -282,7 +314,11 @@ TcpConnection::TcpConnection(Dispatcher& dispatcher, int socket) : dispatcher(&d
   connectionEvent.events = EPOLLONESHOT;
   connectionEvent.data.ptr = nullptr;
 
-  if (epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, socket, &connectionEvent) == -1) {
+  int eresult=-1;
+  try{eresult=epoll_ctl(dispatcher.getEpoll(), EPOLL_CTL_ADD, socket,
+    &connectionEvent);}catch(...){eresult=-1;}
+
+  if (eresult == -1) {
     throw std::runtime_error("TcpConnection::TcpConnection, epoll_ctl failed, " + lastErrorMessage());
   }
 }
