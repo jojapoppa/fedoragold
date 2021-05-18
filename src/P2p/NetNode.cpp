@@ -564,8 +564,9 @@ namespace CryptoNote
       BinaryOutputStreamSerializer a(stream);
       CryptoNote::serialize(*this, a);
 
-      p2p_data.flush();
-      p2p_data.close();
+      // causes subsequent writes to fail, not needed, not in other code bases...
+      //p2p_data.flush();
+      //p2p_data.close();
 
       //logger(INFO) << "config stored";
 
