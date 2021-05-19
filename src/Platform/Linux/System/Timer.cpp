@@ -79,7 +79,8 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
     expires.it_interval.tv_nsec = expires.it_interval.tv_sec = 0;
     expires.it_value.tv_sec = seconds.count();
     expires.it_value.tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(duration - seconds).count();
-    timerfd_settime(timer, 0, &expires, NULL);
+
+    try{timerfd_settime(timer, 0, &expires, NULL);}catch(...){/*do nothing*/}
 
     ContextPair contextPair;
     OperationContext timerContext;

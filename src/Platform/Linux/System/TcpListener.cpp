@@ -46,8 +46,8 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
     int flags = -1;
     try{flags=fcntl(listener, F_GETFL, 0);}catch(...){flags=-1;}
     int flags2 = -1;
-    if (flags != -1) try{flags2=fcntl(listener, F_SETFL, 
-      flags | O_NONBLOCK);}catch(...){flags2=-1;}
+    if (flags != -1) {try{flags2=fcntl(listener, F_SETFL, 
+      flags | O_NONBLOCK);}catch(...){flags2=-1;}}
 
     if (flags == -1 || flags2 == -1) {
       message = "fcntl failed, " + lastErrorMessage();
@@ -62,12 +62,24 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
       } else {
         sockaddr_in address;
         address.sin_family = AF_INET;
-        address.sin_port = htons(port);
-        address.sin_addr.s_addr = htonl( addr.getValue());
-        if (bind(listener, reinterpret_cast<sockaddr *>(&address), sizeof address) != 0) {
+
+        try {
+          address.sin_port = htons(port);
+          address.sin_addr.s_addr = htonl( addr.getValue());
+        } catch(...) {/* do nothing */}
+
+        int bres = -1;
+        try{bres=bind(listener, reinterpret_cast<sockaddr *>(&address), sizeof address);}catch(...){bres=-1;}
+
+        int lres = -1;
+        if (bres == 0) {
+          try{lres=listen(listener, SOMAXCONN);}catch(...){lres=-1;}
+        }
+
+        if (bres != 0) {
           message = "bind failed, " + lastErrorMessage();
-        } else if (listen(listener, SOMAXCONN) != 0) {
-          message = "listen failed, " + lastErrorMessage();
+        } else if (lres != 0) {
+            message = "listen failed, " + lastErrorMessage();
         } else {
           epoll_event listenEvent;
           listenEvent.events = EPOLLONESHOT;
@@ -214,8 +226,8 @@ TcpConnection TcpListener::accept() {
       int flags=-1;
       try{flags=fcntl(connection, F_GETFL, 0);}catch(...){flags=-1;}
       int flags2=-1;
-      if (flags != -1)try{flags2=fcntl(connection, F_SETFL,
-        flags | O_NONBLOCK);}catch(...){flags2=-1;}
+      if (flags != -1){try{flags2=fcntl(connection, F_SETFL,
+        flags | O_NONBLOCK);}catch(...){flags2=-1;}}
 
       if (flags == -1 || flags2 == -1) {
         message = "fcntl failed, " + lastErrorMessage();

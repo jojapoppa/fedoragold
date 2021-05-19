@@ -85,7 +85,12 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
     bindAddress.sin_family = AF_INET;
     bindAddress.sin_port = 0;
     bindAddress.sin_addr.s_addr = INADDR_ANY;
-    if (bind(connection, reinterpret_cast<sockaddr*>(&bindAddress), sizeof bindAddress) != 0) {
+
+    int bres=-1;
+    try{bres=bind(connection, reinterpret_cast<sockaddr*>(&bindAddress), sizeof bindAddress);}
+      catch(...){bres=-1;}
+
+    if (bres != 0) {
       message = "bind failed, " + lastErrorMessage();
     } else {
       int flags = -1;
@@ -100,8 +105,12 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
       } else {
         sockaddr_in addressData;
         addressData.sin_family = AF_INET;
-        addressData.sin_port = htons(port);
-        addressData.sin_addr.s_addr = htonl(address.getValue());
+
+        try {
+          addressData.sin_port = htons(port);
+          addressData.sin_addr.s_addr = htonl(address.getValue());
+        } catch(...) { /* do nothing */ }
+
         int result = -1;
         try{result=::connect(connection, reinterpret_cast<sockaddr *>(&addressData),
           sizeof addressData);}catch(...){result=-1;}

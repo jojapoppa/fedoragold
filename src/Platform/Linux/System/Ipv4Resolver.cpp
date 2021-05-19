@@ -48,7 +48,8 @@ IpAddress Ipv4Resolver::resolve(const std::string& host) {
 
   addrinfo hints = { 0, AF_INET, SOCK_STREAM, IPPROTO_TCP, 0, NULL, NULL, NULL };
   addrinfo* addressInfos;
-  int result = getaddrinfo(host.c_str(), NULL, &hints, &addressInfos);
+  int result = -1;
+  try{result=getaddrinfo(host.c_str(), NULL, &hints, &addressInfos);}catch(...){result=-1;}
   if (result != 0) {
     throw std::runtime_error("Ipv4Resolver::resolve, getaddrinfo failed, " + errorMessage(result));
   }
@@ -76,7 +77,7 @@ IpAddress Ipv4Resolver::resolve(const std::string& host) {
     //address = new IpAddress(reinterpret_cast<sockaddr_in6*>(addressInfo->ai_addr)->sin6_addr);
   }
 
-  freeaddrinfo(addressInfo);
+  try{freeaddrinfo(addressInfo);}catch(...){/*do nothing*/}
   return *address;
 }
 

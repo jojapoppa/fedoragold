@@ -299,12 +299,26 @@ std::size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::Logg
 std::pair<IpAddress, uint16_t> TcpConnection::getPeerAddressAndPort() const {
   sockaddr_in addr;
   socklen_t size = sizeof(addr);
-  if (getpeername(connection, reinterpret_cast<sockaddr*>(&addr), &size) != 0) {
+
+  int gres = -1;
+  try{gres=getpeername(connection, reinterpret_cast<sockaddr*>(&addr), &size);}
+    catch(...){gres=-1;}
+
+  if (gres != 0) {
     throw std::runtime_error("TcpConnection::getPeerAddress, getpeername failed, " + lastErrorMessage());
   }
 
   assert(size == sizeof(sockaddr_in));
-  return std::make_pair(IpAddress(htonl(addr.sin_addr.s_addr)), htons(addr.sin_port));
+
+  int l1 = -1;
+  int l2 = -1;
+
+  try {
+    l1 = htonl(addr.sin_addr.s_addr);
+    l2 = htons(addr.sin_port);
+  } catch(...) {/* do nothing */}
+
+  return std::make_pair(IpAddress(l1), l2);
 }
 
 TcpConnection::TcpConnection(Dispatcher& dispatcher, int socket) : dispatcher(&dispatcher), connection(socket) {

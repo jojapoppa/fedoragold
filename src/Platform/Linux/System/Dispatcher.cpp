@@ -128,15 +128,21 @@ const size_t STACK_SIZE = 64 * 1024;
 
 Dispatcher::Dispatcher() {
   //std::string message;
-  epoll = ::epoll_create1(0);
+  epoll = -1;
+  try{epoll=::epoll_create1(0);}catch(...){epoll=-1;}
   if (epoll == -1) {
     //message = "epoll_create1 failed, " + lastErrorMessage();
   } else {
     mainContext.ucontext = new ucontext_t;
-    if (getcontext(reinterpret_cast<ucontext_t*>(mainContext.ucontext)) == -1) {
+    int gres = -1;
+    try{gres=getcontext(reinterpret_cast<ucontext_t*>(mainContext.ucontext));}
+      catch(...){gres=-1;}
+    if (gres == -1) {
       //message = "getcontext failed, " + lastErrorMessage();
     } else {
-      remoteSpawnEvent = eventfd(0, O_NONBLOCK);
+      remoteSpawnEvent = -1;
+      try{remoteSpawnEvent=eventfd(0, O_NONBLOCK);}
+        catch(...){remoteSpawnEvent=-1;}
       if(remoteSpawnEvent == -1) {
         //message = "eventfd failed, " + lastErrorMessage();
       } else {
@@ -147,7 +153,11 @@ Dispatcher::Dispatcher() {
         remoteSpawnEventEpollEvent.events = EPOLLIN;
         remoteSpawnEventEpollEvent.data.ptr = &remoteSpawnEventContext;
 
-        if (epoll_ctl(epoll, EPOLL_CTL_ADD, remoteSpawnEvent, &remoteSpawnEventEpollEvent) == -1) {
+        int eres = -1;
+        try{eres=epoll_ctl(epoll, EPOLL_CTL_ADD, remoteSpawnEvent,
+          &remoteSpawnEventEpollEvent);}catch(...){eres=-1;}
+
+        if (eres == -1) {
           //message = "epoll_ctl failed, " + lastErrorMessage();
         } else {
           *reinterpret_cast<pthread_mutex_t*>(this->mutex) = pthread_mutex_t(PTHREAD_MUTEX_INITIALIZER);
@@ -168,12 +178,14 @@ Dispatcher::Dispatcher() {
           return;
         }
 
-        auto result = close(remoteSpawnEvent);
+        auto result = -1;
+        try{result=close(remoteSpawnEvent);}catch(...){result=-1;}
         assert(result == 0);
       }
     }
 
-    auto result = close(epoll);
+    auto result = -1;
+    try{result=close(epoll);}catch(...){result=-1;}
     assert(result == 0);
   }
 
@@ -199,15 +211,16 @@ Dispatcher::~Dispatcher() {
   }
 
   while (!timers.empty()) {
-    int result = ::close(timers.top());
+    int result = -1;
+    try{result=::close(timers.top());}catch(...){result=-1;}
     assert(result == 0);
     timers.pop();
   }
 
   int result = 0;
-  result = close(epoll);
+  try{result = close(epoll);}catch(...){result=-1;}
   assert(result == 0);
-  result = close(remoteSpawnEvent);
+  try{result = close(remoteSpawnEvent);}catch(...){result=-1;}
   assert(result == 0);
   result = pthread_mutex_destroy(reinterpret_cast<pthread_mutex_t*>(this->mutex));
   if (result != 0) {
@@ -225,7 +238,8 @@ void Dispatcher::clear() {
   }
 
   while (!timers.empty()) {
-    int result = ::close(timers.top());
+    int result = -1;
+    try{result=::close(timers.top());}catch(...){result=-1;}
     if (result == -1) {
       throw std::runtime_error("Dispatcher::clear, close failed, "  + lastErrorMessage());
     }
@@ -248,19 +262,22 @@ void Dispatcher::dispatch() {
     }
 
     epoll_event event;
-    int count = epoll_wait(epoll, &event, 1, -1);
+    int count = -1;
+    try{count=epoll_wait(epoll, &event, 1, -1);}catch(...){count=-1;}
     if (count == 1) {
       ContextPair *contextPair = static_cast<ContextPair*>(event.data.ptr);
       if(((event.events & (EPOLLIN | EPOLLOUT)) != 0) && contextPair->readContext == nullptr && contextPair->writeContext == nullptr) {
         uint64_t buf;
-        auto transferred = read(remoteSpawnEvent, &buf, sizeof buf);
+        auto transferred = -1;
+        try{transferred=read(remoteSpawnEvent, &buf, sizeof buf);}
+          catch(...){transferred=-1;}
         if(transferred == -1) {
             throw std::runtime_error("Dispatcher::dispatch, read(remoteSpawnEvent) failed, " + lastErrorMessage());
         }
 
         MutextGuard guard(*reinterpret_cast<pthread_mutex_t*>(this->mutex));
         while (!remoteSpawningProcedures.empty()) {
-          spawn(std::move(remoteSpawningProcedures.front()));
+          try{spawn(std::move(remoteSpawningProcedures.front()));}catch(...){/*do nothing*/}
           remoteSpawningProcedures.pop();
         }
 
@@ -289,7 +306,10 @@ void Dispatcher::dispatch() {
   if (context != currentContext) {
     ucontext_t* oldContext = static_cast<ucontext_t*>(currentContext->ucontext);
     currentContext = context;
-    if (swapcontext(oldContext, static_cast<ucontext_t *>(context->ucontext)) == -1) {
+    int eres = -1;
+    try{eres=swapcontext(oldContext, static_cast<ucontext_t *>(context->ucontext));}
+      catch(...){eres=-1;}
+    if (eres == -1) {
       throw std::runtime_error("Dispatcher::dispatch, swapcontext failed, " + lastErrorMessage());
     }
   }
@@ -300,7 +320,7 @@ NativeContext* Dispatcher::getCurrentContext() const {
 }
 
 void Dispatcher::interrupt() {
-  interrupt(currentContext);
+  try{interrupt(currentContext);}catch(...){/* do nothing */}
 }
 
 void Dispatcher::interrupt(NativeContext* context) {
@@ -349,8 +369,9 @@ void Dispatcher::remoteSpawn(std::function<void()>&& procedure) {
     remoteSpawningProcedures.push(std::move(procedure));
   }
   uint64_t one = 1;
-  auto transferred = write(remoteSpawnEvent, &one, sizeof one);
-  if(transferred == - 1) {
+  auto transferred = -1;
+  try{transferred=write(remoteSpawnEvent, &one, sizeof one);}catch(...){transferred=-1;}
+  if(transferred == -1) {
     throw std::runtime_error("Dispatcher::remoteSpawn, write failed, " + lastErrorMessage());
   }
 }
@@ -378,7 +399,8 @@ void Dispatcher::spawn(std::function<void()>&& procedure) {
 void Dispatcher::yield() {
   for(;;){
     epoll_event events[16];
-    int count = epoll_wait(epoll, events, 16, 0);
+    int count = -1;
+    try{count=epoll_wait(epoll, events, 16, 0);}catch(...){count=-1;}
     if (count == 0) {
       break;
     }
@@ -388,14 +410,16 @@ void Dispatcher::yield() {
         ContextPair *contextPair = static_cast<ContextPair*>(events[i].data.ptr);
         if(((events[i].events & (EPOLLIN | EPOLLOUT)) != 0) && contextPair->readContext == nullptr && contextPair->writeContext == nullptr) {
           uint64_t buf;
-          auto transferred = read(remoteSpawnEvent, &buf, sizeof buf);
+          auto transferred = -1;
+          try{transferred=read(remoteSpawnEvent, &buf, sizeof buf);}catch(...)
+            {transferred=-1;}
           if(transferred == -1) {
             throw std::runtime_error("Dispatcher::dispatch, read(remoteSpawnEvent) failed, " + lastErrorMessage());
           }
 
           MutextGuard guard(*reinterpret_cast<pthread_mutex_t*>(this->mutex));
           while (!remoteSpawningProcedures.empty()) {
-            spawn(std::move(remoteSpawningProcedures.front()));
+            try{spawn(std::move(remoteSpawningProcedures.front()));}catch(...){/* do nothing */}
             remoteSpawningProcedures.pop();
           }
 
@@ -442,7 +466,9 @@ int Dispatcher::getEpoll() const {
 NativeContext& Dispatcher::getReusableContext() {
   if(firstReusableContext == nullptr) {
     ucontext_t* newlyCreatedContext = new ucontext_t;
-    if (getcontext(newlyCreatedContext) == -1) { //makecontext precondition
+    int gres = -1;
+    try{gres=getcontext(newlyCreatedContext);}catch(...){gres=-1;}
+    if (gres == -1) { //makecontext precondition
       throw std::runtime_error("Dispatcher::getReusableContext, getcontext failed, " + lastErrorMessage());
     }
 
@@ -454,7 +480,9 @@ NativeContext& Dispatcher::getReusableContext() {
     makecontext(newlyCreatedContext, (void(*)())contextProcedureStatic, 1, reinterpret_cast<int*>(&makingContextData));
 
     ucontext_t* oldContext = static_cast<ucontext_t*>(currentContext->ucontext);
-    if (swapcontext(oldContext, newlyCreatedContext) == -1) {
+    int sres = -1;
+    try{sres=swapcontext(oldContext, newlyCreatedContext);}catch(...){sres=-1;}
+    if (sres == -1) {
       throw std::runtime_error("Dispatcher::getReusableContext, swapcontext failed, " + lastErrorMessage());
     }
 
@@ -477,12 +505,14 @@ void Dispatcher::pushReusableContext(NativeContext& context) {
 int Dispatcher::getTimer() {
   int timer;
   if (timers.empty()) {
-    timer = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+    try{timer = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);}catch(...){/* do nothing */}
     epoll_event timerEvent;
     timerEvent.events = EPOLLONESHOT;
     timerEvent.data.ptr = nullptr;
 
-    if (epoll_ctl(getEpoll(), EPOLL_CTL_ADD, timer, &timerEvent) == -1) {
+    int eres = -1;
+    try{eres=epoll_ctl(getEpoll(), EPOLL_CTL_ADD, timer, &timerEvent);}catch(...){eres=-1;}
+    if (eres == -1) {
       throw std::runtime_error("Dispatcher::getTimer, epoll_ctl failed, "  + lastErrorMessage());
     }
   } else {
@@ -506,7 +536,10 @@ void Dispatcher::contextProcedure(void* ucontext) {
   context.inExecutionQueue = false;
   firstReusableContext = &context;
   ucontext_t* oldContext = static_cast<ucontext_t*>(context.ucontext);
-  if (swapcontext(oldContext, static_cast<ucontext_t*>(currentContext->ucontext)) == -1) {
+  int sres = -1;
+  try{sres=swapcontext(oldContext, static_cast<ucontext_t*>(currentContext->ucontext));}
+    catch(...){sres=-1;}
+  if (sres == -1) {
     throw std::runtime_error("Dispatcher::contextProcedure, swapcontext failed, " + lastErrorMessage());
   }
 
