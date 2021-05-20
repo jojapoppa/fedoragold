@@ -109,7 +109,7 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
         try {
           addressData.sin_port = htons(port);
           addressData.sin_addr.s_addr = htonl(address.getValue());
-        } catch(...) { /* do nothing */ }
+        } catch(...) { return; /* do nothing */ }
 
         int result = -1;
         try{result=::connect(connection, reinterpret_cast<sockaddr *>(&addressData),
