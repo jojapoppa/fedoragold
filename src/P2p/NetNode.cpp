@@ -552,11 +552,14 @@ namespace CryptoNote
 
       std::string state_file_path = m_config_folder + "/" + m_p2p_state_filename;
       std::ofstream p2p_data;
-      p2p_data.open(state_file_path, std::ios_base::binary | std::ios_base::out | std::ios::trunc);
-      if (p2p_data.fail())  {
-        logger(INFO) << "Failed to save config to file " << state_file_path;
-        return false;
-      };
+
+      try {
+        p2p_data.open(state_file_path, std::ios_base::binary | std::ios_base::out | std::ios::trunc);
+        if (p2p_data.fail())  {
+          logger(INFO) << "Failed to save config to file " << state_file_path;
+          return false;
+        }
+      } catch(...) { logger(INFO) << "Failed config file save " << state_file_path; return false; }
 
       //logger(INFO) << "serialize config";
 
