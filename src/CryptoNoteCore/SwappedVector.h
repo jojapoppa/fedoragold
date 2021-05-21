@@ -197,7 +197,10 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
   if (m_itemsFile && m_indexesFile) {
 
     uint64_t count;
-    m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
+    try {
+      m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
+    } catch(...) { return false; }
+
     if (!m_indexesFile) {
       //fprintf(stderr, "\nFedoragold could not open indexes file or block file.\n");
       return false;
@@ -224,8 +227,8 @@ template<class T> bool SwappedVector<T>::open(const std::string& itemFileName, c
           return false;
         }
         else {
-          //fprintf(stderr, "Blockchain indexes file appears to be corrupted. Attempting automatic recovery\n");
-          //fprintf(stderr, " by rewinding to %s\n", std::to_string(i).c_str());
+          fprintf(stderr, "Blockchain indexes file appears to be corrupted. Attempting automatic recovery\n");
+          fprintf(stderr, " by rewinding to %s\n", std::to_string(i).c_str());
           m_indexesFile.clear(); //clear the error
           m_indexesFile.seekp(0); //retain compability with C98
           m_indexesFile.write(reinterpret_cast<char*>(&i), sizeof i); //update the count

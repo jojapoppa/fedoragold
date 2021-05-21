@@ -766,7 +766,7 @@ void JsonValue::readArray(std::istream& in) {
 
 void JsonValue::readTrue(std::istream& in) {
   char data[3];
-  in.read(data, 3);
+  try{in.read(data, 3);}catch(...){/*do nothing*/}
   if (data[0] != 'r' || data[1] != 'u' || data[2] != 'e') {
     throw std::runtime_error("Unable to parse");
   }
@@ -781,7 +781,7 @@ void JsonValue::readTrue(std::istream& in) {
 
 void JsonValue::readFalse(std::istream& in) {
   char data[4];
-  in.read(data, 4);
+  try{in.read(data, 4);}catch(...){/*do nothing*/}
   if (data[0] != 'a' || data[1] != 'l' || data[2] != 's' || data[3] != 'e') {
     throw std::runtime_error("Unable to parse");
   }
@@ -796,7 +796,7 @@ void JsonValue::readFalse(std::istream& in) {
 
 void JsonValue::readNull(std::istream& in) {
   char data[3];
-  in.read(data, 3);
+  try{in.read(data, 3);}catch(...){/*do nothing*/}
   if (data[0] != 'u' || data[1] != 'l' || data[2] != 'l') {
     throw std::runtime_error("Unable to parse");
   }
@@ -814,10 +814,10 @@ void JsonValue::readNumber(std::istream& in, char c) {
   for (;;) {
     int i = in.peek();
     if (i >= '0' && i <= '9') {
-      in.read(&c, 1);
+      try{in.read(&c, 1);}catch(...){/*do nothing*/}
       text += c;
     } else  if (i == '.') {
-      in.read(&c, 1);
+      try{in.read(&c, 1);}catch(...){/*do nothing*/}
       text += '.';
       ++dots;
     } else {
@@ -832,15 +832,15 @@ void JsonValue::readNumber(std::istream& in, char c) {
 
     int i = in.peek();
     if (in.peek() == 'e') {
-      in.read(&c, 1);
+      try{in.read(&c, 1);}catch(...){/*do nothing*/}
       text += c;
       i = in.peek();
       if (i == '+') {
-        in.read(&c, 1);
+        try{in.read(&c, 1);}catch(...){/*do nothing*/}
         text += c;
         i = in.peek();
       } else if (i == '-') {
-        in.read(&c, 1);
+        try{in.read(&c, 1);}catch(...){/*do nothing*/}
         text += c;
         i = in.peek();
       }
@@ -850,7 +850,7 @@ void JsonValue::readNumber(std::istream& in, char c) {
       }
 
       do {
-        in.read(&c, 1);
+        try{in.read(&c, 1);}catch(...){/*do nothing*/}
         text += c;
         i = in.peek();
       } while (i >= '0' && i <= '9');

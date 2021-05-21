@@ -106,15 +106,16 @@ TcpConnection TcpConnector::connect(const IpAddress& address, uint16_t port) {
         sockaddr_in addressData;
         addressData.sin_family = AF_INET;
 
+        bool bAddr = true;
         try {
           addressData.sin_port = htons(port);
           addressData.sin_addr.s_addr = htonl(address.getValue());
-        } catch(...) { return; /* do nothing */ }
+        } catch(...) { bAddr = false; }
 
         int result = -1;
         try{result=::connect(connection, reinterpret_cast<sockaddr *>(&addressData),
           sizeof addressData);}catch(...){result=-1;}
-        if (result == -1) {
+        if (result == -1 || !bAddr) {
           if (errno == EINPROGRESS) {
 
             ContextPair contextPair;
