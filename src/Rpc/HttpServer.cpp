@@ -113,17 +113,26 @@ void HttpServer::acceptLoop() {
 		fillUnauthorizedResponse(resp);
 	}
 
-      //logger(INFO) << "++++ RpcServer: writing response: " << resp;
+      //logger(DEBUGGING) << "++++ RpcServer: writing response: " << resp;
 
       stream << resp;
       stream.flush();
 
-      if (stream.peek() == std::iostream::traits_type::eof()) {
+      logger(DEBUGGING) << "response written... peek at stream now...";
+
+      try {
+        if (stream.peek() == std::iostream::traits_type::eof()) { break; }
+      } catch (std::iostream::failure& e) {
+        logger(DEBUGGING) << "iostream failed";
+        break;
+      } catch(...) {
+        logger(DEBUGGING) << "peek error!";
         break;
       }
     }
 
-    logger(DEBUGGING) << "Closing connection from " << addr.first.toDottedDecimal() << ":" << addr.second << " total=" << m_connections.size();
+    logger(DEBUGGING) << "Closing connection..";
+    logger(DEBUGGING) << ".. from " << addr.first.toDottedDecimal() << ":" << addr.second << " total=" << m_connections.size();
 
   } catch (System::InterruptedException&) {
   } catch (std::exception& e) {

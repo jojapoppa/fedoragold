@@ -727,36 +727,46 @@ namespace CryptoNote
     return false;
   }
 
-
   bool NodeServer::try_to_connect_and_handshake_with_new_peer(const NetworkAddress& na, bool just_take_peerlist, uint64_t last_seen_stamp, bool white)  {
 
-    logger(DEBUGGING) << "Connecting to " << na << " (white=" << white << ", last_seen: "
-        << (last_seen_stamp ? Common::timeIntervalToString(time(NULL) - last_seen_stamp) : "never") << ")...";
+    logger(DEBUGGING) << "Connecting to " << na <<
+      " (white=" << white << ", last_seen: " <<
+      (last_seen_stamp ? Common::timeIntervalToString(time(NULL) -
+       last_seen_stamp) : "never") << ")...";
+
+    logger(DEBUGGING) << "Establish connection...";
 
     try {
       System::TcpConnection connection;
-      System::Context<System::TcpConnection> connectionContext(m_dispatcher, [&] {
-        System::TcpConnector connector(m_dispatcher);
-        return connector.connect(System::IpAddress(Common::ipAddressToString(na.ip)),
-          static_cast<uint16_t>(na.port));
-      });
+      System::Context<System::TcpConnection>
+        connectionContext(m_dispatcher, [&] {
+          System::TcpConnector connector(m_dispatcher);
+          return connector.connect(System::IpAddress(
+            Common::ipAddressToString(na.ip)), static_cast<uint16_t>(na.port));
+        });
+
+      logger(DEBUGGING) << "test timeout...";
 
       try {
         System::Context<> timeoutContext(m_dispatcher, [&] {
           System::Timer(m_dispatcher).sleep(std::chrono::milliseconds(
             m_config.m_net_config.connection_timeout));
+          logger(DEBUGGING) << "interrupt connection..";
           connectionContext.interrupt();
-          //logger(DEBUGGING) << "Connection to " << na <<" timed out, interrupt it";
+          logger(DEBUGGING) << "Connection to " << na <<" timed out, interrupt it";
         });
 
+        logger(DEBUGGING) << "move connection...";
         connection = std::move(connectionContext.get());
       } catch (System::InterruptedException&) {
-        //logger(INFO) << "NodeServer: Connection timed out";
+        logger(DEBUGGING) << "NodeServer: Connection timed out";
         connectionContext.interrupt();
         return false;
       }
 
-      P2pConnectionContext ctx(m_dispatcher, logger.getLogger(), std::move(connection));
+      logger(DEBUGGING) << "create context..";
+      P2pConnectionContext ctx(m_dispatcher, logger.getLogger(),
+        std::move(connection));
 
       ctx.m_connection_id = boost::uuids::random_generator()();
       ctx.m_remote_ip = na.ip;
@@ -786,11 +796,11 @@ namespace CryptoNote
               return false;
             }
           }
-          //logger(WARNING) << "Failed to HANDSHAKE with peer " << na;
+          logger(DEBUGGING) << "Failed to HANDSHAKE with peer " << na;
           return false;
         }
       } catch (System::InterruptedException&) {
-        //logger(INFO) << "Handshake timed out";
+        logger(DEBUGGING) << "Handshake timed out";
         return false;
       }
 
@@ -1539,14 +1549,17 @@ namespace CryptoNote
           case P2pMessage::COMMAND:
             logger(DEBUGGING) << "sending COMMAND: " << msg.command;
             proto.sendMessage(msg.command, msg.buffer, true, logger);
+            logger(DEBUGGING) << "command sent..";
             break;
           case P2pMessage::NOTIFY:
 	    logger(DEBUGGING) << "sending NOTIFY: " << msg.command;
             proto.sendMessage(msg.command, msg.buffer, false, logger);
+            logger(DEBUGGING) << "notify sent..";
             break;
           case P2pMessage::REPLY:
 	    logger(DEBUGGING) << "sending REPLY: " << msg.command;
             proto.sendReply(msg.command, msg.buffer, msg.returnCode, logger);
+            logger(DEBUGGING) << "reply sent..";
             break;
           default:
             assert(false);

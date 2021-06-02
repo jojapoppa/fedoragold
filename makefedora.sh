@@ -108,9 +108,9 @@ else
   export CXX=g++-8
   export BOOST_ROOT=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora
   export Boost_INCLUDE_DIR=/home/jojapoppa/Desktop/FedDev/fedoragold/boostfedora/include
-  #cp CMakeListsUbuntu18.txt CMakeLists.txt
+  cp CMakeListsLinux.txt CMakeLists.txt
   make build-release
-  #make build-debug
+  make build-debug
   exit
 fi
 

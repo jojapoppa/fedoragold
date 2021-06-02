@@ -123,28 +123,29 @@ static_assert(sizeof(pthread_mutex_t) != 64, "64");
 
 static_assert(Dispatcher::SIZEOF_PTHREAD_MUTEX_T == sizeof(pthread_mutex_t), "invalid pthread mutex size");
 
-const size_t STACK_SIZE = 64 * 1024;
+//const size_t STACK_SIZE = 64 * 1024;
+const size_t STACK_SIZE = 512 * 1024;
 };
 
 Dispatcher::Dispatcher() {
-  //std::string message;
+  std::string message;
   epoll = -1;
   try{epoll=::epoll_create1(0);}catch(...){epoll=-1;}
   if (epoll == -1) {
-    //message = "epoll_create1 failed, " + lastErrorMessage();
+    message = "epoll_create1 failed, " + lastErrorMessage();
   } else {
     mainContext.ucontext = new ucontext_t;
     int gres = -1;
     try{gres=getcontext(reinterpret_cast<ucontext_t*>(mainContext.ucontext));}
       catch(...){gres=-1;}
     if (gres == -1) {
-      //message = "getcontext failed, " + lastErrorMessage();
+      message = "getcontext failed, " + lastErrorMessage();
     } else {
       remoteSpawnEvent = -1;
       try{remoteSpawnEvent=eventfd(0, O_NONBLOCK);}
         catch(...){remoteSpawnEvent=-1;}
       if(remoteSpawnEvent == -1) {
-        //message = "eventfd failed, " + lastErrorMessage();
+        message = "eventfd failed, " + lastErrorMessage();
       } else {
         remoteSpawnEventContext.writeContext = nullptr;
         remoteSpawnEventContext.readContext = nullptr;
@@ -158,7 +159,7 @@ Dispatcher::Dispatcher() {
           &remoteSpawnEventEpollEvent);}catch(...){eres=-1;}
 
         if (eres == -1) {
-          //message = "epoll_ctl failed, " + lastErrorMessage();
+          message = "epoll_ctl failed, " + lastErrorMessage();
         } else {
           *reinterpret_cast<pthread_mutex_t*>(this->mutex) = pthread_mutex_t(PTHREAD_MUTEX_INITIALIZER);
 
@@ -255,15 +256,16 @@ void Dispatcher::dispatch() {
       context = firstResumingContext;
       firstResumingContext = context->next;
 
-      //when compiling in debug i was hitting this assert...
-      //assert(context->inExecutionQueue);
+//when compiling in debug i was hitting this assert...
+//      assert(context->inExecutionQueue);
       context->inExecutionQueue = false;
       break;
     }
 
     epoll_event event;
     int count = -1;
-    try{count=epoll_wait(epoll, &event, 1, -1);}catch(...){count=-1;}
+    if (epoll != -1)
+      try{count=epoll_wait(epoll, &event, 1, -1);}catch(...){count=-1;}
     if (count == 1) {
       ContextPair *contextPair = static_cast<ContextPair*>(event.data.ptr);
       if(((event.events & (EPOLLIN | EPOLLOUT)) != 0) && contextPair->readContext == nullptr && contextPair->writeContext == nullptr) {
@@ -320,7 +322,8 @@ NativeContext* Dispatcher::getCurrentContext() const {
 }
 
 void Dispatcher::interrupt() {
-  try{interrupt(currentContext);}catch(...){/* do nothing */}
+  //try{interrupt(currentContext);}catch(...){/* do nothing */}
+  interrupt(currentContext);
 }
 
 void Dispatcher::interrupt(NativeContext* context) {
@@ -347,8 +350,8 @@ bool Dispatcher::interrupted() {
 void Dispatcher::pushContext(NativeContext* context) {
   assert(context != nullptr);
 
-  if (context->inExecutionQueue)
-    return;
+//  if (context->inExecutionQueue)
+//    return;
 
   context->next = nullptr;
   context->inExecutionQueue = true;
@@ -400,7 +403,8 @@ void Dispatcher::yield() {
   for(;;){
     epoll_event events[16];
     int count = -1;
-    try{count=epoll_wait(epoll, events, 16, 0);}catch(...){count=-1;}
+    if (epoll != -1)
+      try{count=epoll_wait(epoll, events, 16, 0);}catch(...){count=-1;}
     if (count == 0) {
       break;
     }

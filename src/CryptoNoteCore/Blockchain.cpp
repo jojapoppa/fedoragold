@@ -224,10 +224,10 @@ public:
       s(m_lastBlockHash, "last_block");
     }
 
-    //logger(INFO) << operation << "block index...";
+    logger(INFO) << operation << "block index...";
     s(m_bs.m_blockIndex, "block_index");
 
-    //logger(INFO) << operation << "transaction map...";
+    logger(INFO) << operation << "transaction map...";
     //s(m_bs.m_transactionMap, "transactions");
     if (s.type() == ISerializer::INPUT) {
       phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
@@ -238,7 +238,7 @@ public:
       m_bs.m_transactionMap.dump(ar_out);
     }
 
-    //logger(INFO) << operation << "spent keys...";
+    logger(INFO) << operation << "spent keys...";
     //s(m_bs.m_spent_keys, "spent_keys");
     if (s.type() == ISerializer::INPUT) {
       phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "spentkeys.dat").c_str());
@@ -249,15 +249,15 @@ public:
       m_bs.m_spent_keys.dump(ar_out);
     }
 
-    //logger(INFO) << operation << "outputs...";
+    logger(INFO) << operation << "outputs...";
     s(m_bs.m_outputs, "outputs");
 
-    //logger(INFO) << operation << "multi-signature outputs...";
+    logger(INFO) << operation << "multi-signature outputs...";
     s(m_bs.m_multisignatureOutputs, "multisig_outputs");
 
     auto dur = std::chrono::steady_clock::now() - start;
 
-    //logger(INFO) << "Serialization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
+    logger(INFO) << "Serialization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
 
     m_cacheloaded = true;
   }

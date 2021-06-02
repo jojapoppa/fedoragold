@@ -236,6 +236,8 @@ void PaymentGateService::runRpcProxy(Logging::LoggerRef& log) {
 
   this->dispatcher = nullptr;
   this->stopEvent = nullptr;
+
+  //std::cout << "PaymentGateService exit at runRpcProxy"; 
   exit(0);
 }
 
@@ -267,6 +269,8 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
       std::cout << "Address: " << address << std::endl;
     }
     fclose(stdout);  // only way to force output buffer prior to exit on Windows...
+
+    //std::cout << "PaymentGateService exit at runWalletService";
     exit(0);
   } else {
 
