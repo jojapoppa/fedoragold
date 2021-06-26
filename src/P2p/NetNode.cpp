@@ -556,7 +556,7 @@ namespace CryptoNote
       try {
         p2p_data.open(state_file_path, std::ios_base::binary | std::ios_base::out | std::ios::trunc);
         if (p2p_data.fail())  {
-          logger(INFO) << "Failed to save config to file " << state_file_path;
+          logger(DEBUGGING) << "Failed to save config to file " << state_file_path;
           return false;
         }
       } catch(...) { logger(INFO) << "Failed config file save " << state_file_path; return false; }
