@@ -11,6 +11,7 @@
 #include "Logging/LoggerRef.h"
 #include "PaymentGate/PaymentServiceJsonRpcServer.h"
 #include "Wallet/WalletGreen.h"
+#include <iostream>
 
 #include "CryptoNoteCore/CoreConfig.h"
 #include "CryptoNoteCore/Core.h"
@@ -89,6 +90,8 @@ bool PaymentGateService::init(int argc, char** argv) {
 
     fileLogger.attachToStream(fileStream);
     logger.addLogger(fileLogger);
+
+    log(Logging::INFO) << "logger started...";
   }
 
   return true;
@@ -109,7 +112,7 @@ const CryptoNote::Currency PaymentGateService::getCurrency() {
 }
 
 void PaymentGateService::run() {
-  
+
   System::Dispatcher localDispatcher;
   System::Event localStopEvent(localDispatcher);
 
@@ -209,10 +212,11 @@ void PaymentGateService::runInProcess(Logging::LoggerRef& log) {
   });
 
   p2pStarted.wait();
-
   runWalletService(currency, *node);
 
+  log(Logging::INFO) << "PaymentGateService is shutting down sending stop signal...";
   p2pNode.sendStopSignal();
+
   context.get();
   node->shutdown();
   core.deinit();
@@ -229,6 +233,12 @@ void PaymentGateService::runRpcProxy(Logging::LoggerRef& log) {
       config.remoteNodeConfig.daemonPort));
 
   runWalletService(currency, *node);
+
+  this->dispatcher = nullptr;
+  this->stopEvent = nullptr;
+
+  //std::cout << "PaymentGateService exit at runRpcProxy"; 
+  exit(0);
 }
 
 void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, CryptoNote::INode& node) {
@@ -245,6 +255,8 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
   try {
     service->init();
   } catch (std::exception& e) {
+    // must send to stdout ...
+    std::cout << "wallet exception: " << e.what() << std::endl;
     Logging::LoggerRef(logger, "run")(Logging::ERROR, Logging::BRIGHT_RED) << "Failed to init walletService reason: " << e.what();
     return;
   }
@@ -256,6 +268,10 @@ void PaymentGateService::runWalletService(const CryptoNote::Currency& currency, 
     for (const auto& address: addresses) {
       std::cout << "Address: " << address << std::endl;
     }
+    fclose(stdout);  // only way to force output buffer prior to exit on Windows...
+
+    //std::cout << "PaymentGateService exit at runWalletService";
+    exit(0);
   } else {
 
     PaymentService::PaymentServiceJsonRpcServer rpcServer(*dispatcher, 

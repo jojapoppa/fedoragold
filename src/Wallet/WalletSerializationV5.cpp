@@ -497,13 +497,11 @@ void WalletSerializerV5::loadWallet(Common::IInputStream& source, const std::str
 
   loadIv(source, cryptoContext.iv);
   generateKey(password, cryptoContext.key);
-
   loadKeys(source, cryptoContext);
   checkKeys();
 
   loadWallets(source, cryptoContext);
   subscribeWallets();
-
   loadFlags(details, cache, source, cryptoContext);
 
   if (details) {

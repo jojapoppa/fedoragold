@@ -55,6 +55,8 @@ std::string DaemonCommandsHandler::get_commands_str()
 
 //--------------------------------------------------------------------------------
 bool DaemonCommandsHandler::exit(const std::vector<std::string>& args) {
+  logger(Logging::INFO) << "DaemonCommandsHandler::exit -> sendStopSignal"; 
+
   m_srv.sendStopSignal();
   m_consoleHandler.requestStop();
   m_core.stop();

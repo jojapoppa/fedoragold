@@ -88,8 +88,8 @@ void CryptoNoteProtocolHandler::onConnectionClosed(CryptoNoteConnectionContext& 
   }
 }
 
-void CryptoNoteProtocolHandler::stop() {
-  logger(INFO) << "stopping CN protocol handler";
+void CryptoNoteProtocolHandler::stopHandler() {
+  //logger(INFO) << "stopping CN protocol handler";
   m_stop = true;
 }
 
@@ -474,8 +474,13 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       logger(DEBUGGING) << "transaction " << transactionHash << " came in processObjects";
 
       tx_verification_context tvc = boost::value_initialized<decltype(tvc)>();
+
+      logger(DEBUGGING) << "got verification context";
+
       m_core.handle_incoming_tx(transactionBinary, tvc, true);
-      
+     
+      logger(DEBUGGING) << "returned from handle_incoming_tx";
+ 
       if (tvc.m_verifivation_failed || tvc.m_verifivation_impossible) {
         logger(Logging::DEBUGGING) << context << "transaction verification failed on NOTIFY_RESPONSE_GET_OBJECTS, \r\ntx_id = " << Common::podToHex(getBinaryArrayHash(asBinaryArray(tx_blob))) << ", dropping connection";
         context.m_state = CryptoNoteConnectionContext::state_shutdown;
@@ -502,7 +507,7 @@ int CryptoNoteProtocolHandler::processObjects(CryptoNoteConnectionContext& conte
       context.m_requested_objects.clear();
       return 1;
     }
-    
+
     m_dispatcher.yield();
   }
   return 0;
@@ -600,7 +605,7 @@ bool CryptoNoteProtocolHandler::on_connection_not_synchronized() {
 bool CryptoNoteProtocolHandler::on_connection_synchronized() {
   bool val_expected = false;
   if (m_synchronized.compare_exchange_strong(val_expected, true)) {
-    logger(Logging::INFO) << "reload complete!";
+    //logger(Logging::INFO) << "reload complete!";
     m_core.on_synchronized();
 
     uint32_t height;

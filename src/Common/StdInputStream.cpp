@@ -10,7 +10,7 @@ StdInputStream::StdInputStream(std::istream& in) : in(in) {
 }
 
 uint64_t StdInputStream::readSome(void* data, uint64_t size) {
-  in.read(static_cast<char*>(data), size);
+  try{in.read(static_cast<char*>(data), size);}catch(...){/*do nothing*/}
   return in.gcount();
 }
 

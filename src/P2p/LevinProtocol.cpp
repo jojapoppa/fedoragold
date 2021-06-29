@@ -60,6 +60,8 @@ void LevinProtocol::sendMessage(uint32_t command, const BinaryArray& out, bool n
   stream.writeSome(out.data(), out.size());
 
   writeStrict(writeBuffer.data(), writeBuffer.size(), logger);
+
+  logger(DEBUGGING) << "sendMessage completed";
 }
 
 bool LevinProtocol::readCommand(Command& cmd, Logging::LoggerRef& logger) {

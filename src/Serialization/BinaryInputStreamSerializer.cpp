@@ -117,7 +117,7 @@ bool BinaryInputStreamSerializer::operator()(double& value, Common::StringView n
 }
 
 void BinaryInputStreamSerializer::checkedRead(char* buf, uint64_t size) {
-  read(stream, buf, size);
+  try{read(stream, buf, size);}catch(...){/*do nothing*/}
 }
 
 }

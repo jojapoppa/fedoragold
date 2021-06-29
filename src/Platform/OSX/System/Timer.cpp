@@ -6,6 +6,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <string>
+#include <iostream>
 
 #include <sys/errno.h>
 #include <sys/event.h>
@@ -66,8 +67,13 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
   struct kevent event;
   EV_SET(&event, timer, EVFILT_TIMER, EV_ADD | EV_ENABLE | EV_ONESHOT, NOTE_NSECONDS, duration.count(), &timerContext);
 
-  if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
-    throw std::runtime_error("Timer::stop, kevent failed, " + lastErrorMessage());
+  int kresult=-1;
+  try{kresult=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){kresult=-1;}
+  if (kresult == -1) {
+    // do nothing
+    std::cerr << "kevent 1 failed, errno: " << errno << " : " << lastErrorMessage() << std::endl;
+    //throw std::runtime_error("Timer::stop, kevent1 failed, " + lastErrorMessage());
+    return;
   }
 
   context = &timerContext;
@@ -79,8 +85,12 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
       struct kevent event;
       EV_SET(&event, timer, EVFILT_TIMER, EV_DELETE, 0, 0, NULL);
 
-      if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
-        throw std::runtime_error("Timer::stop, kevent failed, " + lastErrorMessage());
+      int kresult=-1;
+      try{kresult=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){kresult=-1;}
+      if (kresult == -1) {
+        // do nothing
+        //std::cerr << "kevent 2 failed, errno: " << errno << " : " << lastErrorMessage() << std::endl;
+        //throw std::runtime_error("Timer::stop, kevent2 failed, " + lastErrorMessage());
       }
 
       dispatcher->pushContext(timerContext->context);

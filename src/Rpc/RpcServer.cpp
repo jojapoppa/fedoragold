@@ -140,10 +140,10 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, core
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
 
-  lastUrl = getHostnm(request);
+  lastUrl = getHostnm(request)+request.getUrl();
 
   auto url = request.getUrl();
-  //logger(INFO) << "processRequest: " << url;
+  //logger(INFO) << "RpcServer processRequest: " << url;
 
   auto it = s_handlers.find(url);
   if (it == s_handlers.end()) {
@@ -1239,11 +1239,13 @@ bool RpcServer::on_stop_mining(const COMMAND_RPC_STOP_MINING::request& req, COMM
 }
 
 bool RpcServer::on_stop_daemon(const COMMAND_RPC_STOP_DAEMON::request& req, COMMAND_RPC_STOP_DAEMON::response& res) {
-
   if (checkLocal()) {
-    logger(INFO) << "Sending stop signal...";
+    logger(INFO) << "Rpc sending stop signal to core...";
     m_core.stop();
-    m_p2p.sendStopSignal();
+    logger(INFO) << "RpcServer: sending stop signal to node server";
+    try {
+      m_p2p.sendStopSignal();
+    } catch(...) { /* do nothing */ }
     res.status = CORE_RPC_STATUS_OK;
   } else {
     res.status = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
@@ -1362,6 +1364,8 @@ bool RpcServer::on_submitblock(const COMMAND_RPC_SUBMITBLOCK::request& req, COMM
   block_verification_context bvc = boost::value_initialized<block_verification_context>();
 
   m_core.handle_incoming_block_blob(blockblob, bvc, true, true);
+
+  logger(DEBUGGING) << "in on_submitblock check verifcation (back from handle_incoming_block_blob)"; 
 
   if (!bvc.m_added_to_main_chain) {
     throw JsonRpc::JsonRpcError{ CORE_RPC_ERROR_CODE_BLOCK_NOT_ACCEPTED, "Block not accepted" };

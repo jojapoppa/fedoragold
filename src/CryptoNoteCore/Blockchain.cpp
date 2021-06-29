@@ -15,6 +15,8 @@
 #include "Serialization/BinarySerializationTools.h"
 #include "CryptoNoteTools.h"
 
+#include "parallel_hashmap/phmap_dump.h"
+
 using namespace Logging;
 using namespace Common;
 
@@ -128,7 +130,7 @@ public:
 
   void load(const std::string& filename) {
 
-    logger(INFO) << "BlockCacheSerializer::load...";
+    //logger(INFO) << "BlockCacheSerializer::load...";
 
     if (m_cacheloaded) {
       logger(INFO) << "block cache already loaded... skipped";
@@ -144,7 +146,7 @@ public:
 
       StdInputStream stream(stdStream);
       BinaryInputStreamSerializer s(stream);
-      logger(INFO) << "calling serialize for block cache load...";
+      //logger(INFO) << "calling serialize for block cache load...";
       CryptoNote::serialize(*this, s);
     } catch (std::exception& e) {
       logger(WARNING) << "loading failed: " << e.what();
@@ -168,7 +170,7 @@ public:
 
       StdOutputStream stream(file);
       BinaryOutputStreamSerializer s(stream);
-      logger(INFO) << "calling serialize for block cache save...";
+      //logger(INFO) << "calling serialize for block cache save...";
       CryptoNote::serialize(*this, s);
       stream.flush();
     } catch (std::exception& e) {
@@ -191,13 +193,13 @@ public:
       return;
     }
 
-    logger(INFO) << "cache serialization in process...";
+    //logger(INFO) << "cache serialization in process...";
 
     std::string operation;
 
     if (s.type() == ISerializer::INPUT) {
       operation = "- loading ";
-      logger(INFO) << "  loading...";
+      //logger(INFO) << "  loading...";
 
       Crypto::Hash blockHash;
       s(blockHash, "last_block");
@@ -226,10 +228,26 @@ public:
     s(m_bs.m_blockIndex, "block_index");
 
     logger(INFO) << operation << "transaction map...";
-    s(m_bs.m_transactionMap, "transactions");
+    //s(m_bs.m_transactionMap, "transactions");
+    if (s.type() == ISerializer::INPUT) {
+      phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
+      m_bs.m_transactionMap.load(ar_in);
+    }
+    else {
+      phmap::BinaryOutputArchive ar_out(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
+      m_bs.m_transactionMap.dump(ar_out);
+    }
 
     logger(INFO) << operation << "spent keys...";
-    s(m_bs.m_spent_keys, "spent_keys");
+    //s(m_bs.m_spent_keys, "spent_keys");
+    if (s.type() == ISerializer::INPUT) {
+      phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "spentkeys.dat").c_str());
+      m_bs.m_spent_keys.load(ar_in);
+    }
+    else {
+      phmap::BinaryOutputArchive ar_out(appendPath(m_bs.m_config_folder, "spentkeys.dat").c_str());
+      m_bs.m_spent_keys.dump(ar_out);
+    }
 
     logger(INFO) << operation << "outputs...";
     s(m_bs.m_outputs, "outputs");
@@ -239,8 +257,7 @@ public:
 
     auto dur = std::chrono::steady_clock::now() - start;
 
-    logger(INFO) << "Serialization time: " << 
-      std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
+    logger(INFO) << "Serialization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(dur).count() << "ms";
 
     m_cacheloaded = true;
   }
@@ -305,13 +322,13 @@ public:
       s(m_lastBlockHash, "blockHash");
     }
 
-    logger(INFO) << operation << "paymentID index...";
+    //logger(INFO) << operation << "paymentID index...";
     s(m_bs.m_paymentIdIndex, "paymentIdIndex");
 
-    logger(INFO) << operation << "timestamp index...";
+    //logger(INFO) << operation << "timestamp index...";
     s(m_bs.m_timestampIndex, "timestampIndex");
 
-    logger(INFO) << operation << "generated transactions index...";
+    //logger(INFO) << operation << "generated transactions index...";
     s(m_bs.m_generatedTransactionsIndex, "generatedTransactionsIndex");
   }
 
@@ -379,7 +396,7 @@ logger(logger, "Blockchain") {
 
   m_outputs.set_deleted_key(0);
   Crypto::KeyImage nullImage = boost::value_initialized<decltype(nullImage)>();
-  m_spent_keys.set_deleted_key(nullImage);
+  //m_spent_keys.set_deleted_key(nullImage);
 }
 
 bool Blockchain::addObserver(IBlockchainStorageObserver* observer) {
@@ -469,7 +486,6 @@ uint32_t Blockchain::getCurrentBlockchainHeight() {
 bool Blockchain::loadIndexes(std::string config_folder, bool load_existing) {
   bool results = true;
   if (load_existing && !m_blocks.empty()) {
-    logger(INFO, BRIGHT_WHITE) << "Loading blockchain...";
     BlockCacheSerializer cacheloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
     cacheloader.load(appendPath(config_folder, m_currency.blocksCacheFileName()));
 
@@ -526,7 +542,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
 
   std::string cachePath = "";
   if (load_existing && !m_blocks.empty()) {
-    logger(INFO) << "Loading blockchain...";
+    //logger(INFO) << "Loading blockchain...";
     BlockCacheSerializer cacheloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger()); 
     cachePath = appendPath(config_folder, m_currency.blocksCacheFileName());
     cacheloader.load(cachePath);
@@ -563,7 +579,7 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     m_blocks.clear();
   }
 
-  logger(WARNING, BRIGHT_YELLOW) << "Checking blocks...";
+  //logger(WARNING, BRIGHT_YELLOW) << "Checking blocks...";
 
   if (m_blocks.empty()) {
     logger(INFO, BRIGHT_WHITE)
@@ -576,10 +592,10 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
       logger(ERROR, BRIGHT_RED) << "Failed to add genesis block to blockchain";
       return false;
     }
-    logger(INFO, BRIGHT_WHITE) << "block verification context created...";
+    //logger(INFO, BRIGHT_WHITE) << "block verification context created...";
   } else {
     Crypto::Hash firstBlockHash = get_block_hash(m_blocks[0].bl);
-    logger(INFO) << "checking genesis block";
+    //logger(INFO) << "checking genesis block";
     if (!(firstBlockHash == m_currency.genesisBlockHash())) {
       logger(ERROR, BRIGHT_RED) << "Failed to init: genesis block mismatch. "
         "Probably you set --testnet flag with data "
@@ -589,19 +605,19 @@ bool Blockchain::init(const std::string& config_folder, bool load_existing) {
     }
   }
 
-  logger(INFO, BRIGHT_WHITE) << "verifying checkpoints...";
+  //logger(INFO, BRIGHT_WHITE) << "verifying checkpoints...";
   uint32_t lastValidCheckpointHeight = 0;
   if (!checkCheckpoints(lastValidCheckpointHeight)) {
     logger(WARNING, BRIGHT_YELLOW) << "Invalid checkpoint! Rollback blockchain to height=" << lastValidCheckpointHeight;
     rollbackBlockchainTo(lastValidCheckpointHeight);
   }
 
-  logger(INFO, BRIGHT_GREEN) << "size limit update...";
+  //logger(INFO, BRIGHT_GREEN) << "size limit update...";
   update_next_comulative_size_limit();
 
-  logger(INFO, BRIGHT_GREEN)
-    << "Initialized, block: " << m_blocks.size() - 1 << ", "
-    << " cur diff: " << getDifficultyForNextBlock();
+  //logger(INFO, BRIGHT_GREEN)
+  //  << "Initialized, block: " << m_blocks.size() - 1 << ", "
+  //  << " cur diff: " << getDifficultyForNextBlock();
 
   m_indexesInitialized = true;
   return true;
@@ -633,7 +649,7 @@ bool Blockchain::rebuildCache() {
       // process inputs
       for (auto& i : transaction.tx.inputs) {
         if (i.type() == typeid(KeyInput)) {
-          m_spent_keys.insert(::boost::get<KeyInput>(i).keyImage);
+          m_spent_keys.insert(std::make_pair(::boost::get<KeyInput>(i).keyImage, b));
         } else if (i.type() == typeid(MultisignatureInput)) {
           auto out = ::boost::get<MultisignatureInput>(i);
           m_multisignatureOutputs[out.amount][out.outputIndex].isUsed = true;
@@ -665,6 +681,80 @@ bool Blockchain::rebuildCache() {
   return true;
 }
 
+/*
+bool Blockchain::rebuildCache() {
+  std::chrono::steady_clock::time_point timePoint = std::chrono::steady_clock::now();
+
+  // if you can get the torrent system working, use 2x the torrent blocksize here
+  uint32_t chunkySize = 1000;
+
+  try {
+
+    for (uint32_t b = 0; b < m_blocks.size(); ++b) {
+      if (b % chunkySize == 0) {
+        logger(INFO, BRIGHT_WHITE) << "Height " << b << " of " << m_blocks.size();
+      }
+      const BlockEntry& block = m_blocks[b];
+      Crypto::Hash blockHash = get_block_hash(block.bl);
+      bool hasBlock = m_blockIndex.hasBlock(blockHash);
+
+      // speeds up the process a LOT
+      if ((b > chunkySize) && (b < (m_blocks.size()-chunkySize)) && hasBlock) {
+        logger(INFO) << "SKIP A CHUNK!";;
+        continue; // skip, io errors happen at beginning and end usually, will check checksums later
+      }
+
+      if (!hasBlock) {
+        m_blockIndex.push(blockHash);
+      }
+
+      for (uint16_t t = 0; t < block.transactions.size(); ++t) {
+        const TransactionEntry& transaction = block.transactions[t];
+        Crypto::Hash transactionHash = getObjectHash(transaction.tx);
+        TransactionIndex transactionIndex = { b, t };
+        m_transactionMap.insert(std::make_pair(transactionHash, transactionIndex));
+
+        // process inputs
+        for (auto& i : transaction.tx.inputs) {
+          if (i.type() == typeid(KeyInput)) {
+            m_spent_keys.insert(std::make_pair(::boost::get<KeyInput>(i).keyImage, b));
+          } else if (i.type() == typeid(MultisignatureInput)) {
+            auto out = ::boost::get<MultisignatureInput>(i);
+            m_multisignatureOutputs[out.amount][out.outputIndex].isUsed = true;
+          }
+        }
+
+        // process outputs
+        for (uint16_t o = 0; o < transaction.tx.outputs.size(); ++o) {
+          const auto& out = transaction.tx.outputs[o];
+          if (out.target.type() == typeid(KeyOutput)) {
+            auto newitem = std::make_pair<>(transactionIndex, o);
+            m_outputs[out.amount].push_back(newitem);
+          } else if (out.target.type() == typeid(MultisignatureOutput)) {
+            MultisignatureOutputUsage usage = { transactionIndex, o, false };
+            m_multisignatureOutputs[out.amount].push_back(usage);
+          }
+        }
+      }
+    }
+
+  } catch (...) {
+    logger(INFO, BRIGHT_WHITE) << "invalid block history, ready for resync";
+    m_blockIndex.clear();
+    m_transactionMap.clear();
+    m_spent_keys.clear();
+    m_outputs.clear();
+    m_multisignatureOutputs.clear();
+    return false;
+  }
+
+  BlockCacheSerializer::m_cacheloaded = true;
+  std::chrono::duration<double> duration = std::chrono::steady_clock::now() - timePoint;
+  //logger(INFO, BRIGHT_WHITE) << "Rebuilding internal structures took: " << duration.count();
+  return true;
+}
+*/
+
 bool Blockchain::storeCache() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
@@ -679,10 +769,16 @@ bool Blockchain::storeCache() {
 }
 
 bool Blockchain::deinit() {
-  storeCache();
-  if (m_blockchainIndexesEnabled) {
-    storeBlockchainIndices();
-  }
+
+  logger(INFO) << "Blockchain::deinit() storeCache...";
+
+  try {
+    storeCache();
+    if (m_blockchainIndexesEnabled) {
+      storeBlockchainIndices();
+    }
+  } catch(...) {/* do nothing, it will rescan if needed... */}
+
   assert(m_messageQueueList.empty());
   return true;
 }
@@ -2184,7 +2280,8 @@ bool Blockchain::pushTransaction(BlockEntry& block, const Crypto::Hash& transact
 
   for (size_t i = 0; i < transaction.tx.inputs.size(); ++i) {
     if (transaction.tx.inputs[i].type() == typeid(KeyInput)) {
-      auto result = m_spent_keys.insert(::boost::get<KeyInput>(transaction.tx.inputs[i]).keyImage);
+      //auto result = m_spent_keys.insert(::boost::get<KeyInput>(transaction.tx.inputs[i]).keyImage);
+      auto result = m_spent_keys.insert(std::make_pair(::boost::get<KeyInput>(transaction.tx.inputs[i]).keyImage, block.height));
       if (!result.second) {
         logger(ERROR, BRIGHT_RED) <<
           "Double spending transaction was pushed to blockchain.";
@@ -2532,19 +2629,21 @@ bool Blockchain::storeBlockchainIndices() {
 
   logger(INFO, BRIGHT_WHITE) << "Saving blockchain indices...";
   BlockchainIndicesSerializer ser(*this, getTailId(), logger.getLogger());
+  logger(INFO) << "Blockchain.cpp ... storeToBinaryFile...";
 
   if (!storeToBinaryFile(ser, appendPath(m_config_folder, m_currency.blockchinIndicesFileName()))) {
     logger(ERROR, BRIGHT_RED) << "Failed to save blockchain indices";
     return false;
   }
 
+  logger(INFO) << "done with storeBlockchainIndices...";
   return true;
 }
 
 bool Blockchain::loadBlockchainIndices() {
   std::lock_guard<decltype(m_blockchain_lock)> lk(m_blockchain_lock);
 
-  logger(INFO, BRIGHT_WHITE) << "Loading blockchain indices for BlockchainExplorer...";
+  //logger(INFO, BRIGHT_WHITE) << "Loading blockchain indices for BlockchainExplorer...";
   BlockchainIndicesSerializer indiceloader(*this, get_block_hash(m_blocks.back().bl), logger.getLogger());
 
   //if (!indiceloader.indice_loaded()) {

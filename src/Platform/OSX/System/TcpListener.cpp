@@ -27,23 +27,31 @@ TcpListener::TcpListener() : dispatcher(nullptr) {
 
 TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t port) : dispatcher(&dispatcher) {
   std::string message;
-  listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  listener = -1;
+  try{listener=socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);}catch(...){/*nothing*/}
   if (listener == -1) {
     message = "socket failed, " + lastErrorMessage();
   } else {
-    int flags = fcntl(listener, F_GETFL, 0);
-    if (flags == -1 || (fcntl(listener, F_SETFL, flags | O_NONBLOCK) == -1)) {
+    int flags = -1;
+    try{flags=fcntl(listener, F_GETFL, 0);}catch(...){/*nothing*/}
+    int flags2 = -1;
+    try{flags2=fcntl(listener, F_SETFL, flags | O_NONBLOCK);}catch(...){/*nothing*/}
+    if (flags == -1 || flags2 == -1) {
       message = "fcntl failed, " + lastErrorMessage();
     } else {
       int on = 1;
-      if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on) == -1) {
+      int result=-1;
+      try{result=setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &on, sizeof on);}catch(...){/*nothing*/}
+      if (result == -1) {
         message = "setsockopt failed, " + lastErrorMessage();
       } else {
         sockaddr_in address;
         address.sin_family = AF_INET;
         address.sin_port = htons(port);
         address.sin_addr.s_addr = htonl(addr.getValue());
-        if (bind(listener, reinterpret_cast<sockaddr*>(&address), sizeof address) != 0) {
+        int bresult=-1;
+        try{bresult=bind(listener, reinterpret_cast<sockaddr*>(&address), sizeof address);}catch(...){/*nothing*/}
+        if (bresult != 0) {
           message = "bind failed, " + lastErrorMessage();
         } else if (listen(listener, SOMAXCONN) != 0) {
           message = "listen failed, " + lastErrorMessage();
@@ -51,7 +59,9 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
           struct kevent event;
           EV_SET(&event, listener, EVFILT_READ, EV_ADD | EV_DISABLE | EV_CLEAR, 0, SOMAXCONN, NULL);
 
-          if (kevent(dispatcher.getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
+          int kres=-1;
+          try{kres=kevent(dispatcher.getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){/*nothing*/}
+          if (kres == -1) {
             message = "kevent failed, " + lastErrorMessage();
           } else {
             context = nullptr;
@@ -61,7 +71,9 @@ TcpListener::TcpListener(Dispatcher& dispatcher, const IpAddress& addr, uint16_t
       }
     }
 
-    if (close(listener) == -1) {
+    int cresult = -1;
+    try{cresult=close(listener);}catch(...){/*nothing*/}
+    if (cresult == -1) {
       message = "close failed, " + lastErrorMessage();
     }
   }
@@ -81,7 +93,8 @@ TcpListener::TcpListener(TcpListener&& other) : dispatcher(other.dispatcher) {
 TcpListener::~TcpListener() {
   if (dispatcher != nullptr) {
     assert(context == nullptr);
-    int result = close(listener);
+    int result = -1;
+    try{result=close(listener);}catch(...){/*nothing*/}
     assert(result != -1);
   }
 }
@@ -89,7 +102,9 @@ TcpListener::~TcpListener() {
 TcpListener& TcpListener::operator=(TcpListener&& other) {
   if (dispatcher != nullptr) {
     assert(context == nullptr);
-    if (close(listener) == -1) {
+    int cresult=-1;
+    try{cresult=close(listener);}catch(...){/*nothing*/}
+    if (cresult == -1) {
       throw std::runtime_error("TcpListener::operator=, close failed, " + lastErrorMessage());
     }
   }
@@ -118,7 +133,9 @@ TcpConnection TcpListener::accept() {
   listenerContext.interrupted = false;
   struct kevent event;
   EV_SET(&event, listener, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR , 0, SOMAXCONN, &listenerContext);
-  if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
+  int kresult=-1;
+  try{kresult=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){/*nothing*/}
+  if (kresult == -1) {
     message = "kevent failed, " + lastErrorMessage();
   } else {
     context = &listenerContext;
@@ -130,8 +147,10 @@ TcpConnection TcpListener::accept() {
         
         struct kevent event;
         EV_SET(&event, listener, EVFILT_READ, EV_DELETE | EV_DISABLE, 0, 0, NULL);
-        
-        if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
+    
+        int kres=-1;
+        try{kres=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){/*nothing*/}    
+        if (kres == -1) {
           throw std::runtime_error("TcpListener::stop, kevent failed, " + lastErrorMessage());
         }
         
@@ -153,12 +172,16 @@ TcpConnection TcpListener::accept() {
 
     sockaddr inAddr;
     socklen_t inLen = sizeof(inAddr);
-    int connection = ::accept(listener, &inAddr, &inLen);
+    int connection = -1;
+    try{connection=::accept(listener, &inAddr, &inLen);}catch(...){/*nothing*/}
     if (connection == -1) {
       message = "accept failed, " + lastErrorMessage();
     } else {
-      int flags = fcntl(connection, F_GETFL, 0);
-      if (flags == -1 || fcntl(connection, F_SETFL, flags | O_NONBLOCK) == -1) {
+      int flags = -1;
+      try{flags=fcntl(connection, F_GETFL, 0);}catch(...){/*nothing*/}
+      int flags2 = -1;
+      try{flags2=fcntl(connection, F_SETFL, flags | O_NONBLOCK);}catch(...){/*nothing*/}
+      if (flags == -1 || flags2 == -1) {
         message = "fcntl failed, " + lastErrorMessage();
       } else {
         return TcpConnection(*dispatcher, connection);

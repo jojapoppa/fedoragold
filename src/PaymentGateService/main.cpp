@@ -23,6 +23,8 @@
 #include <errno.h>
 #endif
 
+#include <iostream>
+
 #define SERVICE_NAME "Payment Gate"
 
 PaymentGateService* ppg;

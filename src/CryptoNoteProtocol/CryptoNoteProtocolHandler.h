@@ -48,7 +48,7 @@ namespace CryptoNote
     void log_connections();
 
     // Interface t_payload_net_handler, where t_payload_net_handler is template argument of nodetool::node_server
-    void stop();
+    void stopHandler();
     bool start_sync(CryptoNoteConnectionContext& context);
     bool on_idle();
     void onConnectionOpened(CryptoNoteConnectionContext& context);

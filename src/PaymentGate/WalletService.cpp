@@ -541,6 +541,7 @@ void WalletService::start() {
 }
 
 void WalletService::init() {
+
   loadWallet();
   loadTransactionIdIndex();
 

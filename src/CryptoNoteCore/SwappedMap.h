@@ -116,62 +116,65 @@ template<class Key, class T> bool SwappedMap<Key, T>::open(const std::string& it
   }
   descriptorsCounter = 0;
 
-  m_itemsFile.open(itemFileName, std::ios::in | std::ios::out | std::ios::binary);
-  m_indexesFile.open(indexFileName, std::ios::in | std::ios::out | std::ios::binary);
-  if (m_itemsFile && m_indexesFile) {
-    uint64_t count;
-    m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
-    if (!m_indexesFile) {
-      return false;
-    }
+  try {
 
-    std::unordered_map<Key, Descriptor> descriptors;
-    uint64_t itemsFileSize = 0;
-    for (uint64_t i = 0; i < count; ++i) {
-      bool valid;
-      m_indexesFile.read(reinterpret_cast<char*>(&valid), sizeof valid);
-      if (!m_indexesFile) {
-        return false;
-      }
-
-      Key key;
-      m_indexesFile.read(reinterpret_cast<char*>(&key), sizeof key);
-      if (!m_indexesFile) {
-        return false;
-      }
-
-      uint32_t itemSize;
-      m_indexesFile.read(reinterpret_cast<char*>(&itemSize), sizeof itemSize);
-      if (!m_indexesFile) {
-        return false;
-      }
-
-      if (valid) {
-        Descriptor descriptor = { itemsFileSize, i };
-        descriptors.insert(std::make_pair(key, descriptor));
-      }
-      descriptorsCounter++;
-      itemsFileSize += itemSize;
-    }
-
-    m_descriptors.swap(descriptors);
-    m_itemsFileSize = itemsFileSize;
-  } else {
-    m_itemsFile.open(itemFileName, std::ios::out | std::ios::binary);
-    m_itemsFile.close();
     m_itemsFile.open(itemFileName, std::ios::in | std::ios::out | std::ios::binary);
-    m_indexesFile.open(indexFileName, std::ios::out | std::ios::binary);
-    uint64_t count = 0;
-    m_indexesFile.write(reinterpret_cast<char*>(&count), sizeof count);
-    if (!m_indexesFile) {
-      return false;
-    }
-
-    m_indexesFile.close();
     m_indexesFile.open(indexFileName, std::ios::in | std::ios::out | std::ios::binary);
-    m_descriptors.clear();
-    m_itemsFileSize = 0;
-  }
+    if (m_itemsFile && m_indexesFile) {
+      uint64_t count;
+      m_indexesFile.read(reinterpret_cast<char*>(&count), sizeof count);
+      if (!m_indexesFile) {
+        return false;
+      }
+
+      std::unordered_map<Key, Descriptor> descriptors;
+      uint64_t itemsFileSize = 0;
+      for (uint64_t i = 0; i < count; ++i) {
+        bool valid;
+        m_indexesFile.read(reinterpret_cast<char*>(&valid), sizeof valid);
+        if (!m_indexesFile) {
+          return false;
+        }
+
+        Key key;
+        m_indexesFile.read(reinterpret_cast<char*>(&key), sizeof key);
+        if (!m_indexesFile) {
+          return false;
+        }
+
+        uint32_t itemSize;
+        m_indexesFile.read(reinterpret_cast<char*>(&itemSize), sizeof itemSize);
+        if (!m_indexesFile) {
+          return false;
+        }
+
+        if (valid) {
+          Descriptor descriptor = { itemsFileSize, i };
+          descriptors.insert(std::make_pair(key, descriptor));
+        }
+        descriptorsCounter++;
+        itemsFileSize += itemSize;
+      }
+
+      m_descriptors.swap(descriptors);
+      m_itemsFileSize = itemsFileSize;
+    } else {
+      m_itemsFile.open(itemFileName, std::ios::out | std::ios::binary);
+      m_itemsFile.close();
+      m_itemsFile.open(itemFileName, std::ios::in | std::ios::out | std::ios::binary);
+      m_indexesFile.open(indexFileName, std::ios::out | std::ios::binary);
+      uint64_t count = 0;
+      m_indexesFile.write(reinterpret_cast<char*>(&count), sizeof count);
+      if (!m_indexesFile) {
+        return false;
+      }
+
+      m_indexesFile.close();
+      m_indexesFile.open(indexFileName, std::ios::in | std::ios::out | std::ios::binary);
+      m_descriptors.clear();
+      m_itemsFileSize = 0;
+    }
+  } catch (...) { return false; }
 
   m_poolSize = poolSize;
   m_items.clear();

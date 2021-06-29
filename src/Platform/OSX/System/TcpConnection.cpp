@@ -9,6 +9,7 @@
 #include <sys/event.h>
 #include <sys/errno.h>
 #include <sys/socket.h>
+#include <iostream>
 #include <unistd.h>
 
 #include "Dispatcher.h"
@@ -36,7 +37,8 @@ TcpConnection::~TcpConnection() {
   if (dispatcher != nullptr) {
     assert(readContext == nullptr);
     assert(writeContext == nullptr);
-    int result = close(connection);
+    int result = -1;
+    try{result=close(connection);}catch(...){result=-1;}
     assert(result != -1);
   }
 }
@@ -45,8 +47,11 @@ TcpConnection& TcpConnection::operator=(TcpConnection&& other) {
   if (dispatcher != nullptr) {
     assert(readContext == nullptr);
     assert(writeContext == nullptr);
-    if (close(connection) == -1) {
-      throw std::runtime_error("TcpConnection::operator=, close failed, " + lastErrorMessage());
+    int cresult=-1;
+    try{cresult=close(connection);}catch(...){cresult=-1;}
+    if (cresult == -1) {
+      //throw std::runtime_error("TcpConnection::operator=, close failed, " + lastErrorMessage());
+      std::cerr << "TcpConnection::operator=, close failed, " << lastErrorMessage() << std::endl;
     }
   }
 
@@ -71,7 +76,8 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
   }
 
   std::string message;
-  ssize_t transferred = ::recv(connection, (void *)data, size, 0);
+  ssize_t transferred = -1;
+  try{transferred = ::recv(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
   if (transferred == -1) {
     if (errno != EAGAIN  && errno != EWOULDBLOCK) {
       message = "recv failed, " + lastErrorMessage();
@@ -80,8 +86,14 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
       context.context = dispatcher->getCurrentContext();
       context.interrupted = false;
       struct kevent event;
-      EV_SET(&event, connection, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR | EV_ONESHOT, 0, 0, &context);
-      if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
+      int kresult = 0;
+      try{EV_SET(&event, connection, EVFILT_READ, EV_ADD | EV_ENABLE | EV_CLEAR | EV_ONESHOT, 0, 0, &context);}
+        catch(...){kresult=-1;}
+      if (kresult != -1) {
+        kresult=-1;
+        try{kresult=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){kresult=-1;}
+      }
+      if (kresult == -1) {
         message = "kevent failed, " + lastErrorMessage();
       } else {
         readContext = &context;
@@ -91,10 +103,16 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
           OperationContext* context = static_cast<OperationContext*>(readContext);
           if (!context->interrupted) {
             struct kevent event;
-            EV_SET(&event, connection, EVFILT_READ, EV_DELETE | EV_DISABLE, 0, 0, NULL);
-            
-            if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
-              throw std::runtime_error("TcpListener::interruptionProcedure, kevent failed, " + lastErrorMessage());
+            int kresult = 0;
+            try{EV_SET(&event, connection, EVFILT_READ, EV_DELETE | EV_DISABLE, 0, 0, NULL);}
+              catch(...){kresult=-1;}
+            if (kresult != -1) {
+              kresult=-1;
+              try{kresult = kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){kresult=-1;} 
+            }
+            if (kresult == -1) {
+              //throw std::runtime_error("TcpListener::interruptionProcedure, kevent failed, " + lastErrorMessage());
+              //std::cerr << "TcpListener::interruptionProcedure, kevent failed, " << lastErrorMessage() << std::endl;
             }
             
             context->interrupted = true;
@@ -113,7 +131,8 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
           throw InterruptedException();
         }
 
-        ssize_t transferred = ::recv(connection, (void *)data, size, 0);
+        ssize_t transferred = -1;
+        try{transferred=::recv(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
         if (transferred == -1) {
           message = "recv failed, " + lastErrorMessage();
         } else {
@@ -123,7 +142,9 @@ size_t TcpConnection::read(uint8_t* data, size_t size, Logging::LoggerRef &logge
       }
     }
 
-    throw std::runtime_error("TcpConnection::read, " + message);
+    /* do nothing */
+    //throw std::runtime_error("TcpConnection::read, " + message);
+    //std::cerr << "runtime error TcpConnection::read, " << message << std::endl;
   }
 
   assert(transferred <= static_cast<ssize_t>(size));
@@ -139,14 +160,19 @@ size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef
 
   std::string message;
   if (size == 0) {
-    if (shutdown(connection, SHUT_WR) == -1) {
-      throw std::runtime_error("TcpConnection::write, shutdown failed, " + lastErrorMessage());
+    int sresult=-1;
+    try{sresult=shutdown(connection, SHUT_WR);}catch(...){sresult=-1;}
+    if (sresult == -1) {
+      /* do nothing */
+      //throw std::runtime_error("TcpConnection::write, shutdown failed, " + lastErrorMessage());
+      //std::cerr << "TcpConnection::write, shutdown failed, " << lastErrorMessage() << std::endl;
     }
 
     return 0;
   }
 
-  ssize_t transferred = ::send(connection, (void *)data, size, 0);
+  ssize_t transferred = -1;
+  try{transferred=::send(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
   if (transferred == -1) {
     if (errno != EAGAIN  && errno != EWOULDBLOCK) {
       message = "send failed, " + lastErrorMessage();
@@ -155,8 +181,14 @@ size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef
       context.context = dispatcher->getCurrentContext();
       context.interrupted = false;
       struct kevent event;
-      EV_SET(&event, connection, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, &context);
-      if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
+      int kresult=0;
+      try{EV_SET(&event, connection, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, &context);}
+        catch(...){kresult=-1;}
+      if (kresult != -1) {
+        kresult=-1;
+        try{kresult=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){kresult=-1;}
+      }
+      if (kresult == -1) {
         message = "kevent failed, " + lastErrorMessage();
       } else {
         writeContext = &context;
@@ -166,10 +198,16 @@ size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef
           OperationContext* context = static_cast<OperationContext*>(writeContext);
           if (!context->interrupted) {
             struct kevent event;
-            EV_SET(&event, connection, EVFILT_WRITE, EV_DELETE | EV_DISABLE, 0, 0, NULL);
-            
-            if (kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL) == -1) {
-              throw std::runtime_error("TcpListener::stop, kevent failed, " + lastErrorMessage());
+            int kresult = 0;
+            try{EV_SET(&event, connection, EVFILT_WRITE, EV_DELETE | EV_DISABLE, 0, 0, NULL);}
+              catch(...){kresult=-1;}
+            if (kresult != -1) {
+              kresult = -1; 
+              try{kresult=kevent(dispatcher->getKqueue(), &event, 1, NULL, 0, NULL);}catch(...){kresult=-1;} 
+            }
+            if (kresult == -1) {
+              //throw std::runtime_error("TcpListener::stop, kevent failed, " + lastErrorMessage());
+              std::cerr << "TcpListener::stop, kevent failed, " << lastErrorMessage() << std::endl;
             }
             
             context->interrupted = true;
@@ -188,7 +226,8 @@ size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef
           throw InterruptedException();
         }
 
-        ssize_t transferred = ::send(connection, (void *)data, size, 0);
+        ssize_t transferred = -1;
+        try{transferred=::send(connection, (void *)data, size, 0);}catch(...){transferred=-1;}
         if (transferred == -1) {
           message = "send failed, " + lastErrorMessage();
         } else {
@@ -198,7 +237,9 @@ size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef
       }
     }
 
-    throw std::runtime_error("TcpConnection::write, " + message);
+    // don't print anything out here... bad handles happen...
+    //throw std::runtime_error("TcpConnection::write, " + message);
+    //std::cerr << "TcpConnection::write, " << message << std::endl;
   }
 
   assert(transferred <= static_cast<ssize_t>(size));
@@ -208,8 +249,11 @@ size_t TcpConnection::write(const uint8_t* data, size_t size, Logging::LoggerRef
 std::pair<IpAddress, uint16_t> TcpConnection::getPeerAddressAndPort() const {
   sockaddr_in addr;
   socklen_t size = sizeof(addr);
-  if (getpeername(connection, reinterpret_cast<sockaddr*>(&addr), &size) != 0) {
-    throw std::runtime_error("TcpConnection::getPeerAddress, getpeername failed, " + lastErrorMessage());
+  int peerresult=-1;
+  try {peerresult = getpeername(connection, reinterpret_cast<sockaddr*>(&addr), &size);}catch(...){peerresult=-1;}
+  if (peerresult != 0) {
+    //throw std::runtime_error("TcpConnection::getPeerAddress, getpeername failed, " + lastErrorMessage());
+    std::cerr << "TcpConnection::getPeerAddress, getpeername failed, " << lastErrorMessage() << std::endl;
   }
 
   assert(size == sizeof(sockaddr_in));
@@ -218,8 +262,15 @@ std::pair<IpAddress, uint16_t> TcpConnection::getPeerAddressAndPort() const {
 
 TcpConnection::TcpConnection(Dispatcher& dispatcher, int socket) : dispatcher(&dispatcher), connection(socket), readContext(nullptr), writeContext(nullptr) {
   int val = 1;
-  if (setsockopt(connection, SOL_SOCKET, SO_NOSIGPIPE, (void*)&val, sizeof val) == -1) {
-    throw std::runtime_error("TcpConnection::TcpConnection, setsockopt failed, " + lastErrorMessage());
+  int optresult=-1;
+
+  try{optresult=setsockopt(connection, SOL_SOCKET, SO_NOSIGPIPE,
+    (void*)&val, sizeof val);}catch(...){optresult=-1;}
+
+  if (optresult == -1) {
+    // do nothing
+    //throw std::runtime_error("TcpConnection::TcpConnection, setsockopt failed, " + lastErrorMessage());
+    //std::cerr << "TcpConnection::TcpConnection, setsockopt failed, " << lastErrorMessage() << std::endl;
   }
 }
 

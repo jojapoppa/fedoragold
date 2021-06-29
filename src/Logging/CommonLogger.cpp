@@ -78,7 +78,8 @@ void CommonLogger::setMaxLevel(Level level) {
   logLevel = level;
 }
 
-CommonLogger::CommonLogger(Level level) : logLevel(level), pattern("%D %T %L [%C] ") {
+//use [[ and ]] as it's easier to search logs in vi, as those chars show up individually in data...
+CommonLogger::CommonLogger(Level level) : logLevel(level), pattern("%D %T %L [[ %C ]] ") {
 }
 
 void CommonLogger::doLogString(const std::string& message) {

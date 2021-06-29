@@ -126,15 +126,15 @@ std::time_t core::getStartTime() const {
 bool core::init(const CoreConfig& config, const MinerConfig& minerConfig, bool load_existing) {
   m_config_folder = config.configFolder;
 
-  logger(INFO) << "Initialize memory pool...";
+  //logger(INFO) << "Initialize memory pool...";
   bool r = m_mempool.init(m_config_folder);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize memory pool"; return false; }
 
-  logger(INFO) << "Initialize block chain...";
+  //logger(INFO) << "Initialize block chain...";
   r = m_blockchain.init(m_config_folder, load_existing);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage"; return false; }
 
-  logger(INFO) << "Miner state init...";
+  //logger(INFO) << "Miner state init...";
   r = m_miner->init(minerConfig);
   if (!(r)) { logger(ERROR, BRIGHT_RED) << "Failed to initialize blockchain storage for miner"; return false; }
 
@@ -153,9 +153,13 @@ bool core::load_state_data() {
 }
 
 bool core::deinit() {
+logger(INFO) << "core deinit()";
   m_miner->stop();
+logger(INFO) << "miner stopped";
   m_mempool.deinit();
+logger(INFO) << "mempool deinit completed";
   m_blockchain.deinit();
+logger(INFO) << "blockchain deinit completed"; // never got here!!!!
   return true;
 }
 
@@ -441,6 +445,8 @@ bool core::add_new_tx(const Transaction& tx, const Crypto::Hash& tx_hash, size_t
     logger(TRACE) << "tx " << tx_hash << " is already in transaction pool";
     return true;
   }
+
+  logger(DEBUGGING) << "calling m_mempool.add_tx...";
 
   return m_mempool.add_tx(tx, tx_hash, blob_size, tvc, keeped_by_block, height);
 }
@@ -1132,11 +1138,16 @@ uint64_t core::getTotalGeneratedAmount() {
 }
 
 bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& txHash, size_t blobSize, tx_verification_context& tvc, bool keptByBlock, uint32_t height) {
+
+  logger(DEBUGGING) << "handleIncomingTransaction...";
+
   if (!check_tx_syntax(tx)) {
     logger(INFO) << "WRONG TRANSACTION BLOB, Failed to check tx " << txHash << " syntax, rejected";
     tvc.m_verifivation_failed = true;
     return false;
   }
+
+  logger(DEBUGGING) << "checkpoints...";
 
   // is not in checkpoint zone
   if (!m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
@@ -1154,13 +1165,15 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
     }
   }
 
+  logger(DEBUGGING) << "check semantic";
+
   if (!check_tx_semantic(tx, keptByBlock)) {
     logger(INFO) << "WRONG TRANSACTION BLOB, Failed to check tx " << txHash << " semantic, rejected";
     tvc.m_verifivation_failed = true;
     return false;
   }
 
-  //logger(INFO) << "Core.cpp handleIncomingTransaction: calling add_new_tx: " << txHash;
+  logger(DEBUGGING) << "Core.cpp handleIncomingTransaction: calling add_new_tx: " << txHash;
 
   bool r = add_new_tx(tx, txHash, blobSize, tvc, keptByBlock, height);
   if (tvc.m_verifivation_failed) {
@@ -1176,6 +1189,8 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
   if (tvc.m_added_to_pool) {
     poolUpdated();
   }
+
+  logger(DEBUGGING) << "incoming transaction processed... success";
 
   return r;
 }

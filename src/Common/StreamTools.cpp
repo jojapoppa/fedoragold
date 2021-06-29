@@ -29,60 +29,60 @@ namespace Common
 
     void read(IInputStream &in, int8_t &value)
     {
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, int16_t &value)
     {
-        // TODO: Convert from little endian on big endian platforms
-        read(in, &value, sizeof(value));
+        // TODO: joja, Convert from little endian on big endian platforms
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, int32_t &value)
     {
         // TODO: Convert from little endian on big endian platforms
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, int64_t &value)
     {
         // TODO: Convert from little endian on big endian platforms
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, uint8_t &value)
     {
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, uint16_t &value)
     {
         // TODO: Convert from little endian on big endian platforms
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, uint32_t &value)
     {
         // TODO: Convert from little endian on big endian platforms
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, uint64_t &value)
     {
         // TODO: Convert from little endian on big endian platforms
-        read(in, &value, sizeof(value));
+        try{read(in, &value, sizeof(value));}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, std::vector<uint8_t> &data, uint64_t size)
     {
         data.resize(size);
-        read(in, data.data(), size);
+        try{read(in, data.data(), size);}catch(...){/*do nothing*/}
     }
 
     void read(IInputStream &in, std::string &data, uint64_t size)
     {
         std::vector<char> temp(size);
-        read(in, temp.data(), size);
+        try{read(in, temp.data(), size);}catch(...){/*do nothing*/}
         data.assign(temp.data(), size);
     }
 
@@ -92,7 +92,7 @@ namespace Common
         for (uint8_t shift = 0;; shift += 7)
         {
             uint8_t piece;
-            read(in, piece);
+            try{read(in, piece);}catch(...){/*do nothing*/}
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
 		// don't throw ... allow it to attempt recovery and resync
@@ -121,7 +121,7 @@ namespace Common
         for (uint8_t shift = 0;; shift += 7)
         {
             uint8_t piece;
-            read(in, piece);
+            try{read(in, piece);}catch(...){/*do nothing*/}
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
                 // don't throw ... allow it to attempt recovery and resync 
@@ -150,7 +150,7 @@ namespace Common
         for (uint8_t shift = 0;; shift += 7)
         {
             uint8_t piece;
-            read(in, piece);
+            try{read(in, piece);}catch(...){/*do nothing*/}
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
                 // don't throw ... allow it to attempt recovery and resync 
@@ -179,7 +179,7 @@ namespace Common
         for (uint8_t shift = 0;; shift += 7)
         {
             uint8_t piece;
-            read(in, piece);
+            try{read(in, piece);}catch(...){/*do nothing*/}
             if (shift >= sizeof(temp) * 8 - 7 && piece >= 1 << (sizeof(temp) * 8 - shift))
             {
                 // don't throw ... allow it to attempt recovery and resync 

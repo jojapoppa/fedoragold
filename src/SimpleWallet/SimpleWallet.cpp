@@ -352,7 +352,7 @@ Maybe<std::shared_ptr<WalletInfo>> openWallet(CryptoNote::WalletGreen &wallet, C
                 "Restored spend public key doesn't correspond to secret key: The password is wrong";
 
             std::string walletLegacyBadPwdMsg =
-                ": The password is wrong";
+                ": The password is incorrect";
 
             std::string alreadyOpenMsg = 
                 "MemoryMappedFile::open: The process cannot access the file because it is being used by another process.";

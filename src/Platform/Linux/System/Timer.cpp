@@ -79,7 +79,8 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
     expires.it_interval.tv_nsec = expires.it_interval.tv_sec = 0;
     expires.it_value.tv_sec = seconds.count();
     expires.it_value.tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(duration - seconds).count();
-    timerfd_settime(timer, 0, &expires, NULL);
+
+    try{timerfd_settime(timer, 0, &expires, NULL);}catch(...){/*do nothing*/}
 
     ContextPair contextPair;
     OperationContext timerContext;
@@ -92,7 +93,11 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
     timerEvent.events = EPOLLIN | EPOLLONESHOT;
     timerEvent.data.ptr = &contextPair;
 
-    if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer, &timerEvent) == -1) {
+    int res=-1;
+    try{res=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer,
+      &timerEvent);}catch(...){res=-1;}
+
+    if (res == -1) {
       throw std::runtime_error("Timer::sleep, epoll_ctl failed, " + lastErrorMessage());
     }
     dispatcher->getCurrentContext()->interruptProcedure = [&]() {
@@ -101,7 +106,11 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
         OperationContext* timerContext = static_cast<OperationContext*>(context);
         if (!timerContext->interrupted) {
           uint64_t value = 0;
-          if(::read(timer, &value, sizeof value) == -1 ){
+
+          int rlt=-1;
+          try{rlt=::read(timer, &value, sizeof value);}catch(...){rlt=-1;}
+
+          if(rlt == -1 ){
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wlogical-op"
             if(errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -120,7 +129,11 @@ void Timer::sleep(std::chrono::nanoseconds duration) {
           timerEvent.events = EPOLLONESHOT;
           timerEvent.data.ptr = nullptr;
 
-          if (epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer, &timerEvent) == -1) {
+          int pres = -1;
+          try{pres=epoll_ctl(dispatcher->getEpoll(), EPOLL_CTL_MOD, timer,
+            &timerEvent);}catch(...){pres=-1;}
+
+          if (pres == -1) {
             throw std::runtime_error("Timer::sleep, interrupt procedure, epoll_ctl failed, " + lastErrorMessage());
           }
         }

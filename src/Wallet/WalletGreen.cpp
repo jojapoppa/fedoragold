@@ -12,6 +12,7 @@
 #include <set>
 #include <tuple>
 #include <utility>
+#include <iostream>
 
 #include <System/EventLock.h>
 #include <System/RemoteContext.h>
@@ -459,6 +460,7 @@ void WalletGreen::load(std::istream& source, const std::string& password) {
 }
 
 void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) {
+
   WalletSerializer s(
     *this,
     m_viewPublicKey,
@@ -485,6 +487,7 @@ void WalletGreen::unsafeLoad(std::istream& source, const std::string& password) 
 }
 
 void WalletGreen::convertAndLoadWalletFile(std::istream& source, const std::string& password) {
+
   WalletSerializerV5 s(
     (ITransfersObserver&)*this,
     m_viewPublicKey,
@@ -501,6 +504,7 @@ void WalletGreen::convertAndLoadWalletFile(std::istream& source, const std::stri
   );
 
   StdInputStream inputStream(source);
+
   s.load(password, inputStream);
 
   m_password = password;
