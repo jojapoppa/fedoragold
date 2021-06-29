@@ -264,6 +264,7 @@ bool core::get_stat_info(core_stat_info& st_inf) {
 //}
 
 bool core::check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_verification_context& tvc) {
+  uint32_t height = get_current_blockchain_height();
   uint64_t inputs_amount = 0;
   if (!get_inputs_money_amount(tx, inputs_amount)) {
     tvc.m_verifivation_failed = true;
@@ -282,23 +283,22 @@ bool core::check_tx_fee(const CryptoNote::Transaction& tx, size_t blobSize, tx_v
   Crypto::Hash h = NULL_HASH;
   getObjectHash(tx, h, blobSize);
 
-  //const uint64_t fee = inputs_amount - outputs_amount;
-  //bool isFusionTransaction = fee == 0 && m_currency.isFusionTransaction(tx, blobSize);
+  const uint64_t fee = inputs_amount - outputs_amount;
+  bool isFusionTransaction = fee == 0 && m_currency.isFusionTransaction(tx, blobSize);
  
-  //check for minimal fee (is this needed?  ... i think not) 
-  //bool enough = true;
-  //if (!isFusionTransaction && !m_blockchain.isInCheckpointZone(get_current_blockchain_height())) {
-    //uint64_t min = m_blockchain.getMinimalFee(height);
-    //if (fee < (min - min * 20 / 100)) {
-    //  logger(INFO) << "[Core] Transaction fee is not enough: " << m_currency.formatAmount(fee) << ", minimum fee: " << m_currency.formatAmount(min);
-    //  enough = false;
-    //}
-    //if (!enough) {
-    //  tvc.m_verifivation_failed = true;
-    //  tvc.m_tx_fee_too_small = true;
-    //  return false;
-    //}
-  //}
+  bool enough = true;
+  if (!isFusionTransaction && !m_blockchain.isInCheckpointZone(height)) {
+    uint64_t min = m_blockchain.getMinimalFee(height);
+    if (fee < (min - min * 20 / 100)) {
+      logger(INFO) << "[Core] Transaction fee is not enough: " << m_currency.formatAmount(fee) << ", minimum fee: " << m_currency.formatAmount(min);
+      enough = false;
+    }
+    if (!enough) {
+      tvc.m_verifivation_failed = true;
+      tvc.m_tx_fee_too_small = true;
+      return false;
+    }
+  }
 
   return true;
 }

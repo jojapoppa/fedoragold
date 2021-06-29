@@ -96,8 +96,8 @@ bool Currency::generateGenesisBlock() {
   return true;
 }
 
-/*
 uint64_t Currency::calculateReward(uint64_t alreadyGeneratedCoins) const {
+  /*
   // assert(alreadyGeneratedCoins <= m_moneySupply);
   assert(m_emissionSpeedFactor > 0 && m_emissionSpeedFactor <= 8 * sizeof(uint64_t));
 
@@ -119,15 +119,17 @@ uint64_t Currency::calculateReward(uint64_t alreadyGeneratedCoins) const {
   }
 
   return baseReward;
+  */
+
+  return (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
 }
-*/
 
 bool Currency::getBlockReward(size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins,
   uint64_t fee, uint64_t& reward, int64_t& emissionChange) const {
   assert(alreadyGeneratedCoins <= m_moneySupply);
   assert(m_emissionSpeedFactor > 0 && m_emissionSpeedFactor <= 8 * sizeof(uint64_t));
 
-  uint64_t baseReward = (m_moneySupply - alreadyGeneratedCoins) >> m_emissionSpeedFactor;
+  uint64_t baseReward = calculateReward(alreadyGeneratedCoins);
 
   medianSize = std::max(medianSize, m_blockGrantedFullRewardZone);
   if (currentBlockSize > UINT64_C(2) * medianSize) {
@@ -449,6 +451,14 @@ uint64_t Currency::getMinimalFee(uint64_t avgCurrentDifficulty, uint64_t current
     return CryptoNote::parameters::MAXIMUM_FEE;
 
   minimumFee = static_cast<uint64_t>(minFee);
+
+  // Make all insignificant digits zero
+  uint64_t i = 1000000000;
+  while (i > 1) {
+    if (minimumFee > i * 100) { minimumFee = ((minimumFee + i / 2) / i) * i; break; }
+    else { i /= 10; }
+  }
+
   return std::min<uint64_t>(CryptoNote::parameters::MAXIMUM_FEE, minimumFee);
 }
 

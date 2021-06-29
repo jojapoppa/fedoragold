@@ -84,7 +84,7 @@ namespace CryptoNote {
     difficulty_type getAvgDifficulty(uint32_t height, size_t window);
     difficulty_type getAvgDifficulty(uint32_t height);
     uint64_t getBlockTimestamp(uint32_t height);
-    //uint64_t getMinimalFee(uint32_t height);
+    uint64_t getMinimalFee(uint32_t height);
     uint64_t getCoinsInCirculation();
     bool addNewBlock(const Block& bl_, block_verification_context& bvc);
     bool resetAndSetGenesisBlock(const Block& b);

@@ -110,7 +110,7 @@ namespace CryptoNote {
     Logging::ILogger& log,
     bool blockchainIndexesEnabled) :
     m_currency(currency),
-    //m_core(core),
+    m_core(core),
     m_txCheckInterval(60, timeProvider),
     m_validator(validator),
     m_timeProvider(timeProvider),
@@ -453,14 +453,9 @@ namespace CryptoNote {
 
       size_t blockSizeLimit = (txd.fee == 0) ? median_size : max_total_size;
       if (blockSizeLimit < total_size + txd.blobSize) {
-        logger(INFO, BRIGHT_YELLOW) << "Memory pool size limit reached";
+        logger(DEBUGGING, BRIGHT_YELLOW) << "Memory pool size limit reached";
         continue;
       }
-
-      //if (m_ttlIndex.count(txd.id) > 0)
-      //{
-      //  continue;
-      //}
 
       uint64_t inputs_amount = m_currency.getTransactionAllInputsAmount(txd.tx, height);
       uint64_t outputs_amount = get_outs_money_amount(txd.tx);
@@ -473,12 +468,15 @@ namespace CryptoNote {
         continue;
       }
 
-//      tx_verification_context tvc = boost::value_initialized<tx_verification_context>();
-//      if (!m_core.check_tx_fee(txd.tx, txd.blobSize, tvc)) {
-//        logger(DEBUGGING) << "Transaction " << txd.id <<
-//          " not included to block template because fee is too small";
-//        continue;
-//      }
+      tx_verification_context tvc = boost::value_initialized<tx_verification_context>();
+
+      // Joja
+      // To use this FIRST verify constants used in Currency.cpp::getMinimalFee
+      //if (!m_core.check_tx_fee(txd.tx, txd.blobSize, tvc)) {
+      //  logger(DEBUGGING) << "Transaction " << txd.id <<
+      //    " not included to block template because fee is too small";
+      //  continue;
+      //}
 
       TransactionCheckInfo checkInfo(txd);
       bool ready = false;
