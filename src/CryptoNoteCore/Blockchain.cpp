@@ -227,16 +227,18 @@ public:
     logger(INFO) << operation << "block index...";
     s(m_bs.m_blockIndex, "block_index");
 
-    logger(INFO) << operation << "transaction map...";
-    //s(m_bs.m_transactionMap, "transactions");
-    if (s.type() == ISerializer::INPUT) {
-      phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
-      m_bs.m_transactionMap.load(ar_in);
-    }
-    else {
-      phmap::BinaryOutputArchive ar_out(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
-      m_bs.m_transactionMap.dump(ar_out);
-    }
+    try {
+      logger(INFO) << operation << "transaction map...";
+      //s(m_bs.m_transactionMap, "transactions");
+      if (s.type() == ISerializer::INPUT) {
+        phmap::BinaryInputArchive ar_in(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
+        m_bs.m_transactionMap.load(ar_in);
+      }
+      else {
+        phmap::BinaryOutputArchive ar_out(appendPath(m_bs.m_config_folder, "transactionsmap.dat").c_str());
+        m_bs.m_transactionMap.dump(ar_out);
+      }
+    } catch(...) { /* trigger rebuild */ return; }
 
     logger(INFO) << operation << "spent keys...";
     //s(m_bs.m_spent_keys, "spent_keys");
