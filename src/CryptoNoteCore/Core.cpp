@@ -1158,11 +1158,26 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
       return false;
     }
 
-    if (!check_tx_fee(tx, blobSize, tvc)) {
-      logger(INFO) << "Transaction verification failed: insufficient fee";
-      tvc.m_verifivation_failed = true;
-      return false;
-    }
+    //ALREADY CHECKED BELOW ... HANGS IF CHECKED HERE...
+    //if (!check_tx_fee(tx, blobSize, tvc)) {
+    //  logger(INFO) << "Transaction verification failed: insufficient fee";
+    //  tvc.m_verifivation_failed = true;
+    //  return false;
+    //}
+
+    //KARBO DOES THIS... but only KARBO
+    //if (!check_tx_mixin(tx, txHash, height)) {
+    //  logger(INFO) << "Transaction verification failed: mixin count for transaction " <<
+    //    txHash << " is too large, rejected";
+    //  tvc.m_verification_failed = true;
+    //  return false;
+    //}
+    //if (!check_tx_unmixable(tx, txHash, height)) {
+    //  logger(ERROR) << "Transaction verification failed: unmixable output for transaction "
+    //    << txHash << ", rejected";
+    //  tvc.m_verification_failed = true;
+    //  return false;
+    //}
   }
 
   logger(DEBUGGING) << "check semantic";
@@ -1191,7 +1206,6 @@ bool core::handleIncomingTransaction(const Transaction& tx, const Crypto::Hash& 
   }
 
   logger(DEBUGGING) << "incoming transaction processed... success";
-
   return r;
 }
 
