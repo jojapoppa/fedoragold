@@ -124,13 +124,14 @@ const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 
 // Add here your network seed nodes
 const std::initializer_list<const char*> SEED_NODES = {
-  "202.182.106.252:30158",  // blockexplorer & seed
+  "94.156.174.82:30158",    // blockexplorer & seed
   "cryptonoteclub.fedoragold.com:30158",   // pool seed
   "135.125.238.206:30158",  // alternate pool seed (no dns)
   "5.189.155.88:30158",     // pool seed (no dns)
-  "45.76.106.169:30158",    // fedswap-test
+  "94.156.174.83:30158",    // fedswap-test
   "172.86.75.248:30158",    // fedoragold.com
-  "192.248.165.242:30158",  // fedswap
+  "94.156.174.81:30158",    // fedswap
+  "94.156.174.99:30158",    // legacy fedswap
   "172.86.75.202:30158"     // email-fedoragold.com
 };
 
