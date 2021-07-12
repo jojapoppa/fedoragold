@@ -124,13 +124,14 @@ const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "";
 
 // Add here your network seed nodes
 const std::initializer_list<const char*> SEED_NODES = {
-  "202.182.106.252:30158",  // blockexplorer & seed
+  "94.156.174.82:30158",    // blockexplorer & seed
   "cryptonoteclub.fedoragold.com:30158",   // pool seed
   "135.125.238.206:30158",  // alternate pool seed (no dns)
   "5.189.155.88:30158",     // pool seed (no dns)
-  "45.76.106.169:30158",    // fedswap-test
+  "94.156.174.83:30158",    // fedswap-test
   "172.86.75.248:30158",    // fedoragold.com
-  "192.248.165.242:30158",  // fedswap
+  "94.156.174.81:30158",    // fedswap
+  "94.156.174.99:30158",    // legacy fedswap
   "172.86.75.202:30158"     // email-fedoragold.com
 };
 
@@ -179,6 +180,9 @@ const std::initializer_list<CheckpointData> CHECKPOINTS = {
   { 2163936, "251e476e86b66a45623606ae5c690ace50d07dc4356be22add25cd8e9528d0bf" },
   { 2164043, "9b041e44b6a8b78eecb2ef24fc47e5ccfed63333fe6b98bb6ec298a241240686" },
   { 2164045, "bc181ea1429c8d5e50ca253fed2bf42aaea1c152c271a17a68a3435048685a0c" },
+  { 2470042, "6842084b170842c3e6cda69baf6e6a5d40a27b8c4d5ebddcd76ef7f358af9a16" },
+  { 2470043, "0a94914ad2f342a27bf39dfa95799e5e24caff13de40ad5d097d504a9902edb4" },
+  { 2471191, "f8fff14419e2fc60464f3c90c132134bdccc9c0418afd660ecad0423b5d1c13c" },
   { 2472801, "3970ee9913c6a541007602bfb2c5bc932af4128c92dfa2ab3809eb33e8e9cb1f" },
   { 2472802, "0065b32c70330256864844989fa2613dc511164bc1853cfc2175b048d71bd569" },
   { 2502350, "883ea69d5e7574c57d319156f3e6c41e005033ad2cfe0b5209e910b923c05327" },
